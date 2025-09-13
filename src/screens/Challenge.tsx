@@ -1,70 +1,28 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React from 'react';
 import {
   SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  NativeModules,
 } from 'react-native';
-import {encouragements, firstEncouragement} from '../constants/pushUp';
-
-const {PushupManager} = NativeModules;
+import usePushUpManager from '../hooks/usePushUpManager';
+import useHandleEngagements from '../hooks/useHandleEngagements';
 
 function Challenge(): React.JSX.Element {
-  const [count, setCount] = useState(0);
-  const [isTracking, setIsTracking] = useState(false);
-  const [encouragement, setEncouragement] = useState('');
-  const prevCountRef = useRef(0);
-
-  const getRandomEncouragement = () => {
-    const randomIndex = Math.floor(Math.random() * encouragements.length);
-    return encouragements[randomIndex];
-  };
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-
-    if (isTracking) {
-      PushupManager.startPushupSession();
-
-      interval = setInterval(async () => {
-        try {
-          const currentCount = await PushupManager.getPushupCount();
-
-          if (currentCount > prevCountRef.current) {
-            setEncouragement(getRandomEncouragement());
-          }
-
-          prevCountRef.current = currentCount;
-          setCount(currentCount);
-        } catch (error) {
-          console.error('Failed to get pushup count:', error);
-        }
-      }, 500);
-    } else if (interval) {
-      clearInterval(interval);
-      PushupManager.stopPushupSession();
-    }
-
-    return () => {
-      if (interval) {
-        clearInterval(interval);
+  const {count, isTracking, toggleTracking} = usePushUpManager({
+    countIncrementCallback: (currentCount: number) => {
+      if (currentCount === 0) {
+        //TODO: 이 부분 더 고민해서 적용 필요
+        setFirstEncouragement();
+        return;
       }
-      PushupManager.stopPushupSession();
-    };
-  }, [isTracking]);
+      setRandomEncouragement();
+    },
+  });
 
-  const toggleTracking = () => {
-    setIsTracking(prev => !prev);
-    if (isTracking) {
-      setCount(0);
-      prevCountRef.current = 0;
-      setEncouragement('');
-    } else {
-      setEncouragement(firstEncouragement);
-    }
-  };
+  const {encouragement, setRandomEncouragement, setFirstEncouragement} =
+    useHandleEngagements();
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -75,7 +33,7 @@ function Challenge(): React.JSX.Element {
         <Text style={styles.encouragementText}>{encouragement}</Text>
 
         <Text style={styles.instructionText}>
-          {isTracking && '기기를 얼굴과 마주보게 바닥에 두세요'}
+          {!isTracking && '기기를 얼굴과 마주보게 바닥에 두세요'}
         </Text>
         <TouchableOpacity
           style={[

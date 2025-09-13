@@ -1,10 +1,11 @@
-import Challenge from './src/screens/Challenge';
 import {SafeAreaView, StyleSheet} from 'react-native';
+import AppNavigation from './src/navigations/AppNavigation';
 
 function App(): React.JSX.Element {
   return (
     <SafeAreaView style={styles.container}>
-      <Challenge />
+      {/* <Challenge /> */}
+      <AppNavigation />
     </SafeAreaView>
   );
 }

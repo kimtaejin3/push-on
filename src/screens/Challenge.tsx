@@ -1,15 +1,13 @@
 import React from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {SafeAreaView, StyleSheet, Text, View} from 'react-native';
 import usePushUpManager from '../hooks/usePushUpManager';
 import useHandleEngagements from '../hooks/useHandleEngagements';
+import CustomButton from '../components/CustomButton';
+import {useNavigation} from '@react-navigation/native';
 
 function Challenge(): React.JSX.Element {
+  const navigation = useNavigation();
+
   const {count, isTracking, toggleTracking} = usePushUpManager({
     countIncrementCallback: (currentCount: number) => {
       if (currentCount === 0) {
@@ -35,16 +33,16 @@ function Challenge(): React.JSX.Element {
         <Text style={styles.instructionText}>
           {!isTracking && '기기를 얼굴과 마주보게 바닥에 두세요'}
         </Text>
-        <TouchableOpacity
-          style={[
-            styles.button,
-            isTracking ? styles.stopButton : styles.startButton,
-          ]}
-          onPress={toggleTracking}>
-          <Text style={styles.buttonText}>
-            {isTracking ? '중지하기' : '시작하기'}
-          </Text>
-        </TouchableOpacity>
+        <CustomButton
+          title={isTracking ? '중지하기' : '시작하기'}
+          variant={isTracking ? 'stop' : 'start'}
+          onPress={() => {
+            toggleTracking();
+            if (isTracking) {
+              navigation.goBack();
+            }
+          }}
+        />
       </View>
     </SafeAreaView>
   );
@@ -74,28 +72,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 15,
     marginLeft: 5,
-  },
-  button: {
-    paddingVertical: 20,
-    paddingHorizontal: 80,
-    borderRadius: 15,
-    marginBottom: 30,
-    width: '100%',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  startButton: {
-    backgroundColor: '#FF6969',
-  },
-  stopButton: {
-    backgroundColor: '#F44336',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    width: '100%',
   },
   instructionText: {
     marginTop: 'auto',

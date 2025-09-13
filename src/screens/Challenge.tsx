@@ -1,26 +1,13 @@
 import React from 'react';
 import {SafeAreaView, StyleSheet, Text, View} from 'react-native';
 import usePushUpManager from '../hooks/usePushUpManager';
-import useHandleEngagements from '../hooks/useHandleEngagements';
 import CustomButton from '../components/CustomButton';
 import {useNavigation} from '@react-navigation/native';
 
 function Challenge(): React.JSX.Element {
   const navigation = useNavigation();
 
-  const {count, isTracking, toggleTracking} = usePushUpManager({
-    countIncrementCallback: (currentCount: number) => {
-      if (currentCount === 0) {
-        //TODO: 이 부분 더 고민해서 적용 필요
-        setFirstEncouragement();
-        return;
-      }
-      setRandomEncouragement();
-    },
-  });
-
-  const {encouragement, setRandomEncouragement, setFirstEncouragement} =
-    useHandleEngagements();
+  const {count, isTracking, toggleTracking} = usePushUpManager();
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -28,7 +15,7 @@ function Challenge(): React.JSX.Element {
         <Text style={styles.title}>SET 1</Text>
 
         <Text style={styles.countText}>{count}</Text>
-        <Text style={styles.encouragementText}>{encouragement}</Text>
+        {/* <Text style={styles.encouragementText}>{encouragement}</Text> */}
 
         <Text style={styles.instructionText}>
           {!isTracking && '기기를 얼굴과 마주보게 바닥에 두세요'}

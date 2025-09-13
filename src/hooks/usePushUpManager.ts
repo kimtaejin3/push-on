@@ -3,11 +3,7 @@ import {NativeModules} from 'react-native';
 
 const {PushupManager} = NativeModules;
 
-interface UsePushUpManagerProps {
-  countIncrementCallback: (currentCount: number) => void;
-}
-
-function usePushUpManager({countIncrementCallback}: UsePushUpManagerProps) {
+function usePushUpManager() {
   const [count, setCount] = useState(0);
   const [isTracking, setIsTracking] = useState(false);
   const prevCountRef = useRef(0);
@@ -21,10 +17,6 @@ function usePushUpManager({countIncrementCallback}: UsePushUpManagerProps) {
       interval = setInterval(async () => {
         try {
           const currentCount = await PushupManager.getPushupCount();
-
-          if (currentCount > prevCountRef.current) {
-            countIncrementCallback(currentCount);
-          }
 
           prevCountRef.current = currentCount;
           setCount(currentCount);
@@ -43,7 +35,7 @@ function usePushUpManager({countIncrementCallback}: UsePushUpManagerProps) {
       }
       PushupManager.stopPushupSession();
     };
-  }, [isTracking, countIncrementCallback]);
+  }, [isTracking]);
 
   const toggleTracking = () => {
     setIsTracking(prev => !prev);

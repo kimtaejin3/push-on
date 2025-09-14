@@ -1,7 +1,7 @@
 import React from 'react';
 import {SafeAreaView, StyleSheet, Text, View} from 'react-native';
 import usePushUpManager from '../hooks/usePushUpManager';
-import CustomButton from '../components/CustomButton';
+import CustomButton from '../components/common/CustomButton';
 import {useNavigation} from '@react-navigation/native';
 
 function Challenge(): React.JSX.Element {

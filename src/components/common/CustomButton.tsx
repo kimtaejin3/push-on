@@ -45,13 +45,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   defaultButton: {
-    backgroundColor: '#FF6969',
+    backgroundColor: '#000',
   },
   startButton: {
-    backgroundColor: '#FF6969',
+    backgroundColor: '#000',
   },
   stopButton: {
-    backgroundColor: '#F44336',
+    backgroundColor: 'gray',
   },
   buttonText: {
     color: 'white',

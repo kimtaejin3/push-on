@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   highlightGraph: {
-    backgroundColor: '#FF6969',
+    backgroundColor: '#000',
   },
   selectedGraph: {
     transform: [{scaleY: 1.2}],
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   },
   dateStatisticsItem: {
     alignItems: 'center',
-    borderColor: 'red',
+    borderColor: '#000',
     borderWidth: 0.3,
     paddingVertical: 20,
     borderRadius: 15,
@@ -189,9 +189,9 @@ const styles = StyleSheet.create({
   dateStatisticsTitle: {
     fontSize: 15,
     marginBottom: 10,
-    fontWeight: 'bold',
   },
   dateStatisticsValue: {
+    fontWeight: 'bold',
     fontSize: 13,
   },
   setStatistics: {

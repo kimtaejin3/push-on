@@ -28,9 +28,27 @@ function Home(): React.JSX.Element {
         <View style={styles.challengeContainer}>
           <View style={styles.card}>
             <Text style={styles.cardTitle}>최고 기록</Text>
-            <Text style={styles.cardText}>
-              총 횟수: 40번 / 총 수행시간: 1분 40초
-            </Text>
+            <View style={styles.recordContainer}>
+              <View style={styles.recordItem}>
+                <Fontawesome5
+                  name="hashtag"
+                  size={12}
+                  iconStyle="solid"
+                  color="#000"
+                />
+                <Text>총 횟수</Text>
+                <Text>40번</Text>
+              </View>
+              <View style={styles.recordItem}>
+                <Fontawesome5
+                  name="clock"
+                  size={12}
+                  iconStyle="solid"
+                  color="#000"
+                />
+                <Text>1분 40초</Text>
+              </View>
+            </View>
             <CustomButton
               title="푸쉬업 하기"
               onPress={() => navigation.navigate('Challenge')}
@@ -94,6 +112,17 @@ const styles = StyleSheet.create({
     padding: 15,
     gap: 10,
     borderRadius: 9999,
+  },
+  recordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 20,
+  },
+  recordItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
   },
 });
 

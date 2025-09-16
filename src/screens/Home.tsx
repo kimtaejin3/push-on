@@ -2,6 +2,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
 import {StyleSheet, Text, View, ScrollView} from 'react-native';
 import CustomButton from '../components/common/CustomButton';
+import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 
 function Home(): React.JSX.Element {
   const navigation = useNavigation();
@@ -14,9 +15,14 @@ function Home(): React.JSX.Element {
         <View style={styles.header}>
           {/* profile */}
           <View style={styles.profileContainer}>
-            <View style={styles.profileImage} />
+            <Fontawesome5
+              name="user"
+              size={20}
+              iconStyle="solid"
+              color="#000"
+            />
           </View>
-          <Text>Alarm</Text>
+          <Fontawesome5 name="bell" size={24} iconStyle="solid" color="black" />
         </View>
 
         <View style={styles.challengeContainer}>
@@ -85,15 +91,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#fff',
-    padding: 3,
+    padding: 15,
     gap: 10,
     borderRadius: 9999,
-  },
-  profileImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 9999,
-    backgroundColor: '#ebebeb',
   },
 });
 

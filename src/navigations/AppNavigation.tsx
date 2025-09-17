@@ -24,4 +24,15 @@ const AppStack = createNativeStackNavigator({
 
 const AppNavigation = createStaticNavigation(AppStack);
 
+export type AppStackParamList = {
+  Home: undefined;
+  Challenge: undefined;
+};
+
+declare global {
+  namespace ReactNavigation {
+    interface RootParamList extends AppStackParamList {}
+  }
+}
+
 export default AppNavigation;

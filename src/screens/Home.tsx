@@ -19,10 +19,15 @@ function Home(): React.JSX.Element {
               name="user"
               size={20}
               iconStyle="solid"
-              color="#000"
+              color="#242424"
             />
           </View>
-          <Fontawesome5 name="bell" size={24} iconStyle="solid" color="black" />
+          <Fontawesome5
+            name="bell"
+            size={24}
+            iconStyle="solid"
+            color="#242424"
+          />
         </View>
 
         <View style={styles.challengeContainer}>
@@ -53,6 +58,52 @@ function Home(): React.JSX.Element {
               title="푸쉬업 하기"
               onPress={() => navigation.navigate('Challenge')}
             />
+          </View>
+        </View>
+        <View style={styles.historyContainer}>
+          <View style={styles.historyDates}>
+            <View style={styles.historyDateItem}>
+              <Text style={styles.historyDateText}>Mon</Text>
+              <View style={styles.historyDateNumber}>
+                <Text style={styles.historyDateNumberText}>12</Text>
+              </View>
+            </View>
+            <View style={styles.historyDateItem}>
+              <Text style={styles.historyDateText}>Sat</Text>
+              <View style={styles.historyDateNumber}>
+                <Text style={styles.historyDateNumberText}>13</Text>
+              </View>
+            </View>
+            <View style={styles.historyDateItem}>
+              <Text style={styles.historyDateText}>Sun</Text>
+              <View style={styles.historyDateNumber}>
+                <Text style={styles.historyDateNumberText}>14</Text>
+              </View>
+            </View>
+            <View style={styles.historyDateItem}>
+              <Text style={styles.historyDateText}>Mon</Text>
+              <View style={styles.historyDateNumber}>
+                <Text style={styles.historyDateNumberText}>15</Text>
+              </View>
+            </View>
+            <View style={styles.historyDateItem}>
+              <Text style={styles.historyDateText}>Tue</Text>
+              <View style={styles.historyDateNumber}>
+                <Text style={styles.historyDateNumberText}>16</Text>
+              </View>
+            </View>
+            <View style={styles.historyDateItem}>
+              <Text style={styles.historyDateText}>Wed</Text>
+              <View style={styles.historyDateNumber}>
+                <Text style={styles.historyDateNumberText}>17</Text>
+              </View>
+            </View>
+            <View style={styles.historyDateItem}>
+              <Text style={styles.historyDateText}>Thu</Text>
+              <View style={styles.historyDateNumber}>
+                <Text style={styles.historyDateNumberText}>18</Text>
+              </View>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -123,6 +174,39 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
+  },
+  historyContainer: {
+    marginTop: 20,
+    backgroundColor: '#fff',
+    paddingVertical: 20,
+    paddingHorizontal: 10,
+    borderRadius: 15,
+  },
+  historyDates: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  historyDateItem: {
+    backgroundColor: '#c2c2c2',
+    paddingVertical: 12,
+    flex: 1,
+    borderRadius: 9999,
+    alignItems: 'center',
+  },
+  historyDateText: {
+    color: '#fff',
+    fontSize: 12,
+  },
+  historyDateNumber: {
+    backgroundColor: '#fff',
+    padding: 5,
+    borderRadius: 9999,
+    alignItems: 'center',
+    marginTop: 5,
+  },
+  historyDateNumberText: {
+    color: '#000',
   },
 });
 

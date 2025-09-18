@@ -96,6 +96,15 @@ function Home(): React.JSX.Element {
               </TouchableOpacity>
             ))}
           </View>
+
+          <View style={styles.historyContent}>
+            <View style={styles.historyContentItem}>
+              <Text>hi</Text>
+            </View>
+            <View style={styles.historyContentItem}>
+              <Text>hi</Text>
+            </View>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -201,6 +210,19 @@ const styles = StyleSheet.create({
   },
   historyDateNumberText: {
     color: '#000',
+  },
+  historyContent: {
+    marginTop: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 15,
+  },
+  historyContentItem: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: '#e8e8e8',
+    paddingVertical: 30,
+    borderRadius: 15,
   },
 });
 

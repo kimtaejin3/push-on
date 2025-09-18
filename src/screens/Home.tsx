@@ -95,7 +95,7 @@ function Home(): React.JSX.Element {
                   name="crown"
                   iconStyle="solid"
                   size={10}
-                  color="#000"
+                  color="#fff"
                 />
                 <Text style={styles.bestText}>BEST</Text>
               </View>
@@ -151,6 +151,18 @@ function Home(): React.JSX.Element {
             size={24}
             iconStyle="solid"
             color="#242424"
+          />
+        </View>
+
+        <View style={styles.banner}>
+          <Text style={styles.bannerText}>
+            팔굽혀펴기 앱이 출시 되었습니다 🎉
+          </Text>
+          <Fontawesome5
+            name="chevron-right"
+            iconStyle="solid"
+            size={15}
+            color="#fff"
           />
         </View>
 
@@ -235,7 +247,7 @@ function Home(): React.JSX.Element {
                 opacity: animatedHeight,
                 maxHeight: animatedHeight.interpolate({
                   inputRange: [0, 1],
-                  outputRange: [0, 400],
+                  outputRange: [0, 600],
                 }),
               },
             ]}>
@@ -248,11 +260,9 @@ function Home(): React.JSX.Element {
               />
               <Text style={styles.setDetailsTitle}>세트별 상세 기록</Text>
             </View>
-            <ScrollView
-              style={styles.setsScrollView}
-              showsVerticalScrollIndicator={false}>
+            <View style={styles.setsScrollView}>
               {setData.map((set, index) => renderSetCard(set, index))}
-            </ScrollView>
+            </View>
           </Animated.View>
         </View>
       </ScrollView>
@@ -404,7 +414,7 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   setsScrollView: {
-    maxHeight: 400,
+    maxHeight: 'auto',
   },
   setCard: {
     padding: 15,
@@ -420,10 +430,12 @@ const styles = StyleSheet.create({
   },
   setNumberContainer: {
     backgroundColor: '#fff',
-    padding: 5,
     borderRadius: 9999,
     alignItems: 'center',
     justifyContent: 'center',
+    width: 20,
+    height: 20,
+    marginRight: 5,
   },
   setNumber: {
     fontSize: 12,
@@ -452,13 +464,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
-    backgroundColor: '#FFD700',
+    backgroundColor: '#3EB489',
     padding: 2,
     borderRadius: 9999,
   },
   bestText: {
     fontSize: 10,
-    color: '#000',
+    color: '#fff',
   },
   progressContainer: {
     flexDirection: 'row',
@@ -479,7 +491,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#242424',
   },
   bestProgressFill: {
-    backgroundColor: '#FFD700',
+    // backgroundColor: '#FFD700',
+    backgroundColor: '#3EB489',
   },
   progressText: {
     fontSize: 12,
@@ -496,6 +509,19 @@ const styles = StyleSheet.create({
   },
   pushupCount: {
     flexDirection: 'row',
+  },
+  banner: {
+    backgroundColor: '#a7d1c2',
+    padding: 20,
+    borderRadius: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  bannerText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#fff',
   },
 });
 

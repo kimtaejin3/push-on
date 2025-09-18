@@ -6,15 +6,18 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
+  Animated,
 } from 'react-native';
 import CustomButton from '../components/common/CustomButton';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
-import {useState} from 'react';
+import {useState, useEffect, useRef} from 'react';
 
 function Home(): React.JSX.Element {
   const navigation = useNavigation();
 
   const [selectedDate, setSelectedDate] = useState<string>('18');
+  const [showSetDetails, setShowSetDetails] = useState<boolean>(true);
+  const animatedHeight = useRef(new Animated.Value(0)).current;
 
   const dateItems = [
     {day: 'Mon', date: '12'},
@@ -25,6 +28,108 @@ function Home(): React.JSX.Element {
     {day: 'Wed', date: '17'},
     {day: 'Thu', date: '18'},
   ];
+
+  // 예시 세트 데이터
+  const setData = [
+    {
+      setNumber: 1,
+      reps: 12,
+      time: '30초',
+      restTime: '60초',
+      isPersonalBest: true,
+    },
+    {
+      setNumber: 2,
+      reps: 10,
+      time: '25초',
+      restTime: '60초',
+      isPersonalBest: false,
+    },
+    {
+      setNumber: 3,
+      reps: 8,
+      time: '20초',
+      restTime: '60초',
+      isPersonalBest: false,
+    },
+    {
+      setNumber: 4,
+      reps: 10,
+      time: '25초',
+      restTime: '0초',
+      isPersonalBest: false,
+    },
+  ];
+
+  const maxReps = Math.max(...setData.map(set => set.reps));
+
+  useEffect(() => {
+    Animated.timing(animatedHeight, {
+      toValue: showSetDetails ? 1 : 0,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  }, [showSetDetails, animatedHeight]);
+
+  const toggleSetDetails = () => {
+    setShowSetDetails(!showSetDetails);
+  };
+
+  const renderSetCard = (set: any, index: number) => {
+    const progressWidth = (set.reps / maxReps) * 100;
+
+    return (
+      <View key={index} style={styles.setCard}>
+        <View style={styles.setHeader}>
+          <View style={styles.setNumberContainer}>
+            <Text style={styles.setNumber}>{set.setNumber}</Text>
+          </View>
+          <View style={styles.setInfo}>
+            <View style={styles.setMainInfo}>
+              <Text style={styles.setReps}>{set.reps}회</Text>
+              <Text style={styles.setTime}>{set.time}</Text>
+            </View>
+            {set.isPersonalBest && (
+              <View style={styles.bestBadge}>
+                <Fontawesome5
+                  name="crown"
+                  iconStyle="solid"
+                  size={10}
+                  color="#000"
+                />
+                <Text style={styles.bestText}>BEST</Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        <View style={styles.progressContainer}>
+          <View style={styles.progressBar}>
+            <View
+              style={[
+                styles.progressFill,
+                {width: `${progressWidth}%`},
+                set.isPersonalBest && styles.bestProgressFill,
+              ]}
+            />
+          </View>
+          <Text style={styles.progressText}>{progressWidth.toFixed(0)}%</Text>
+        </View>
+
+        {set.restTime !== '0초' && (
+          <View style={styles.restTimeContainer}>
+            <Fontawesome5
+              name="pause"
+              iconStyle="solid"
+              size={10}
+              color="#666"
+            />
+            <Text style={styles.restTimeText}>휴식: {set.restTime}</Text>
+          </View>
+        )}
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -98,10 +203,21 @@ function Home(): React.JSX.Element {
           </View>
 
           <View style={styles.historySummary}>
-            <View style={styles.historySummaryItem}>
-              <Text style={styles.historySummaryTitle}>푸쉬업 수</Text>
-              <Text style={styles.historySummaryText}>40번</Text>
-            </View>
+            <TouchableOpacity
+              style={[styles.historySummaryItem, styles.pushupCount]}
+              onPress={toggleSetDetails}>
+              <View>
+                <Text style={styles.historySummaryTitle}>푸쉬업 수</Text>
+                <Text style={styles.historySummaryText}>40번</Text>
+              </View>
+              <Fontawesome5
+                name={showSetDetails ? 'chevron-up' : 'chevron-down'}
+                iconStyle="solid"
+                size={12}
+                color="#666"
+                style={styles.chevronIcon}
+              />
+            </TouchableOpacity>
             <View style={styles.historySummaryItem}>
               <Text style={styles.historySummaryTitle}>총 세트 수</Text>
               <Text style={styles.historySummaryText}>4세트</Text>
@@ -111,6 +227,33 @@ function Home(): React.JSX.Element {
               <Text style={styles.historySummaryText}>1분 40초</Text>
             </View>
           </View>
+
+          <Animated.View
+            style={[
+              styles.setDetailsContainer,
+              {
+                opacity: animatedHeight,
+                maxHeight: animatedHeight.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 400],
+                }),
+              },
+            ]}>
+            <View style={styles.setDetailsHeader}>
+              <Fontawesome5
+                name="dumbbell"
+                iconStyle="solid"
+                size={16}
+                color="#242424"
+              />
+              <Text style={styles.setDetailsTitle}>세트별 상세 기록</Text>
+            </View>
+            <ScrollView
+              style={styles.setsScrollView}
+              showsVerticalScrollIndicator={false}>
+              {setData.map((set, index) => renderSetCard(set, index))}
+            </ScrollView>
+          </Animated.View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -239,6 +382,120 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: '#000',
+  },
+  chevronIcon: {
+    marginLeft: 5,
+  },
+  setDetailsContainer: {
+    overflow: 'hidden',
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 10,
+    marginTop: 10,
+  },
+  setDetailsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  setDetailsTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginLeft: 5,
+  },
+  setsScrollView: {
+    maxHeight: 400,
+  },
+  setCard: {
+    padding: 15,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 15,
+    marginBottom: 10,
+  },
+  setHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  setNumberContainer: {
+    backgroundColor: '#fff',
+    padding: 5,
+    borderRadius: 9999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  setNumber: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  setInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flex: 1,
+  },
+  setMainInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  setReps: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  setTime: {
+    fontSize: 12,
+    color: '#666',
+  },
+  bestBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    backgroundColor: '#FFD700',
+    padding: 2,
+    borderRadius: 9999,
+  },
+  bestText: {
+    fontSize: 10,
+    color: '#000',
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  progressBar: {
+    flex: 1,
+    height: 10,
+    borderRadius: 9999,
+    backgroundColor: '#c2c2c2',
+    marginRight: 10,
+  },
+  progressFill: {
+    height: 10,
+    borderRadius: 9999,
+    backgroundColor: '#242424',
+  },
+  bestProgressFill: {
+    backgroundColor: '#FFD700',
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#666',
+  },
+  restTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  restTimeText: {
+    fontSize: 12,
+    color: '#666',
+  },
+  pushupCount: {
+    flexDirection: 'row',
   },
 });
 

@@ -97,12 +97,18 @@ function Home(): React.JSX.Element {
             ))}
           </View>
 
-          <View style={styles.historyContent}>
-            <View style={styles.historyContentItem}>
-              <Text>hi</Text>
+          <View style={styles.historySummary}>
+            <View style={styles.historySummaryItem}>
+              <Text style={styles.historySummaryTitle}>푸쉬업 수</Text>
+              <Text style={styles.historySummaryText}>40번</Text>
             </View>
-            <View style={styles.historyContentItem}>
-              <Text>hi</Text>
+            <View style={styles.historySummaryItem}>
+              <Text style={styles.historySummaryTitle}>총 세트 수</Text>
+              <Text style={styles.historySummaryText}>4세트</Text>
+            </View>
+            <View style={styles.historySummaryItem}>
+              <Text style={styles.historySummaryTitle}>총 시간</Text>
+              <Text style={styles.historySummaryText}>1분 40초</Text>
             </View>
           </View>
         </View>
@@ -211,18 +217,28 @@ const styles = StyleSheet.create({
   historyDateNumberText: {
     color: '#000',
   },
-  historyContent: {
+  historySummary: {
     marginTop: 20,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 15,
   },
-  historyContentItem: {
+  historySummaryItem: {
     flex: 1,
-    alignItems: 'center',
+    // alignItems: 'center',
     backgroundColor: '#e8e8e8',
-    paddingVertical: 30,
+    // paddingVertical: 30,
     borderRadius: 15,
+    padding: 10,
+  },
+  historySummaryTitle: {
+    fontSize: 12,
+    color: '#000',
+  },
+  historySummaryText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#000',
   },
 });
 

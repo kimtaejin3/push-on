@@ -1,11 +1,30 @@
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
-import {StyleSheet, Text, View, ScrollView} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
 import CustomButton from '../components/common/CustomButton';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
+import {useState} from 'react';
 
 function Home(): React.JSX.Element {
   const navigation = useNavigation();
+
+  const [selectedDate, setSelectedDate] = useState<string>('18');
+
+  const dateItems = [
+    {day: 'Mon', date: '12'},
+    {day: 'Sat', date: '13'},
+    {day: 'Sun', date: '14'},
+    {day: 'Mon', date: '15'},
+    {day: 'Tue', date: '16'},
+    {day: 'Wed', date: '17'},
+    {day: 'Thu', date: '18'},
+  ];
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -62,48 +81,20 @@ function Home(): React.JSX.Element {
         </View>
         <View style={styles.historyContainer}>
           <View style={styles.historyDates}>
-            <View style={styles.historyDateItem}>
-              <Text style={styles.historyDateText}>Mon</Text>
-              <View style={styles.historyDateNumber}>
-                <Text style={styles.historyDateNumberText}>12</Text>
-              </View>
-            </View>
-            <View style={styles.historyDateItem}>
-              <Text style={styles.historyDateText}>Sat</Text>
-              <View style={styles.historyDateNumber}>
-                <Text style={styles.historyDateNumberText}>13</Text>
-              </View>
-            </View>
-            <View style={styles.historyDateItem}>
-              <Text style={styles.historyDateText}>Sun</Text>
-              <View style={styles.historyDateNumber}>
-                <Text style={styles.historyDateNumberText}>14</Text>
-              </View>
-            </View>
-            <View style={styles.historyDateItem}>
-              <Text style={styles.historyDateText}>Mon</Text>
-              <View style={styles.historyDateNumber}>
-                <Text style={styles.historyDateNumberText}>15</Text>
-              </View>
-            </View>
-            <View style={styles.historyDateItem}>
-              <Text style={styles.historyDateText}>Tue</Text>
-              <View style={styles.historyDateNumber}>
-                <Text style={styles.historyDateNumberText}>16</Text>
-              </View>
-            </View>
-            <View style={styles.historyDateItem}>
-              <Text style={styles.historyDateText}>Wed</Text>
-              <View style={styles.historyDateNumber}>
-                <Text style={styles.historyDateNumberText}>17</Text>
-              </View>
-            </View>
-            <View style={styles.historyDateItem}>
-              <Text style={styles.historyDateText}>Thu</Text>
-              <View style={styles.historyDateNumber}>
-                <Text style={styles.historyDateNumberText}>18</Text>
-              </View>
-            </View>
+            {dateItems.map((item, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.historyDateItem,
+                  selectedDate === item.date && styles.selectedDateItem,
+                ]}
+                onPress={() => setSelectedDate(item.date)}>
+                <Text style={styles.historyDateText}>{item.day}</Text>
+                <View style={styles.historyDateNumber}>
+                  <Text style={styles.historyDateNumberText}>{item.date}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
       </ScrollView>
@@ -193,6 +184,9 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 9999,
     alignItems: 'center',
+  },
+  selectedDateItem: {
+    backgroundColor: '#242424',
   },
   historyDateText: {
     color: '#fff',

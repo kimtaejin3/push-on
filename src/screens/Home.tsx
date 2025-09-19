@@ -197,46 +197,54 @@ function Home(): React.JSX.Element {
           </View>
         </View>
         <View style={styles.historyContainer}>
-          <View style={styles.historyDates}>
-            {dateItems.map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.historyDateItem,
-                  selectedDate === item.date && styles.selectedDateItem,
-                ]}
-                onPress={() => setSelectedDate(item.date)}>
-                <Text style={styles.historyDateText}>{item.day}</Text>
-                <View style={styles.historyDateNumber}>
-                  <Text style={styles.historyDateNumberText}>{item.date}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+          <View style={styles.historyHeader}>
+            <Text style={styles.cardTitle}>일자별 기록</Text>
           </View>
 
-          <View style={styles.historySummary}>
-            <TouchableOpacity
-              style={[styles.historySummaryItem, styles.pushupCount]}
-              onPress={toggleSetDetails}>
-              <View>
-                <Text style={styles.historySummaryTitle}>푸쉬업 수</Text>
-                <Text style={styles.historySummaryText}>40번</Text>
-              </View>
-              <Fontawesome5
-                name={showSetDetails ? 'chevron-up' : 'chevron-down'}
-                iconStyle="solid"
-                size={12}
-                color="#666"
-                style={styles.chevronIcon}
-              />
-            </TouchableOpacity>
-            <View style={styles.historySummaryItem}>
-              <Text style={styles.historySummaryTitle}>총 세트 수</Text>
-              <Text style={styles.historySummaryText}>4세트</Text>
+          <View style={styles.historyContent}>
+            <View style={styles.historyDates}>
+              {dateItems.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.historyDateItem,
+                    selectedDate === item.date && styles.selectedDateItem,
+                  ]}
+                  onPress={() => setSelectedDate(item.date)}>
+                  <Text style={styles.historyDateText}>{item.day}</Text>
+                  <View style={styles.historyDateNumber}>
+                    <Text style={styles.historyDateNumberText}>
+                      {item.date}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
             </View>
-            <View style={styles.historySummaryItem}>
-              <Text style={styles.historySummaryTitle}>총 시간</Text>
-              <Text style={styles.historySummaryText}>1분 40초</Text>
+
+            <View style={styles.historySummary}>
+              <TouchableOpacity
+                style={[styles.historySummaryItem, styles.pushupCount]}
+                onPress={toggleSetDetails}>
+                <View>
+                  <Text style={styles.historySummaryTitle}>푸쉬업 수</Text>
+                  <Text style={styles.historySummaryText}>40번</Text>
+                </View>
+                <Fontawesome5
+                  name={showSetDetails ? 'chevron-up' : 'chevron-down'}
+                  iconStyle="solid"
+                  size={12}
+                  color="#666"
+                  style={styles.chevronIcon}
+                />
+              </TouchableOpacity>
+              <View style={styles.historySummaryItem}>
+                <Text style={styles.historySummaryTitle}>총 세트 수</Text>
+                <Text style={styles.historySummaryText}>4세트</Text>
+              </View>
+              <View style={styles.historySummaryItem}>
+                <Text style={styles.historySummaryTitle}>총 시간</Text>
+                <Text style={styles.historySummaryText}>1분 40초</Text>
+              </View>
             </View>
           </View>
 
@@ -338,7 +346,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     backgroundColor: '#fff',
     paddingVertical: 20,
-    paddingHorizontal: 10,
     borderRadius: 15,
   },
   historyDates: {
@@ -522,6 +529,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  historyContent: {
+    paddingHorizontal: 10,
+  },
+  historyHeader: {
+    paddingHorizontal: 20,
   },
 });
 

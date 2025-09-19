@@ -1,12 +1,14 @@
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {NativeModules} from 'react-native';
 
 const {PushupManager} = NativeModules;
 
+const INIT_COUNT = 0;
+const PUSHUP_TRACKING_INTERVAL = 100;
+
 function usePushUpManager() {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(INIT_COUNT);
   const [isTracking, setIsTracking] = useState(false);
-  const prevCountRef = useRef(0);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -18,12 +20,11 @@ function usePushUpManager() {
         try {
           const currentCount = await PushupManager.getPushupCount();
 
-          prevCountRef.current = currentCount;
           setCount(currentCount);
         } catch (error) {
           console.error('Failed to get pushup count:', error);
         }
-      }, 500);
+      }, PUSHUP_TRACKING_INTERVAL);
     } else if (interval) {
       clearInterval(interval);
       PushupManager.stopPushupSession();
@@ -39,9 +40,9 @@ function usePushUpManager() {
 
   const toggleTracking = () => {
     setIsTracking(prev => !prev);
+
     if (isTracking) {
       setCount(0);
-      prevCountRef.current = 0;
     }
   };
 

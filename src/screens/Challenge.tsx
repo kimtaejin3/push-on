@@ -7,7 +7,7 @@ import {useNavigation} from '@react-navigation/native';
 function Challenge(): React.JSX.Element {
   const navigation = useNavigation();
 
-  const {count, isTracking, toggleTracking} = usePushUpManager();
+  const {count, isTracking, startTracking, stopTracking} = usePushUpManager();
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -24,9 +24,11 @@ function Challenge(): React.JSX.Element {
           title={isTracking ? '중지하기' : '시작하기'}
           variant={isTracking ? 'stop' : 'start'}
           onPress={() => {
-            toggleTracking();
             if (isTracking) {
+              stopTracking();
               navigation.goBack();
+            } else {
+              startTracking();
             }
           }}
         />

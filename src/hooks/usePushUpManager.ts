@@ -8,13 +8,13 @@ const INITIAL_COUNT = 0;
 const PUSHUP_POLLING_INTERVAL = 100;
 
 function usePushUpManager() {
-  const [count, setCount] = useState(INITIAL_COUNT);
+  const [pushUpCount, setPushUpCount] = useState(INITIAL_COUNT);
   const [isTracking, setIsTracking] = useState(false);
 
   const getPushupCount = useCallback(async () => {
     try {
       const currentCount = await PushupManager.getPushupCount();
-      setCount(currentCount);
+      setPushUpCount(currentCount);
     } catch (error) {
       console.error('Failed to get pushup count:', error);
     }
@@ -24,7 +24,7 @@ function usePushUpManager() {
 
   const startTracking = () => {
     setIsTracking(true);
-    setCount(INITIAL_COUNT);
+    setPushUpCount(INITIAL_COUNT);
     PushupManager.startPushupSession();
   };
 
@@ -34,7 +34,7 @@ function usePushUpManager() {
   };
 
   return {
-    count,
+    pushUpCount,
     isTracking,
     startTracking,
     stopTracking,

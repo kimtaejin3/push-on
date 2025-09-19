@@ -3,19 +3,21 @@ import {SafeAreaView, StyleSheet, Text, View} from 'react-native';
 import usePushUpManager from '../hooks/usePushUpManager';
 import CustomButton from '../components/common/CustomButton';
 import {useNavigation} from '@react-navigation/native';
+import Engagement from '../components/features/push-up/Engagement';
 
 function Challenge(): React.JSX.Element {
   const navigation = useNavigation();
 
-  const {count, isTracking, startTracking, stopTracking} = usePushUpManager();
+  const {pushUpCount, isTracking, startTracking, stopTracking} =
+    usePushUpManager();
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Text style={styles.title}>SET 1</Text>
 
-        <Text style={styles.countText}>{count}</Text>
-        {/* <Text style={styles.encouragementText}>{encouragement}</Text> */}
+        <Text style={styles.countText}>{pushUpCount}</Text>
+        {isTracking && <Engagement pushUpCount={pushUpCount} />}
 
         <Text style={styles.instructionText}>
           {!isTracking && '기기를 얼굴과 마주보게 바닥에 두세요'}
@@ -68,14 +70,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     opacity: 0.7,
-  },
-  encouragementText: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#FF6969',
-    textAlign: 'center',
-    marginTop: 20,
-    marginBottom: 20,
   },
 });
 

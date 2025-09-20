@@ -3,7 +3,7 @@ import {useEffect} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {encouragements, FIRST_ENCOURAGEMENT} from '../../../constants/push-up';
 
-function Engagement({pushUpCount}: {pushUpCount: number}) {
+function Engagement({show, pushUpCount}: {show: boolean; pushUpCount: number}) {
   const [encouragement, setEncouragement] = useState(FIRST_ENCOURAGEMENT);
 
   useEffect(() => {
@@ -15,7 +15,9 @@ function Engagement({pushUpCount}: {pushUpCount: number}) {
 
   return (
     <View>
-      <Text style={styles.encouragementText}>{encouragement}</Text>
+      <Text style={[styles.encouragementText, show ? {} : styles.hidden]}>
+        {encouragement}
+      </Text>
     </View>
   );
 }
@@ -33,6 +35,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
     marginBottom: 20,
+  },
+  hidden: {
+    opacity: 0,
   },
 });
 

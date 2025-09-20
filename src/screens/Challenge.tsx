@@ -17,12 +17,14 @@ function Challenge(): React.JSX.Element {
         <Text style={styles.title}>SET 1</Text>
 
         <Text style={styles.countText}>{pushUpCount}</Text>
-        {isTracking && <Engagement pushUpCount={pushUpCount} />}
+        <Engagement show={isTracking} pushUpCount={pushUpCount} />
 
         <Text style={styles.instructionText}>
           {!isTracking && '기기를 얼굴과 마주보게 바닥에 두세요'}
         </Text>
+
         <CustomButton
+          style={styles.button}
           title={isTracking ? '중지하기' : '시작하기'}
           variant={isTracking ? 'stop' : 'start'}
           onPress={() => {
@@ -42,6 +44,7 @@ function Challenge(): React.JSX.Element {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    backgroundColor: '#f5f5f5',
   },
   container: {
     flex: 1,
@@ -65,11 +68,14 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   instructionText: {
-    marginTop: 'auto',
+    marginTop: 60,
     marginBottom: 10,
     fontSize: 16,
     textAlign: 'center',
     opacity: 0.7,
+  },
+  button: {
+    width: 300,
   },
 });
 

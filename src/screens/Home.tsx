@@ -140,18 +140,27 @@ function Home(): React.JSX.Element {
           {/* profile */}
           <View style={styles.profileContainer}>
             <Fontawesome5
-              name="user"
+              name="home"
+              size={18}
+              iconStyle="solid"
+              color="#242424"
+            />
+            <Text>PumpUp</Text>
+          </View>
+          <View style={styles.headerIcons}>
+            <Fontawesome5
+              name="cog"
+              size={20}
+              iconStyle="solid"
+              color="#242424"
+            />
+            <Fontawesome5
+              name="bell"
               size={20}
               iconStyle="solid"
               color="#242424"
             />
           </View>
-          <Fontawesome5
-            name="bell"
-            size={24}
-            iconStyle="solid"
-            color="#242424"
-          />
         </View>
 
         <View style={styles.banner}>
@@ -535,6 +544,11 @@ const styles = StyleSheet.create({
   },
   historyHeader: {
     paddingHorizontal: 20,
+  },
+  headerIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 25,
   },
 });
 

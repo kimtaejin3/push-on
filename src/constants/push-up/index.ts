@@ -12,6 +12,6 @@ const encouragements = [
   '양심껏 제대로 푸쉬업 하세요!',
 ];
 
-const FIRST_ENCOURAGEMENT = '시작해볼까요 화이팅!';
+const FIRST_ENCOURAGEMENT = '가까이 오세요!';
 
 export {encouragements, FIRST_ENCOURAGEMENT};

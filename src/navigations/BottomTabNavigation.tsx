@@ -22,9 +22,6 @@ const BottomTabNavigation = () => {
           paddingTop: 10,
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
-          shadowColor: 'transparent',
-          overflow: 'hidden',
-          elevation: 0,
         },
       }}>
       <Tab.Screen

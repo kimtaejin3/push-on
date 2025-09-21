@@ -1,6 +1,9 @@
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
-import ChallengeScreen from '../screens/Challenge';
+import ChallengeScreen from '../screens/ChallengeScreen';
+import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
+import Fontawesome6 from '@react-native-vector-icons/fontawesome6';
+import StatisticScreen from '../screens/StatisticScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -14,9 +17,58 @@ const BottomTabNavigation = () => {
         tabBarLabelStyle: {
           fontSize: 12,
         },
+        tabBarShowLabel: false, // This is the correct property to hide labels
+        tabBarStyle: {
+          paddingTop: 10,
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
+          shadowColor: 'transparent',
+          overflow: 'hidden',
+          elevation: 0,
+        },
       }}>
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Challenge" component={ChallengeScreen} />
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          tabBarIcon: ({color}) => (
+            <Fontawesome5
+              name="home"
+              size={20}
+              color={color}
+              iconStyle="solid"
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Statistic"
+        component={StatisticScreen}
+        options={{
+          tabBarIcon: ({color}) => (
+            <Fontawesome6
+              name="chart-simple"
+              size={20}
+              color={color}
+              iconStyle="solid"
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Challenge"
+        component={ChallengeScreen}
+        options={{
+          tabBarIcon: ({color}) => (
+            <Fontawesome5
+              name="dumbbell"
+              size={20}
+              color={color}
+              iconStyle="solid"
+            />
+          ),
+        }}
+      />
     </Tab.Navigator>
   );
 };

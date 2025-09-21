@@ -2,7 +2,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createStaticNavigation} from '@react-navigation/native';
 
 import Home from '../screens/HomeScreen';
-import Challenge from '../screens/Challenge';
+import Challenge from '../screens/ChallengeScreen';
 
 const AppStack = createNativeStackNavigator({
   screenOptions: {

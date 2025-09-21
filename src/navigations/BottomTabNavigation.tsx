@@ -1,6 +1,6 @@
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import Home from '../screens/Home';
-import Challenge from '../screens/Challenge';
+import HomeScreen from '../screens/HomeScreen';
+import ChallengeScreen from '../screens/Challenge';
 
 const Tab = createBottomTabNavigator();
 
@@ -15,8 +15,8 @@ const BottomTabNavigation = () => {
           fontSize: 12,
         },
       }}>
-      <Tab.Screen name="Home" component={Home} />
-      <Tab.Screen name="Challenge" component={Challenge} />
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Challenge" component={ChallengeScreen} />
     </Tab.Navigator>
   );
 };

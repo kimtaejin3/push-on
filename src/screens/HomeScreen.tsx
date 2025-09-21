@@ -12,7 +12,7 @@ import CustomButton from '../components/common/CustomButton';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import {useState, useEffect, useRef} from 'react';
 
-function Home(): React.JSX.Element {
+function HomeScreen(): React.JSX.Element {
   const navigation = useNavigation();
 
   const [selectedDate, setSelectedDate] = useState<string>('18');
@@ -552,4 +552,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Home;
+export default HomeScreen;

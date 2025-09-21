@@ -5,7 +5,7 @@ import CustomButton from '../components/common/CustomButton';
 import {useNavigation} from '@react-navigation/native';
 import Engagement from '../components/features/push-up/Engagement';
 
-function Challenge(): React.JSX.Element {
+function ChallengeScreen(): React.JSX.Element {
   const navigation = useNavigation();
 
   const {pushUpCount, isTracking, startTracking, stopTracking} =
@@ -79,4 +79,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Challenge;
+export default ChallengeScreen;

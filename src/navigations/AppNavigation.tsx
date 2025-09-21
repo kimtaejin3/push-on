@@ -1,7 +1,7 @@
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createStaticNavigation} from '@react-navigation/native';
 
-import Home from '../screens/Home';
+import Home from '../screens/HomeScreen';
 import Challenge from '../screens/Challenge';
 
 const AppStack = createNativeStackNavigator({

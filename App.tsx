@@ -1,11 +1,13 @@
 import {SafeAreaView, StyleSheet} from 'react-native';
-import AppNavigation from './src/navigations/AppNavigation';
+import {NavigationContainer} from '@react-navigation/native';
+import BottomTabNavigation from './src/navigations/BottomTabNavigation';
 
 function App(): React.JSX.Element {
   return (
     <SafeAreaView style={styles.container}>
-      {/* <Challenge /> */}
-      <AppNavigation />
+      <NavigationContainer>
+        <BottomTabNavigation />
+      </NavigationContainer>
     </SafeAreaView>
   );
 }

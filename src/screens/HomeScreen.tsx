@@ -1,87 +1,59 @@
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
-import {StyleSheet, Text, View, ScrollView} from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
 import CustomButton from '../components/common/CustomButton';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
+import Header from '../components/common/Header';
 
 function HomeScreen(): React.JSX.Element {
   const navigation = useNavigation();
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          {/* profile */}
-          <View style={styles.profileContainer}>
-            <Fontawesome5
-              name="home"
-              size={18}
-              iconStyle="solid"
-              color="#242424"
-            />
-            <Text>PumpUp</Text>
-          </View>
-          <View style={styles.headerIcons}>
-            <Fontawesome5
-              name="cog"
-              size={20}
-              iconStyle="solid"
-              color="#242424"
-            />
-            <Fontawesome5
-              name="bell"
-              size={20}
-              iconStyle="solid"
-              color="#242424"
-            />
-          </View>
-        </View>
+      <Header />
 
-        <View style={styles.banner}>
-          <Text style={styles.bannerText}>
-            팔굽혀펴기 앱이 출시 되었습니다 🎉
-          </Text>
-          <Fontawesome5
-            name="chevron-right"
-            iconStyle="solid"
-            size={15}
-            color="#fff"
+      <View style={styles.banner}>
+        <Text style={styles.bannerText}>
+          팔굽혀펴기 앱이 출시 되었습니다 🎉
+        </Text>
+        <Fontawesome5
+          name="chevron-right"
+          iconStyle="solid"
+          size={15}
+          color="#fff"
+        />
+      </View>
+
+      <View style={styles.challengeContainer}>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>최고 기록</Text>
+          <View style={styles.recordContainer}>
+            <View style={styles.recordItem}>
+              <Fontawesome5
+                name="hashtag"
+                size={12}
+                iconStyle="solid"
+                color="#000"
+              />
+              <Text>총 횟수</Text>
+              <Text>40번</Text>
+            </View>
+            <View style={styles.recordItem}>
+              <Fontawesome5
+                name="clock"
+                size={12}
+                iconStyle="solid"
+                color="#000"
+              />
+              <Text>1분 40초</Text>
+            </View>
+          </View>
+          <CustomButton
+            title="푸쉬업 하기"
+            onPress={() => navigation.navigate('Challenge')}
           />
         </View>
-
-        <View style={styles.challengeContainer}>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>최고 기록</Text>
-            <View style={styles.recordContainer}>
-              <View style={styles.recordItem}>
-                <Fontawesome5
-                  name="hashtag"
-                  size={12}
-                  iconStyle="solid"
-                  color="#000"
-                />
-                <Text>총 횟수</Text>
-                <Text>40번</Text>
-              </View>
-              <View style={styles.recordItem}>
-                <Fontawesome5
-                  name="clock"
-                  size={12}
-                  iconStyle="solid"
-                  color="#000"
-                />
-                <Text>1분 40초</Text>
-              </View>
-            </View>
-            <CustomButton
-              title="푸쉬업 하기"
-              onPress={() => navigation.navigate('Challenge')}
-            />
-          </View>
-        </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -91,9 +63,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: '#f5f5f5',
-  },
-  scrollContent: {
-    flexGrow: 1,
   },
   card: {
     padding: 20,
@@ -114,7 +83,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 20,
   },
-
   highlightGraph: {
     backgroundColor: '#000',
   },
@@ -123,21 +91,6 @@ const styles = StyleSheet.create({
   },
   challengeContainer: {
     marginTop: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  profileContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-    padding: 15,
-    gap: 10,
-    borderRadius: 9999,
   },
   recordContainer: {
     flexDirection: 'row',
@@ -162,11 +115,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: '#fff',
-  },
-  headerIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 25,
   },
 });
 

@@ -1,13 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {
-  Animated,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {Animated, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
+import Header from '../components/common/Header';
 
 function StatisticScreen() {
   const [selectedDate, setSelectedDate] = useState<string>('18');
@@ -126,12 +120,11 @@ function StatisticScreen() {
     );
   };
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
+      <View style={styles.headerContainer}>
+        <Header />
+      </View>
       <View style={styles.historyContainer}>
-        <View style={styles.historyHeader}>
-          <Text style={styles.cardTitle}>일자별 기록</Text>
-        </View>
-
         <View style={styles.historyContent}>
           <View style={styles.historyDates}>
             {dateItems.map((item, index) => (
@@ -202,28 +195,17 @@ function StatisticScreen() {
           </View>
         </Animated.View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: {
-    padding: 20,
     backgroundColor: '#f5f5f5',
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    padding: 10,
   },
   historyContainer: {
-    marginTop: 20,
-    backgroundColor: '#fff',
-    paddingVertical: 20,
     borderRadius: 15,
-  },
-  historyHeader: {
-    paddingHorizontal: 20,
   },
   historyContent: {
     paddingHorizontal: 10,
@@ -286,7 +268,6 @@ const styles = StyleSheet.create({
   },
   setDetailsContainer: {
     overflow: 'hidden',
-    backgroundColor: '#fff',
     borderRadius: 15,
     padding: 10,
     marginTop: 10,
@@ -306,9 +287,9 @@ const styles = StyleSheet.create({
   },
   setCard: {
     padding: 15,
-    backgroundColor: '#f5f5f5',
     borderRadius: 15,
     marginBottom: 10,
+    backgroundColor: '#fff',
   },
   setHeader: {
     flexDirection: 'row',
@@ -393,6 +374,9 @@ const styles = StyleSheet.create({
   restTimeText: {
     fontSize: 12,
     color: '#666',
+  },
+  headerContainer: {
+    padding: 10,
   },
 });
 

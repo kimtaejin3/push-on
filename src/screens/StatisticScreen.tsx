@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Animated, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
+import Fontawesome6 from '@react-native-vector-icons/fontawesome6';
 import Header from '../components/common/Header';
 
 function StatisticScreen() {
@@ -122,7 +123,21 @@ function StatisticScreen() {
   return (
     <View style={styles.safeArea}>
       <View style={styles.headerContainer}>
-        <Header />
+        <Header
+          left={
+            <Header.NavigationTitle
+              title="일자별 푸쉬업 기록"
+              icon={
+                <Fontawesome6
+                  name="chart-simple"
+                  size={18}
+                  iconStyle="solid"
+                  color="#242424"
+                />
+              }
+            />
+          }
+        />
       </View>
       <View style={styles.historyContainer}>
         <View style={styles.historyContent}>

@@ -10,7 +10,27 @@ function HomeScreen(): React.JSX.Element {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Header />
+      <Header
+        left={
+          <Header.NavigationTitle
+            title="PushFit"
+            icon={
+              <Fontawesome5
+                name="home"
+                size={18}
+                iconStyle="solid"
+                color="#242424"
+              />
+            }
+          />
+        }
+        right={
+          <>
+            <Header.Notification />
+            <Header.Setting />
+          </>
+        }
+      />
 
       <View style={styles.banner}>
         <Text style={styles.bannerText}>

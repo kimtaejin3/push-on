@@ -1,21 +1,47 @@
-import {View, Text, StyleSheet} from 'react-native';
+import React from 'react';
+import {View, StyleSheet, Text} from 'react-native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 
-function Header() {
+interface HeaderProps {
+  left: React.ReactNode;
+  right?: React.ReactNode;
+}
+
+function Header({left, right}: HeaderProps) {
   return (
     <View style={styles.header}>
-      {/* profile */}
-      <View style={styles.profileContainer}>
-        <Fontawesome5 name="home" size={18} iconStyle="solid" color="#242424" />
-        <Text>PumpUp</Text>
-      </View>
-      <View style={styles.headerIcons}>
-        <Fontawesome5 name="cog" size={20} iconStyle="solid" color="#242424" />
-        <Fontawesome5 name="bell" size={20} iconStyle="solid" color="#242424" />
-      </View>
+      {left}
+      <View style={styles.headerIcons}>{right}</View>
     </View>
   );
 }
+
+Header.NavigationTitle = function NavigationTitle({
+  title,
+  icon,
+}: {
+  title: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <View style={styles.NavigationTitle}>
+      {icon}
+      <Text>{title}</Text>
+    </View>
+  );
+};
+
+Header.Notification = function Notification() {
+  return (
+    <Fontawesome5 name="bell" size={20} iconStyle="solid" color="#242424" />
+  );
+};
+
+Header.Setting = function Setting() {
+  return (
+    <Fontawesome5 name="cog" size={20} iconStyle="solid" color="#242424" />
+  );
+};
 
 const styles = StyleSheet.create({
   header: {
@@ -24,7 +50,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  profileContainer: {
+  NavigationTitle: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

@@ -1,6 +1,5 @@
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
-import ChallengeScreen from '../screens/ChallengeScreen';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import Fontawesome6 from '@react-native-vector-icons/fontawesome6';
 import StatisticScreen from '../screens/StatisticScreen';
@@ -45,20 +44,6 @@ const BottomTabNavigation = () => {
           tabBarIcon: ({color}) => (
             <Fontawesome6
               name="chart-simple"
-              size={20}
-              color={color}
-              iconStyle="solid"
-            />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Challenge"
-        component={ChallengeScreen}
-        options={{
-          tabBarIcon: ({color}) => (
-            <Fontawesome5
-              name="dumbbell"
               size={20}
               color={color}
               iconStyle="solid"

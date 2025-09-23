@@ -1,8 +1,8 @@
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createStaticNavigation} from '@react-navigation/native';
 
-import Home from '../screens/HomeScreen';
 import Challenge from '../screens/ChallengeScreen';
+import BottomTabNavigation from './BottomTabNavigation';
 
 const AppStack = createNativeStackNavigator({
   screenOptions: {
@@ -15,8 +15,8 @@ const AppStack = createNativeStackNavigator({
     headerShown: false,
   },
   screens: {
-    Home: {
-      screen: Home,
+    Tabs: {
+      screen: BottomTabNavigation,
     },
     Challenge: Challenge,
   },
@@ -25,7 +25,7 @@ const AppStack = createNativeStackNavigator({
 const AppNavigation = createStaticNavigation(AppStack);
 
 export type AppStackParamList = {
-  Home: undefined;
+  Tabs: undefined;
   Challenge: undefined;
 };
 

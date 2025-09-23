@@ -2,7 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {Animated, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import Fontawesome6 from '@react-native-vector-icons/fontawesome6';
-import Header from '../components/common/Header';
+import {Header, HeaderTitle} from '../components/common/Header';
 
 function StatisticScreen() {
   const [selectedDate, setSelectedDate] = useState<string>('18');
@@ -125,7 +125,7 @@ function StatisticScreen() {
       <View style={styles.headerContainer}>
         <Header
           left={
-            <Header.NavigationTitle
+            <HeaderTitle
               title="일자별 푸쉬업 기록"
               icon={
                 <Fontawesome6

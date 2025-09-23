@@ -3,7 +3,12 @@ import {useNavigation} from '@react-navigation/native';
 import {StyleSheet, Text, View} from 'react-native';
 import CustomButton from '../components/common/CustomButton';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
-import Header from '../components/common/Header';
+import {
+  Header,
+  HeaderTitle,
+  Notification,
+  Setting,
+} from '../components/common/Header';
 
 function HomeScreen(): React.JSX.Element {
   const navigation = useNavigation();
@@ -12,7 +17,7 @@ function HomeScreen(): React.JSX.Element {
     <SafeAreaView style={styles.safeArea}>
       <Header
         left={
-          <Header.NavigationTitle
+          <HeaderTitle
             title="PushFit"
             icon={
               <Fontawesome5
@@ -26,8 +31,8 @@ function HomeScreen(): React.JSX.Element {
         }
         right={
           <>
-            <Header.Notification />
-            <Header.Setting />
+            <Notification />
+            <Setting />
           </>
         }
       />

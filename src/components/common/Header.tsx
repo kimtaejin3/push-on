@@ -16,32 +16,28 @@ function Header({left, right}: HeaderProps) {
   );
 }
 
-Header.NavigationTitle = function NavigationTitle({
-  title,
-  icon,
-}: {
-  title: string;
-  icon: React.ReactNode;
-}) {
+function HeaderTitle({title, icon}: {title: string; icon: React.ReactNode}) {
   return (
     <View style={styles.NavigationTitle}>
       {icon}
       <Text>{title}</Text>
     </View>
   );
-};
+}
 
-Header.Notification = function Notification() {
+//TODO: 이 Notification은 굳이 Header.tsx에 포함되지 않아도 될 것 같아.
+function Notification() {
   return (
     <Fontawesome5 name="bell" size={20} iconStyle="solid" color="#242424" />
   );
-};
+}
 
-Header.Setting = function Setting() {
+//TODO: 이 Setting은 굳이 Header.tsx에 포함되지 않아도 될 것 같아.
+function Setting() {
   return (
     <Fontawesome5 name="cog" size={20} iconStyle="solid" color="#242424" />
   );
-};
+}
 
 const styles = StyleSheet.create({
   header: {
@@ -66,4 +62,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Header;
+export {Header, HeaderTitle, Notification, Setting};

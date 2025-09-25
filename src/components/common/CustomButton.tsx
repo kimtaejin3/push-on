@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   defaultButton: {
-    backgroundColor: '#242424',
+    backgroundColor: '#9faab5',
   },
   startButton: {
     backgroundColor: '#242424',

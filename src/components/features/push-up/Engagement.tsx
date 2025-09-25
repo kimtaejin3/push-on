@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
   encouragementText: {
     fontSize: 18,
     fontWeight: '500',
-    color: '#3EB489',
+    color: '#097eed',
     textAlign: 'center',
     marginTop: 20,
     marginBottom: 20,

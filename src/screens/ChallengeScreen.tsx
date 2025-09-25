@@ -76,6 +76,7 @@ const styles = StyleSheet.create({
   },
   button: {
     width: 300,
+    backgroundColor: '#097eed',
   },
 });
 

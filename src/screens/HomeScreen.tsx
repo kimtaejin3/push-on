@@ -1,6 +1,12 @@
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
-import {StyleSheet, Text, View} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
 import CustomButton from '../components/common/CustomButton';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import {
@@ -13,6 +19,8 @@ import {
 function HomeScreen(): React.JSX.Element {
   const navigation = useNavigation();
 
+  // 일주일간의 푸쉬업 데이터 (예시)
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <Header
@@ -24,7 +32,7 @@ function HomeScreen(): React.JSX.Element {
                 name="home"
                 size={18}
                 iconStyle="solid"
-                color="#242424"
+                color="#0182ff"
               />
             }
           />
@@ -37,48 +45,110 @@ function HomeScreen(): React.JSX.Element {
         }
       />
 
-      <View style={styles.banner}>
-        <Text style={styles.bannerText}>
-          팔굽혀펴기 앱이 출시 되었습니다 🎉
-        </Text>
-        <Fontawesome5
-          name="chevron-right"
-          iconStyle="solid"
-          size={15}
-          color="#fff"
-        />
-      </View>
-
-      <View style={styles.challengeContainer}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}>
+        {/* 최고 기록 카드 */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>최고 기록</Text>
-          <View style={styles.recordContainer}>
-            <View style={styles.recordItem}>
-              <Fontawesome5
-                name="hashtag"
-                size={12}
-                iconStyle="solid"
-                color="#000"
-              />
-              <Text>총 횟수</Text>
-              <Text>40번</Text>
+          <View style={styles.statsContainer}>
+            <View style={styles.statItem}>
+              <View style={styles.statIconContainer}>
+                <Fontawesome5
+                  name="fire"
+                  size={20}
+                  iconStyle="solid"
+                  color="#fff"
+                />
+              </View>
+              <Text style={styles.statLabel}>최대 횟수</Text>
+              <Text style={styles.statValue}>40회</Text>
             </View>
-            <View style={styles.recordItem}>
-              <Fontawesome5
-                name="clock"
-                size={12}
-                iconStyle="solid"
-                color="#000"
-              />
-              <Text>1분 40초</Text>
+
+            <View style={styles.statItem}>
+              <View style={styles.statIconContainer}>
+                <Fontawesome5
+                  name="clock"
+                  size={20}
+                  iconStyle="solid"
+                  color="#fff"
+                />
+              </View>
+              <Text style={styles.statLabel}>최고 시간</Text>
+              <Text style={styles.statValue}>1분 40초</Text>
+            </View>
+
+            <View style={styles.statItem}>
+              <View style={styles.statIconContainer}>
+                <Fontawesome5
+                  name="bolt"
+                  size={20}
+                  iconStyle="solid"
+                  color="#fff"
+                />
+              </View>
+              <Text style={styles.statLabel}>최고 속도</Text>
+              <Text style={styles.statValue}>30회/분</Text>
             </View>
           </View>
-          <CustomButton
-            title="푸쉬업 하기"
-            onPress={() => navigation.navigate('Challenge')}
-          />
         </View>
-      </View>
+
+        {/* 순위 정보 */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>순위 정보</Text>
+
+          <TouchableOpacity style={styles.rankingItem}>
+            <View style={styles.rankingLeft}>
+              <View>
+                <Text style={styles.rankTitle}>오늘의 순위</Text>
+                <Text style={styles.rankDesc}>상위 10% 달성!</Text>
+              </View>
+            </View>
+            <Fontawesome5
+              name="chevron-right"
+              iconStyle="solid"
+              size={16}
+              color="#ccc"
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.rankingItem}>
+            <View style={styles.rankingLeft}>
+              <View>
+                <Text style={styles.rankTitle}>전체 순위</Text>
+                <Text style={styles.rankDesc}>상위 100명 안에 들었어요!</Text>
+              </View>
+            </View>
+            <Fontawesome5
+              name="chevron-right"
+              iconStyle="solid"
+              size={16}
+              color="#ccc"
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.rankingItem}>
+            <View style={styles.rankingLeft}>
+              <View>
+                <Text style={styles.rankTitle}>속도 순위</Text>
+                <Text style={styles.rankDesc}>상위 20%의 속도를 가졌어요!</Text>
+              </View>
+            </View>
+            <Fontawesome5
+              name="chevron-right"
+              iconStyle="solid"
+              size={16}
+              color="#ccc"
+            />
+          </TouchableOpacity>
+        </View>
+
+        <CustomButton
+          title="푸쉬업 하기"
+          style={styles.startButton}
+          onPress={() => navigation.navigate('Challenge')}
+        />
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -89,57 +159,94 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#f5f5f5',
   },
+  scrollView: {
+    flex: 1,
+  },
   card: {
     padding: 20,
     borderRadius: 15,
     backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#333',
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 10,
   },
-  cardText: {
-    fontSize: 14,
-    marginBottom: 20,
-  },
-  highlightGraph: {
-    backgroundColor: '#000',
-  },
-  selectedGraph: {
-    transform: [{scaleY: 1.2}],
-  },
-  challengeContainer: {
-    marginTop: 20,
-  },
-  recordContainer: {
-    flexDirection: 'row',
+  statItem: {
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 20,
+    width: '30%',
   },
-  recordItem: {
-    flexDirection: 'row',
+  statIconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#bacfe3',
     alignItems: 'center',
-    gap: 5,
+    justifyContent: 'center',
+    marginBottom: 8,
   },
-  banner: {
-    backgroundColor: '#a7d1c2',
-    padding: 20,
-    borderRadius: 15,
+  statLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+  },
+  statValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  rankingItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingVertical: 12,
   },
-  bannerText: {
-    fontSize: 14,
+  rankingLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  rankBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#58a8f5',
+    marginRight: 15,
+  },
+  rankNumber: {
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  rankTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  rankDesc: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+  },
+  startButton: {
+    marginTop: 10,
+    marginBottom: 30,
+    backgroundColor: '#0182ff',
+    borderRadius: 12,
+    paddingVertical: 15,
   },
 });
 

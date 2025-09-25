@@ -1,13 +1,11 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {Animated, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React, {useState} from 'react';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import Fontawesome6 from '@react-native-vector-icons/fontawesome6';
 import {Header, HeaderTitle} from '../components/common/Header';
 
 function StatisticScreen() {
   const [selectedDate, setSelectedDate] = useState<string>('18');
-  const [showSetDetails, setShowSetDetails] = useState<boolean>(true);
-  const animatedHeight = useRef(new Animated.Value(0)).current;
 
   const dateItems = [
     {day: 'Mon', date: '12'},
@@ -53,18 +51,6 @@ function StatisticScreen() {
 
   const maxReps = Math.max(...setData.map(set => set.reps));
 
-  useEffect(() => {
-    Animated.timing(animatedHeight, {
-      toValue: showSetDetails ? 1 : 0,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-  }, [showSetDetails, animatedHeight]);
-
-  const toggleSetDetails = () => {
-    setShowSetDetails(!showSetDetails);
-  };
-
   const renderSetCard = (set: any, index: number) => {
     const progressWidth = (set.reps / maxReps) * 100;
 
@@ -95,13 +81,7 @@ function StatisticScreen() {
 
         <View style={styles.progressContainer}>
           <View style={styles.progressBar}>
-            <View
-              style={[
-                styles.progressFill,
-                {width: `${progressWidth}%`},
-                set.isPersonalBest && styles.bestProgressFill,
-              ]}
-            />
+            <View style={[styles.progressFill, {width: `${progressWidth}%`}]} />
           </View>
           <Text style={styles.progressText}>{progressWidth.toFixed(0)}%</Text>
         </View>
@@ -132,7 +112,7 @@ function StatisticScreen() {
                   name="chart-simple"
                   size={18}
                   iconStyle="solid"
-                  color="#242424"
+                  color="#0182ff"
                 />
               }
             />
@@ -159,21 +139,12 @@ function StatisticScreen() {
           </View>
 
           <View style={styles.historySummary}>
-            <TouchableOpacity
-              style={[styles.historySummaryItem, styles.pushupCount]}
-              onPress={toggleSetDetails}>
+            <View style={styles.historySummaryItem}>
               <View>
                 <Text style={styles.historySummaryTitle}>푸쉬업 수</Text>
                 <Text style={styles.historySummaryText}>40번</Text>
               </View>
-              <Fontawesome5
-                name={showSetDetails ? 'chevron-up' : 'chevron-down'}
-                iconStyle="solid"
-                size={12}
-                color="#666"
-                style={styles.chevronIcon}
-              />
-            </TouchableOpacity>
+            </View>
             <View style={styles.historySummaryItem}>
               <Text style={styles.historySummaryTitle}>총 세트 수</Text>
               <Text style={styles.historySummaryText}>4세트</Text>
@@ -183,32 +154,15 @@ function StatisticScreen() {
               <Text style={styles.historySummaryText}>1분 40초</Text>
             </View>
           </View>
+          <View style={styles.historyDetails}>
+            <View style={styles.setDetailsHeader}>
+              <Text style={styles.setDetailsTitle}>세트별 상세 기록</Text>
+            </View>
+            <View style={styles.setsScrollView}>
+              {setData.map((set, index) => renderSetCard(set, index))}
+            </View>
+          </View>
         </View>
-
-        <Animated.View
-          style={[
-            styles.setDetailsContainer,
-            {
-              opacity: animatedHeight,
-              maxHeight: animatedHeight.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0, 600],
-              }),
-            },
-          ]}>
-          <View style={styles.setDetailsHeader}>
-            <Fontawesome5
-              name="dumbbell"
-              iconStyle="solid"
-              size={16}
-              color="#242424"
-            />
-            <Text style={styles.setDetailsTitle}>세트별 상세 기록</Text>
-          </View>
-          <View style={styles.setsScrollView}>
-            {setData.map((set, index) => renderSetCard(set, index))}
-          </View>
-        </Animated.View>
       </View>
     </View>
   );
@@ -231,14 +185,14 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   historyDateItem: {
-    backgroundColor: '#c2c2c2',
+    backgroundColor: '#9faab5',
     paddingVertical: 12,
     flex: 1,
     borderRadius: 9999,
     alignItems: 'center',
   },
   selectedDateItem: {
-    backgroundColor: '#242424',
+    backgroundColor: '#097eed',
   },
   historyDateText: {
     color: '#fff',
@@ -262,7 +216,7 @@ const styles = StyleSheet.create({
   },
   historySummaryItem: {
     flex: 1,
-    backgroundColor: '#e8e8e8',
+    backgroundColor: '#fff',
     borderRadius: 15,
     padding: 10,
   },
@@ -348,7 +302,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
-    backgroundColor: '#3EB489',
+    backgroundColor: '#097eed',
     padding: 2,
     borderRadius: 9999,
   },
@@ -366,16 +320,13 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 10,
     borderRadius: 9999,
-    backgroundColor: '#c2c2c2',
+    backgroundColor: '#e6e6e6',
     marginRight: 10,
   },
   progressFill: {
     height: 10,
     borderRadius: 9999,
-    backgroundColor: '#242424',
-  },
-  bestProgressFill: {
-    backgroundColor: '#3EB489',
+    backgroundColor: '#549de3',
   },
   progressText: {
     fontSize: 12,
@@ -392,6 +343,9 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     padding: 10,
+  },
+  historyDetails: {
+    marginTop: 20,
   },
 });
 

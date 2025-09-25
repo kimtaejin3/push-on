@@ -15,15 +15,23 @@ import {Header, HeaderTitle} from '../components/common/Header';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
+function formatDate(date: Date, delimiter: string) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}${delimiter}${month}${delimiter}${day}`;
+}
+
 function StatisticScreen() {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<string>(
+    formatDate(new Date(), '-'),
+  );
   const [selectedMonth, setSelectedMonth] = useState<number>(8); // 9월 (0-indexed)
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [isCalendarModalVisible, setCalendarModalVisible] =
     useState<boolean>(false);
   const scrollViewRef = useRef<ScrollView>(null);
-
-  console.log('check check check check', new Date());
 
   // 선택된 월의 날짜 데이터 생성
   const generateDatesForMonth = useCallback((year: number, month: number) => {
@@ -44,6 +52,7 @@ function StatisticScreen() {
         day: dayNames[dayOfWeek],
         date: i,
         fullDate: date,
+        formattedDate: formatDate(date, '-'),
       });
     }
 
@@ -70,8 +79,6 @@ function StatisticScreen() {
     const newDates = generateDatesForMonth(selectedYear, selectedMonth);
     console.log('newDates', newDates);
     setDateItems(newDates);
-
-    scrollToDate(selectedDate.getDate() + 1);
   }, [
     selectedMonth,
     selectedYear,
@@ -292,7 +299,8 @@ function StatisticScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.dateScrollContainer}>
             {dateItems.map((item, index) => {
-              const isSelected = new Date() === item.fullDate;
+              const isSelected = selectedDate === item.formattedDate;
+              console.log(item.formattedDate);
 
               return (
                 <TouchableOpacity
@@ -301,7 +309,7 @@ function StatisticScreen() {
                     styles.historyDateItem,
                     isSelected && styles.selectedDateItem,
                   ]}
-                  onPress={() => setSelectedDate(item.fullDate)}>
+                  onPress={() => setSelectedDate(item.formattedDate)}>
                   <Text style={styles.historyDateText}>{item.day}</Text>
                   <View style={styles.historyDateNumber}>
                     <Text style={styles.historyDateNumberText}>

@@ -87,13 +87,13 @@ function StatisticScreen() {
       scrollToDate(new Date(selectedDate).getDate());
     } else {
       setSelectedDate(newDates[newDates.length - 1].formattedDate);
-      scrollToDate(newDates.length - 1);
+      scrollToDate(newDates.length);
     }
   }, [
     selectedMonth,
     selectedYear,
     generateDatesForMonth,
-    selectedDate,
+    // selectedDate,
     scrollToDate,
   ]);
 

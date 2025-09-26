@@ -79,6 +79,16 @@ function StatisticScreen() {
     const newDates = generateDatesForMonth(selectedYear, selectedMonth);
     console.log('newDates', newDates);
     setDateItems(newDates);
+
+    if (
+      new Date().getMonth() + 1 === selectedMonth &&
+      new Date().getFullYear() === selectedYear
+    ) {
+      scrollToDate(new Date(selectedDate).getDate());
+    } else {
+      setSelectedDate(newDates[newDates.length - 1].formattedDate);
+      scrollToDate(newDates.length - 1);
+    }
   }, [
     selectedMonth,
     selectedYear,
@@ -367,7 +377,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 10,
     marginBottom: 10,
   },
   monthYearButton: {
@@ -388,17 +397,14 @@ const styles = StyleSheet.create({
   },
   dateScrollContainer: {
     paddingVertical: 10,
-    paddingHorizontal: 5,
   },
   historyDates: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
   },
   historyDateItem: {
     backgroundColor: '#9faab5',
     paddingVertical: 12,
-    paddingHorizontal: 10,
     borderRadius: 9999,
     alignItems: 'center',
     marginHorizontal: 5,
@@ -477,7 +483,7 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   setsScrollView: {
-    maxHeight: 'auto',
+    maxHeight: 380,
   },
   setCard: {
     padding: 15,
@@ -567,7 +573,8 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   headerContainer: {
-    padding: 10,
+    paddingHorizontal: 10,
+    paddingTop: 10,
   },
   historyDetails: {
     marginTop: 20,

@@ -6,7 +6,6 @@ type SetData = {
   setNumber: number;
   reps: number;
   time: string;
-  restTime: string;
   isPersonalBest: boolean;
 };
 
@@ -49,13 +48,6 @@ const SetCard: React.FC<SetCardProps> = ({set, maxReps}) => {
         </View>
         <Text style={styles.progressText}>{progressWidth.toFixed(0)}%</Text>
       </View>
-
-      {set.restTime !== '0초' && (
-        <View style={styles.restTimeContainer}>
-          <Fontawesome5 name="pause" iconStyle="solid" size={10} color="#666" />
-          <Text style={styles.restTimeText}>휴식: {set.restTime}</Text>
-        </View>
-      )}
     </View>
   );
 };
@@ -114,7 +106,7 @@ const styles = StyleSheet.create({
   bestBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFD700',
+    backgroundColor: '#097eed',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 10,

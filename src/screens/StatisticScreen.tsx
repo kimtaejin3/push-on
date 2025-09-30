@@ -13,23 +13,42 @@ import {Header, HeaderTitle} from '../components/common/Header';
 import SetCard, {SetData} from '../components/SetCard';
 import DatePickerModal from '../components/DatePickerModal';
 
-function formatDate(date: Date, delimiter: string) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-
-  return `${year}${delimiter}${month}${delimiter}${day}`;
+function getDayOfWeek(date: Date) {
+  const days = [
+    '일요일',
+    '월요일',
+    '화요일',
+    '수요일',
+    '목요일',
+    '금요일',
+    '토요일',
+  ];
+  return days[date.getDay()];
 }
 
 function StatisticScreen() {
-  const [selectedDate, setSelectedDate] = useState<string>(
-    formatDate(new Date(), '-'),
-  );
-  const [selectedMonth, setSelectedMonth] = useState<number>(8); // 9월 (0-indexed)
-  const [selectedYear, setSelectedYear] = useState<number>(2025);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isCalendarModalVisible, setCalendarModalVisible] =
     useState<boolean>(false);
 
+  // 날짜 변경 함수들
+  const goToPreviousDay = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() - 1);
+    setSelectedDate(newDate);
+  };
+
+  const goToNextDay = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() + 1);
+    setSelectedDate(newDate);
+  };
+
+  const goToToday = () => {
+    setSelectedDate(new Date());
+  };
+
+  // 스와이프 제스처 처리
   // 월 이름 배열
   const monthNames = [
     '1월',
@@ -110,63 +129,94 @@ function StatisticScreen() {
           />
         }
       />
-      <View style={styles.monthSelector}>
-        <TouchableOpacity
-          style={styles.monthYearButton}
-          onPress={() => setCalendarModalVisible(true)}>
-          <Text style={styles.monthYearText}>
-            {selectedYear}년 {monthNames[selectedMonth]} {selectedDate}일
-          </Text>
+
+      <View style={styles.dateNavigationContainer}>
+        <TouchableOpacity style={styles.navButton} onPress={goToPreviousDay}>
           <Fontawesome5
-            name="calendar-alt"
+            name="chevron-left"
             iconStyle="solid"
-            size={14}
+            size={16}
             color="#0182ff"
-            style={styles.calendarIcon}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.dateDisplay}
+          onPress={() => setCalendarModalVisible(true)}>
+          <Text style={styles.dateText}>
+            {selectedDate.getFullYear()}년 {monthNames[selectedDate.getMonth()]}{' '}
+            {selectedDate.getDate()}일
+          </Text>
+          <Text style={styles.dayOfWeekText}>{getDayOfWeek(selectedDate)}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          disabled={selectedDate.getDate() === new Date().getDate()}
+          style={[
+            styles.navButton,
+            selectedDate.getDate() === new Date().getDate() &&
+              styles.disabledButton,
+          ]}
+          onPress={goToNextDay}>
+          <Fontawesome5
+            name="chevron-right"
+            iconStyle="solid"
+            size={16}
+            color="#0182ff"
           />
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.historyContainer}>
-          <View>
-            {/* 월 선택 헤더 */}
+      <View style={styles.scrollContainer}>
+        <ScrollView style={styles.scrollView}>
+          <View style={styles.historyContainer}>
+            <View>
+              {/* 월 선택 헤더 */}
 
-            <View style={styles.historySummary}>
-              <View style={styles.historySummaryItem}>
-                <View>
-                  <Text style={styles.historySummaryTitle}>푸쉬업 수</Text>
-                  <Text style={styles.historySummaryText}>40번</Text>
+              <View style={styles.historySummary}>
+                <View style={styles.historySummaryItem}>
+                  <View>
+                    <Text style={styles.historySummaryTitle}>푸쉬업 수</Text>
+                    <Text style={styles.historySummaryText}>40번</Text>
+                  </View>
+                </View>
+                <View style={styles.historySummaryItem}>
+                  <Text style={styles.historySummaryTitle}>총 세트 수</Text>
+                  <Text style={styles.historySummaryText}>4세트</Text>
+                </View>
+                <View style={styles.historySummaryItem}>
+                  <Text style={styles.historySummaryTitle}>총 시간</Text>
+                  <Text style={styles.historySummaryText}>1분 40초</Text>
                 </View>
               </View>
-              <View style={styles.historySummaryItem}>
-                <Text style={styles.historySummaryTitle}>총 세트 수</Text>
-                <Text style={styles.historySummaryText}>4세트</Text>
+              <View style={styles.historyDetails}>
+                <View style={styles.setDetailsHeader}>
+                  <Text style={styles.setDetailsTitle}>세트별 상세 기록</Text>
+                </View>
+                {setData.map((set, index) => (
+                  <SetCard key={index} set={set} maxReps={maxReps} />
+                ))}
               </View>
-              <View style={styles.historySummaryItem}>
-                <Text style={styles.historySummaryTitle}>총 시간</Text>
-                <Text style={styles.historySummaryText}>1분 40초</Text>
-              </View>
-            </View>
-            <View style={styles.historyDetails}>
-              <View style={styles.setDetailsHeader}>
-                <Text style={styles.setDetailsTitle}>세트별 상세 기록</Text>
-              </View>
-              {setData.map((set, index) => (
-                <SetCard key={index} set={set} maxReps={maxReps} />
-              ))}
             </View>
           </View>
-        </View>
+        </ScrollView>
         <DatePickerModal
           isVisible={isCalendarModalVisible}
           onClose={() => setCalendarModalVisible(false)}
-          selectedMonth={selectedMonth}
-          selectedYear={selectedYear}
-          onMonthSelect={month => setSelectedMonth(month)}
-          onYearChange={year => setSelectedYear(year)}
+          selectedMonth={selectedDate.getMonth()}
+          selectedYear={selectedDate.getFullYear()}
+          onMonthSelect={month => {
+            const newDate = new Date(selectedDate);
+            newDate.setMonth(month);
+            setSelectedDate(newDate);
+          }}
+          onYearChange={year => {
+            const newDate = new Date(selectedDate);
+            newDate.setFullYear(year);
+            setSelectedDate(newDate);
+          }}
         />
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -183,26 +233,55 @@ const styles = StyleSheet.create({
   historyContainer: {
     borderRadius: 15,
   },
-  monthSelector: {
+  dateNavigationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 10,
+    paddingHorizontal: 10,
   },
-  monthYearButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 5,
+  navButton: {
+    width: 40,
+    height: 40,
     borderRadius: 20,
     backgroundColor: '#f0f0f0',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  monthYearText: {
+  dateDisplay: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+  },
+  dateText: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
+    marginBottom: 2,
+  },
+  dayOfWeekText: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
   },
   calendarIcon: {
-    marginLeft: 8,
+    marginTop: 2,
+  },
+  todayButton: {
+    alignSelf: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#0182ff',
+    marginBottom: 15,
+  },
+  todayButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  scrollContainer: {
+    flex: 1,
   },
   historySummary: {
     marginTop: 20,
@@ -240,6 +319,9 @@ const styles = StyleSheet.create({
   setDetailsHeader: {
     marginTop: 10,
     marginBottom: 20,
+  },
+  disabledButton: {
+    opacity: 0.4,
   },
 });
 

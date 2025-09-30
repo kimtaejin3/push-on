@@ -33,7 +33,7 @@ const monthNames = [
   '12월',
 ];
 
-const MonthPickerModal: React.FC<MonthPickerModalProps> = ({
+const DatePickerModal: React.FC<MonthPickerModalProps> = ({
   isVisible,
   onClose,
   selectedMonth,
@@ -160,4 +160,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MonthPickerModal;
+export default DatePickerModal;

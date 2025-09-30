@@ -6,11 +6,12 @@ import {
   View,
   ScrollView,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import Fontawesome6 from '@react-native-vector-icons/fontawesome6';
 import {Header, HeaderTitle} from '../components/common/Header';
 import SetCard, {SetData} from '../components/SetCard';
-import MonthPickerModal from '../components/MonthPickerModal';
+import DatePickerModal from '../components/DatePickerModal';
 
 function formatDate(date: Date, delimiter: string) {
   const year = date.getFullYear();
@@ -76,97 +77,111 @@ function StatisticScreen() {
       time: '25초',
       isPersonalBest: false,
     },
+    {
+      setNumber: 4,
+      reps: 10,
+      time: '25초',
+      isPersonalBest: false,
+    },
+    {
+      setNumber: 4,
+      reps: 10,
+      time: '25초',
+      isPersonalBest: false,
+    },
   ];
 
   const maxReps = Math.max(...setData.map(set => set.reps));
 
   return (
-    <ScrollView style={styles.safeArea}>
-      <View style={styles.headerContainer}>
-        <Header
-          left={
-            <HeaderTitle
-              title="일자별 푸쉬업 기록"
-              icon={
-                <Fontawesome6
-                  name="chart-simple"
-                  size={18}
-                  iconStyle="solid"
-                  color="#0182ff"
-                />
-              }
-            />
-          }
-        />
-      </View>
-      <View style={styles.historyContainer}>
-        <View style={styles.historyContent}>
-          {/* 월 선택 헤더 */}
-          <View style={styles.monthSelector}>
-            <TouchableOpacity
-              style={styles.monthYearButton}
-              onPress={() => setCalendarModalVisible(true)}>
-              <Text style={styles.monthYearText}>
-                {selectedYear}년 {monthNames[selectedMonth]} {selectedDate}일
-              </Text>
-              <Fontawesome5
-                name="calendar-alt"
+    <SafeAreaView style={styles.safeArea}>
+      <Header
+        left={
+          <HeaderTitle
+            title="일자별 푸쉬업 기록"
+            icon={
+              <Fontawesome6
+                name="chart-simple"
+                size={18}
                 iconStyle="solid"
-                size={14}
                 color="#0182ff"
-                style={styles.calendarIcon}
               />
-            </TouchableOpacity>
-          </View>
+            }
+          />
+        }
+      />
+      <View style={styles.monthSelector}>
+        <TouchableOpacity
+          style={styles.monthYearButton}
+          onPress={() => setCalendarModalVisible(true)}>
+          <Text style={styles.monthYearText}>
+            {selectedYear}년 {monthNames[selectedMonth]} {selectedDate}일
+          </Text>
+          <Fontawesome5
+            name="calendar-alt"
+            iconStyle="solid"
+            size={14}
+            color="#0182ff"
+            style={styles.calendarIcon}
+          />
+        </TouchableOpacity>
+      </View>
 
-          <View style={styles.historySummary}>
-            <View style={styles.historySummaryItem}>
-              <View>
-                <Text style={styles.historySummaryTitle}>푸쉬업 수</Text>
-                <Text style={styles.historySummaryText}>40번</Text>
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.historyContainer}>
+          <View>
+            {/* 월 선택 헤더 */}
+
+            <View style={styles.historySummary}>
+              <View style={styles.historySummaryItem}>
+                <View>
+                  <Text style={styles.historySummaryTitle}>푸쉬업 수</Text>
+                  <Text style={styles.historySummaryText}>40번</Text>
+                </View>
+              </View>
+              <View style={styles.historySummaryItem}>
+                <Text style={styles.historySummaryTitle}>총 세트 수</Text>
+                <Text style={styles.historySummaryText}>4세트</Text>
+              </View>
+              <View style={styles.historySummaryItem}>
+                <Text style={styles.historySummaryTitle}>총 시간</Text>
+                <Text style={styles.historySummaryText}>1분 40초</Text>
               </View>
             </View>
-            <View style={styles.historySummaryItem}>
-              <Text style={styles.historySummaryTitle}>총 세트 수</Text>
-              <Text style={styles.historySummaryText}>4세트</Text>
+            <View style={styles.historyDetails}>
+              <View style={styles.setDetailsHeader}>
+                <Text style={styles.setDetailsTitle}>세트별 상세 기록</Text>
+              </View>
+              {setData.map((set, index) => (
+                <SetCard key={index} set={set} maxReps={maxReps} />
+              ))}
             </View>
-            <View style={styles.historySummaryItem}>
-              <Text style={styles.historySummaryTitle}>총 시간</Text>
-              <Text style={styles.historySummaryText}>1분 40초</Text>
-            </View>
-          </View>
-          <View style={styles.historyDetails}>
-            <View style={styles.setDetailsHeader}>
-              <Text style={styles.setDetailsTitle}>세트별 상세 기록</Text>
-            </View>
-            {setData.map((set, index) => (
-              <SetCard key={index} set={set} maxReps={maxReps} />
-            ))}
           </View>
         </View>
-      </View>
-      <MonthPickerModal
-        isVisible={isCalendarModalVisible}
-        onClose={() => setCalendarModalVisible(false)}
-        selectedMonth={selectedMonth}
-        selectedYear={selectedYear}
-        onMonthSelect={month => setSelectedMonth(month)}
-        onYearChange={year => setSelectedYear(year)}
-      />
-    </ScrollView>
+        <DatePickerModal
+          isVisible={isCalendarModalVisible}
+          onClose={() => setCalendarModalVisible(false)}
+          selectedMonth={selectedMonth}
+          selectedYear={selectedYear}
+          onMonthSelect={month => setSelectedMonth(month)}
+          onYearChange={year => setSelectedYear(year)}
+        />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: {
+    flex: 1,
+    padding: 20,
     backgroundColor: '#f5f5f5',
-    padding: 10,
+  },
+  scrollView: {
+    flex: 1,
   },
   historyContainer: {
     borderRadius: 15,
-  },
-  historyContent: {
-    paddingHorizontal: 10,
   },
   monthSelector: {
     flexDirection: 'row',
@@ -178,7 +193,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 5,
-    paddingHorizontal: 10,
     borderRadius: 20,
     backgroundColor: '#f0f0f0',
   },

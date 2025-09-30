@@ -52,7 +52,29 @@ const DatePickerModal: React.FC<MonthPickerModalProps> = ({
         activeOpacity={1}
         onPress={onClose}>
         <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>월 선택</Text>
+          <View style={styles.yearSelector}>
+            <TouchableOpacity
+              style={styles.yearButton}
+              onPress={() => onYearChange(selectedYear - 1)}>
+              <Fontawesome5
+                name="chevron-left"
+                iconStyle="solid"
+                size={16}
+                color="#0182ff"
+              />
+            </TouchableOpacity>
+            <Text style={styles.yearText}>{selectedYear}년</Text>
+            <TouchableOpacity
+              style={styles.yearButton}
+              onPress={() => onYearChange(selectedYear + 1)}>
+              <Fontawesome5
+                name="chevron-right"
+                iconStyle="solid"
+                size={16}
+                color="#0182ff"
+              />
+            </TouchableOpacity>
+          </View>
           <FlatList
             data={monthNames}
             numColumns={3}
@@ -77,29 +99,6 @@ const DatePickerModal: React.FC<MonthPickerModalProps> = ({
             )}
             keyExtractor={(_, index) => index.toString()}
           />
-          <View style={styles.yearSelector}>
-            <TouchableOpacity
-              style={styles.yearButton}
-              onPress={() => onYearChange(selectedYear - 1)}>
-              <Fontawesome5
-                name="chevron-left"
-                iconStyle="solid"
-                size={16}
-                color="#0182ff"
-              />
-            </TouchableOpacity>
-            <Text style={styles.yearText}>{selectedYear}년</Text>
-            <TouchableOpacity
-              style={styles.yearButton}
-              onPress={() => onYearChange(selectedYear + 1)}>
-              <Fontawesome5
-                name="chevron-right"
-                iconStyle="solid"
-                size={16}
-                color="#0182ff"
-              />
-            </TouchableOpacity>
-          </View>
         </View>
       </TouchableOpacity>
     </Modal>
@@ -148,7 +147,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 15,
   },
   yearButton: {
     padding: 10,

@@ -44,10 +44,6 @@ function StatisticScreen() {
     setSelectedDate(newDate);
   };
 
-  const goToToday = () => {
-    setSelectedDate(new Date());
-  };
-
   // 스와이프 제스처 처리
   // 월 이름 배열
   const monthNames = [

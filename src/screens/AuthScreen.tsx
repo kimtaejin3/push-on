@@ -17,6 +17,21 @@ import {WebView} from 'react-native-webview';
 import {AuthService} from '../services/authService';
 import {supabase} from '../lib/supabase';
 
+// 세션 정보를 자세히 출력하는 헬퍼 함수
+const logSessionDetails = (session: any, context: string) => {
+  console.log(`=== ${context} ===`);
+  console.log('사용자 ID:', session.user?.id);
+  console.log('이메일:', session.user?.email);
+  console.log(
+    '이름:',
+    session.user?.user_metadata?.full_name || session.user?.user_metadata?.name,
+  );
+  console.log('프로필 이미지:', session.user?.user_metadata?.avatar_url);
+  console.log('프로바이더:', session.user?.app_metadata?.provider);
+  console.log('토큰 만료 시간:', new Date(session.expires_at * 1000));
+  console.log('========================');
+};
+
 // SVG 로고 데이터
 const logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="-5.0 -10.0 110.0 135.0">
   <path d="m25.641 46.875c2.3047 0.007812 4.5898-0.44531 6.7188-1.3281-1.2812-0.51953-2.4961-1.1953-3.6094-2.0156-0.95703-0.6875-1.8477-1.4688-2.6562-2.3281-0.55859-0.5625-1.0781-1.1562-1.5625-1.7812l2.0938-1.5625c0.79297 1.0234 1.6992 1.9531 2.7031 2.7656 1.8086 1.5156 3.9492 2.5859 6.25 3.125l1.1406 0.28125c1.1289 0.19922 2.2734 0.29688 3.4219 0.29688 2.1562-0.011719 4.3008-0.31641 6.375-0.90625-0.18359-0.94531-0.41797-1.8789-0.70312-2.7969-0.22656-0.83594-0.5-1.6602-0.8125-2.4688-0.95703-2.4688-2.25-4.793-3.8438-6.9062l2.1094-1.5625c1.7461 2.3281 3.1602 4.8906 4.2031 7.6094 0.3125 0.84375 0.59375 1.6719 0.8125 2.4844 0.27734 0.97656 0.50391 1.9688 0.67188 2.9688 0.17578 0.9375 0.30078 1.8438 0.375 2.7188 0.33594 3.5156 0.035156 7.0625-0.89062 10.469-0.22656 0.75 0.13281 1.5508 0.84375 1.875l14.062 5.9688c0.1875 0.078125 0.39062 0.12109 0.59375 0.125 0.59375-0.015625 1.125-0.36719 1.375-0.90625 0.67188-1.5625 16.438-37.5 7.3906-49.203-8.0625-10.484-32.078-3.1406-38.328-0.98438-0.32812 0.09375-0.60938 0.20312-0.82812 0.28125-0.23828-0.14844-0.48438-0.28125-0.73438-0.40625-2.2383-0.97656-4.6523-1.4766-7.0938-1.4688-4.8164-0.14453-9.4883 1.6719-12.945 5.0273-3.4609 3.3594-5.4102 7.9727-5.4102 12.793 0 4.8203 1.9492 9.4336 5.4102 12.793 3.457 3.3555 8.1289 5.1719 12.945 5.0273z" fill="#0182ff"/>
@@ -117,18 +132,39 @@ function AuthScreen() {
         console.log('딥링크 감지:', url);
 
         try {
-          const {data, error} = await supabase.auth.exchangeCodeForSession(url);
+          // URL에서 토큰 추출
+          const urlObj = new URL(url);
+          const accessToken = urlObj.hash.match(/access_token=([^&]+)/)?.[1];
+          const refreshToken = urlObj.hash.match(/refresh_token=([^&]+)/)?.[1];
+
+          console.log('Access Token:', accessToken);
+          console.log('Refresh Token:', refreshToken);
+
+          if (!accessToken || !refreshToken) {
+            console.error('토큰을 찾을 수 없습니다.');
+            Alert.alert('로그인 실패', '토큰을 찾을 수 없습니다.');
+            return;
+          }
+
+          // 세션 설정
+          const {
+            data: {session},
+            error,
+          } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
 
           if (error) {
-            console.error('세션 교환 실패:', error);
+            console.error('세션 설정 실패:', error);
             Alert.alert('로그인 실패', error.message);
           } else {
-            console.log('세션 성공:', data.session);
-            // logSessionDetails(data.session, '딥링크 OAuth 로그인 성공');
+            console.log('세션 성공:', session);
+            logSessionDetails(session, '딥링크 OAuth 로그인 성공');
 
             Alert.alert(
               '로그인 성공',
-              `환영합니다, ${data.session.user?.email || '사용자'}님!`,
+              `환영합니다, ${session?.user?.email || '사용자'}님!`,
             );
             // 메인 화면으로 이동
           }

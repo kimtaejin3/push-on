@@ -16,6 +16,7 @@ import {SvgXml} from 'react-native-svg';
 import {WebView} from 'react-native-webview';
 import {AuthService} from '../services/authService';
 import {supabase} from '../lib/supabase';
+import {useAuth} from '../hooks/useAuth';
 
 // 세션 정보를 자세히 출력하는 헬퍼 함수
 const logSessionDetails = (session: any, context: string) => {
@@ -48,6 +49,7 @@ function AuthScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [showWebView, setShowWebView] = useState(false);
   const [webViewUrl, setWebViewUrl] = useState('');
+  const {session, loading, isLoggedIn, signOut} = useAuth();
 
   const handleKakaoLogin = async () => {
     try {
@@ -189,6 +191,35 @@ function AuthScreen() {
 
     return () => subscription?.remove();
   }, []);
+
+  // 로딩 중
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0182ff" />
+          <Text style={styles.loadingText}>로딩 중...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // 이미 로그인된 경우
+  if (isLoggedIn && session) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+        <View style={styles.loggedInContainer}>
+          <Text style={styles.welcomeText}>
+            환영합니다, {session.user?.email || '사용자'}님!
+          </Text>
+          <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
+            <Text style={styles.logoutButtonText}>로그아웃</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -512,6 +543,30 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     color: '#666666',
+  },
+  loggedInContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 30,
+  },
+  welcomeText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333333',
+    textAlign: 'center',
+    marginBottom: 30,
+  },
+  logoutButton: {
+    backgroundColor: '#ff4444',
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 12,
+  },
+  logoutButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   emailButton: {
     backgroundColor: '#ffffff',

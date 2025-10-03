@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,11 +7,20 @@ import {
   SafeAreaView,
   StatusBar,
   Linking,
+  Alert,
+  ActivityIndicator,
+  Modal,
 } from 'react-native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import {SvgXml} from 'react-native-svg';
+import {WebView} from 'react-native-webview';
+import {AuthService} from '../services/authService';
+import {supabase} from '../lib/supabase';
+import {useAuth} from '../hooks/useAuth';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {AppStackParamList} from '../navigations/AppNavigation';
+import {useNavigation} from '@react-navigation/native';
 
-// SVG 로고 데이터
 const logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="-5.0 -10.0 110.0 135.0">
   <path d="m25.641 46.875c2.3047 0.007812 4.5898-0.44531 6.7188-1.3281-1.2812-0.51953-2.4961-1.1953-3.6094-2.0156-0.95703-0.6875-1.8477-1.4688-2.6562-2.3281-0.55859-0.5625-1.0781-1.1562-1.5625-1.7812l2.0938-1.5625c0.79297 1.0234 1.6992 1.9531 2.7031 2.7656 1.8086 1.5156 3.9492 2.5859 6.25 3.125l1.1406 0.28125c1.1289 0.19922 2.2734 0.29688 3.4219 0.29688 2.1562-0.011719 4.3008-0.31641 6.375-0.90625-0.18359-0.94531-0.41797-1.8789-0.70312-2.7969-0.22656-0.83594-0.5-1.6602-0.8125-2.4688-0.95703-2.4688-2.25-4.793-3.8438-6.9062l2.1094-1.5625c1.7461 2.3281 3.1602 4.8906 4.2031 7.6094 0.3125 0.84375 0.59375 1.6719 0.8125 2.4844 0.27734 0.97656 0.50391 1.9688 0.67188 2.9688 0.17578 0.9375 0.30078 1.8438 0.375 2.7188 0.33594 3.5156 0.035156 7.0625-0.89062 10.469-0.22656 0.75 0.13281 1.5508 0.84375 1.875l14.062 5.9688c0.1875 0.078125 0.39062 0.12109 0.59375 0.125 0.59375-0.015625 1.125-0.36719 1.375-0.90625 0.67188-1.5625 16.438-37.5 7.3906-49.203-8.0625-10.484-32.078-3.1406-38.328-0.98438-0.32812 0.09375-0.60938 0.20312-0.82812 0.28125-0.23828-0.14844-0.48438-0.28125-0.73438-0.40625-2.2383-0.97656-4.6523-1.4766-7.0938-1.4688-4.8164-0.14453-9.4883 1.6719-12.945 5.0273-3.4609 3.3594-5.4102 7.9727-5.4102 12.793 0 4.8203 1.9492 9.4336 5.4102 12.793 3.457 3.3555 8.1289 5.1719 12.945 5.0273z" fill="#0182ff"/>
   <path d="m64.578 66.484c-0.19141 0.015625-0.38672 0.015625-0.57812 0-0.53516 0.011719-1.0664-0.082031-1.5625-0.28125h-0.09375l-14.062-5.9688c-0.18359-0.074219-0.35938-0.16406-0.53125-0.26562l-0.15625-0.10938c-0.20312-0.12891-0.39453-0.28125-0.5625-0.45312-0.17188-0.15625-0.32812-0.32812-0.46875-0.51562-0.33594-0.46875-0.57031-1-0.6875-1.5625-3.0156 2.375-6.8125 6.1875-6.8125 10.344 0 2.7188 1.5625 5.0625 4.8438 6.9375 2.875 1.8125 6.1836 2.8164 9.5781 2.9062 2.3672 0.035156 4.6875-0.63281 6.6719-1.9219 3.1367-2.1406 5.1328-5.5898 5.4219-9.375l-0.46875 0.15625c-0.17188 0.058594-0.35156 0.09375-0.53125 0.10938z" fill="#0182ff"/>
@@ -24,14 +33,80 @@ const logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="
 </svg>`;
 
 function AuthScreen() {
-  const handleKakaoLogin = () => {
-    // TODO: 카카오 로그인 구현
-    console.log('카카오 로그인');
+  const [isLoading, setIsLoading] = useState(false);
+  const [showWebView, setShowWebView] = useState(false);
+  const [webViewUrl, setWebViewUrl] = useState('');
+
+  const {isLoggedIn} = useAuth();
+
+  const navigation =
+    useNavigation<NativeStackNavigationProp<AppStackParamList>>();
+
+  console.log('navigation', navigation);
+
+  const handleKakaoLogin = async () => {
+    try {
+      setIsLoading(true);
+      const {data, error} = await AuthService.signInWithKakao();
+
+      if (!data) {
+        Alert.alert('오류', '잘못된 OAuth URL입니다.');
+        return;
+      }
+
+      if (error) {
+        Alert.alert('로그인에 실패하였습니다. 고객센터에 문의해주세요.');
+      } else {
+        console.log('카카오 로그인 시작:', data);
+        console.log('OAuth URL:', data.url);
+
+        if (!data.url || !data.url.startsWith('https://')) {
+          Alert.alert('오류', '잘못된 OAuth URL입니다.');
+          return;
+        }
+
+        setWebViewUrl(data.url);
+        setShowWebView(true);
+      }
+    } catch (error) {
+      console.error('카카오 로그인 오류:', error);
+      Alert.alert('오류', '로그인 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEmailLogin = () => {
-    // TODO: 이메일 로그인 구현
-    console.log('이메일 로그인');
+    // 간단한 이메일 로그인 (임시)
+    Alert.prompt(
+      '이메일 로그인',
+      '이메일 주소를 입력하세요:',
+      [
+        {text: '취소', style: 'cancel'},
+        {
+          text: '로그인',
+          onPress: async email => {
+            if (email && email.includes('@')) {
+              try {
+                setIsLoading(true);
+                // 임시로 간단한 로그인 처리
+                console.log('이메일 로그인:', email);
+                Alert.alert('로그인 성공', `${email}으로 로그인되었습니다.`);
+              } catch (error) {
+                Alert.alert('오류', '로그인 중 오류가 발생했습니다.');
+              } finally {
+                setIsLoading(false);
+              }
+            } else {
+              Alert.alert('오류', '올바른 이메일 주소를 입력해주세요.');
+            }
+          },
+        },
+      ],
+      'plain-text',
+      '',
+      'email-address',
+    );
   };
 
   const handlePrivacyPolicy = () => {
@@ -43,6 +118,69 @@ function AuthScreen() {
     // TODO: 이용약관 링크
     console.log('이용약관');
   };
+
+  // 딥링크 처리
+  useEffect(() => {
+    const handleDeepLink = async (url: string) => {
+      if (url.includes('login-callback')) {
+        console.log('딥링크 감지:', url);
+
+        try {
+          // URL에서 토큰 추출
+          const urlObj = new URL(url);
+          const accessToken = urlObj.hash.match(/access_token=([^&]+)/)?.[1];
+          const refreshToken = urlObj.hash.match(/refresh_token=([^&]+)/)?.[1];
+
+          if (!accessToken || !refreshToken) {
+            console.error('토큰을 찾을 수 없습니다.');
+            Alert.alert('로그인 실패', '토큰을 찾을 수 없습니다.');
+            return;
+          }
+
+          // 세션 설정
+          const {error} = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+          if (error) {
+            console.error('세션 설정 실패:', error);
+            Alert.alert('로그인 실패', error.message);
+          } else {
+            // 메인 화면으로 이동
+            setShowWebView(false);
+            console.log('navigation', navigation);
+            if (navigation) {
+              navigation.navigate('Tabs', {screen: 'Home'});
+            }
+          }
+        } catch (error) {
+          console.error('딥링크 처리 중 오류:', error);
+          Alert.alert('오류', '로그인 처리 중 오류가 발생했습니다.');
+        }
+      }
+    };
+
+    const subscription = Linking.addEventListener('url', ({url}) => {
+      console.log('딥링크 URL:', url);
+      handleDeepLink(url);
+    });
+
+    // 앱이 이미 열려있을 때 딥링크 처리
+    Linking.getInitialURL().then(url => {
+      if (url) {
+        handleDeepLink(url);
+      }
+    });
+
+    return () => subscription?.remove();
+  }, [navigation]);
+
+  useEffect(() => {
+    if (isLoggedIn && navigation) {
+      navigation.navigate('Tabs', {screen: 'Home'});
+    }
+  }, [isLoggedIn, navigation]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -94,16 +232,23 @@ function AuthScreen() {
         {/* 로그인 버튼들 */}
         <View style={styles.loginContainer}>
           <TouchableOpacity
-            style={styles.kakaoButton}
-            onPress={handleKakaoLogin}>
-            <Fontawesome5
-              name="comment"
-              size={20}
-              iconStyle="solid"
-              color="#000000"
-              style={styles.kakaoIcon}
-            />
-            <Text style={styles.kakaoButtonText}>카카오로 시작하기</Text>
+            style={[styles.kakaoButton, isLoading && styles.disabledButton]}
+            onPress={handleKakaoLogin}
+            disabled={isLoading}>
+            {isLoading ? (
+              <ActivityIndicator size="small" color="#000000" />
+            ) : (
+              <Fontawesome5
+                name="comment"
+                size={20}
+                iconStyle="solid"
+                color="#000000"
+                style={styles.kakaoIcon}
+              />
+            )}
+            <Text style={styles.kakaoButtonText}>
+              {isLoading ? '로그인 중...' : '카카오로 시작하기'}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -136,6 +281,62 @@ function AuthScreen() {
           © 2024 푸쉬핏. All rights reserved.
         </Text>
       </View>
+
+      {/* 카카오 로그인 웹뷰 모달 */}
+      <Modal
+        visible={showWebView}
+        animationType="slide"
+        presentationStyle="pageSheet">
+        <SafeAreaView style={styles.webViewContainer}>
+          <View style={styles.webViewHeader}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setShowWebView(false)}>
+              <Fontawesome5
+                name="times"
+                iconStyle="solid"
+                size={20}
+                color="#333333"
+              />
+            </TouchableOpacity>
+            <Text style={styles.webViewTitle}>카카오 로그인</Text>
+            <View style={styles.placeholder} />
+          </View>
+
+          <WebView
+            source={{uri: webViewUrl}}
+            style={styles.webView}
+            startInLoadingState={true}
+            userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1"
+            allowsInlineMediaPlayback={true}
+            mediaPlaybackRequiresUserAction={false}
+            renderLoading={() => (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#0182ff" />
+                <Text style={styles.loadingText}>
+                  카카오 로그인 페이지를 불러오는 중...
+                </Text>
+              </View>
+            )}
+            onError={error => {
+              console.error('웹뷰 오류:', error);
+              console.error('오류 상세:', error.nativeEvent);
+              Alert.alert(
+                '오류',
+                `웹뷰 로딩 중 오류가 발생했습니다.\n오류 코드: ${error.nativeEvent?.code}\n설명: ${error.nativeEvent?.description}`,
+              );
+            }}
+            onHttpError={syntheticEvent => {
+              const {nativeEvent} = syntheticEvent;
+              console.error('HTTP 오류:', nativeEvent);
+              Alert.alert(
+                'HTTP 오류',
+                `상태 코드: ${nativeEvent.statusCode}\nURL: ${nativeEvent.url}`,
+              );
+            }}
+          />
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -219,6 +420,75 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#000000',
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  webViewContainer: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  webViewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  closeButton: {
+    padding: 8,
+  },
+  webViewTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333333',
+  },
+  placeholder: {
+    width: 36, // closeButton과 같은 크기로 균형 맞춤
+  },
+  webView: {
+    flex: 1,
+  },
+  loadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666666',
+  },
+  loggedInContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 30,
+  },
+  welcomeText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333333',
+    textAlign: 'center',
+    marginBottom: 30,
+  },
+  logoutButton: {
+    backgroundColor: '#ff4444',
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 12,
+  },
+  logoutButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   emailButton: {
     backgroundColor: '#ffffff',

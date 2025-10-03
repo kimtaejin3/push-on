@@ -17,23 +17,10 @@ import {WebView} from 'react-native-webview';
 import {AuthService} from '../services/authService';
 import {supabase} from '../lib/supabase';
 import {useAuth} from '../hooks/useAuth';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {AppStackParamList} from '../navigations/AppNavigation';
+import {useNavigation} from '@react-navigation/native';
 
-// 세션 정보를 자세히 출력하는 헬퍼 함수
-const logSessionDetails = (session: any, context: string) => {
-  console.log(`=== ${context} ===`);
-  console.log('사용자 ID:', session.user?.id);
-  console.log('이메일:', session.user?.email);
-  console.log(
-    '이름:',
-    session.user?.user_metadata?.full_name || session.user?.user_metadata?.name,
-  );
-  console.log('프로필 이미지:', session.user?.user_metadata?.avatar_url);
-  console.log('프로바이더:', session.user?.app_metadata?.provider);
-  console.log('토큰 만료 시간:', new Date(session.expires_at * 1000));
-  console.log('========================');
-};
-
-// SVG 로고 데이터
 const logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="-5.0 -10.0 110.0 135.0">
   <path d="m25.641 46.875c2.3047 0.007812 4.5898-0.44531 6.7188-1.3281-1.2812-0.51953-2.4961-1.1953-3.6094-2.0156-0.95703-0.6875-1.8477-1.4688-2.6562-2.3281-0.55859-0.5625-1.0781-1.1562-1.5625-1.7812l2.0938-1.5625c0.79297 1.0234 1.6992 1.9531 2.7031 2.7656 1.8086 1.5156 3.9492 2.5859 6.25 3.125l1.1406 0.28125c1.1289 0.19922 2.2734 0.29688 3.4219 0.29688 2.1562-0.011719 4.3008-0.31641 6.375-0.90625-0.18359-0.94531-0.41797-1.8789-0.70312-2.7969-0.22656-0.83594-0.5-1.6602-0.8125-2.4688-0.95703-2.4688-2.25-4.793-3.8438-6.9062l2.1094-1.5625c1.7461 2.3281 3.1602 4.8906 4.2031 7.6094 0.3125 0.84375 0.59375 1.6719 0.8125 2.4844 0.27734 0.97656 0.50391 1.9688 0.67188 2.9688 0.17578 0.9375 0.30078 1.8438 0.375 2.7188 0.33594 3.5156 0.035156 7.0625-0.89062 10.469-0.22656 0.75 0.13281 1.5508 0.84375 1.875l14.062 5.9688c0.1875 0.078125 0.39062 0.12109 0.59375 0.125 0.59375-0.015625 1.125-0.36719 1.375-0.90625 0.67188-1.5625 16.438-37.5 7.3906-49.203-8.0625-10.484-32.078-3.1406-38.328-0.98438-0.32812 0.09375-0.60938 0.20312-0.82812 0.28125-0.23828-0.14844-0.48438-0.28125-0.73438-0.40625-2.2383-0.97656-4.6523-1.4766-7.0938-1.4688-4.8164-0.14453-9.4883 1.6719-12.945 5.0273-3.4609 3.3594-5.4102 7.9727-5.4102 12.793 0 4.8203 1.9492 9.4336 5.4102 12.793 3.457 3.3555 8.1289 5.1719 12.945 5.0273z" fill="#0182ff"/>
   <path d="m64.578 66.484c-0.19141 0.015625-0.38672 0.015625-0.57812 0-0.53516 0.011719-1.0664-0.082031-1.5625-0.28125h-0.09375l-14.062-5.9688c-0.18359-0.074219-0.35938-0.16406-0.53125-0.26562l-0.15625-0.10938c-0.20312-0.12891-0.39453-0.28125-0.5625-0.45312-0.17188-0.15625-0.32812-0.32812-0.46875-0.51562-0.33594-0.46875-0.57031-1-0.6875-1.5625-3.0156 2.375-6.8125 6.1875-6.8125 10.344 0 2.7188 1.5625 5.0625 4.8438 6.9375 2.875 1.8125 6.1836 2.8164 9.5781 2.9062 2.3672 0.035156 4.6875-0.63281 6.6719-1.9219 3.1367-2.1406 5.1328-5.5898 5.4219-9.375l-0.46875 0.15625c-0.17188 0.058594-0.35156 0.09375-0.53125 0.10938z" fill="#0182ff"/>
@@ -49,7 +36,13 @@ function AuthScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [showWebView, setShowWebView] = useState(false);
   const [webViewUrl, setWebViewUrl] = useState('');
-  const {session, loading, isLoggedIn, signOut} = useAuth();
+
+  const {isLoggedIn} = useAuth();
+
+  const navigation =
+    useNavigation<NativeStackNavigationProp<AppStackParamList>>();
+
+  console.log('navigation', navigation);
 
   const handleKakaoLogin = async () => {
     try {
@@ -62,12 +55,11 @@ function AuthScreen() {
       }
 
       if (error) {
-        Alert.alert('로그인 실패', error.message);
+        Alert.alert('로그인에 실패하였습니다. 고객센터에 문의해주세요.');
       } else {
         console.log('카카오 로그인 시작:', data);
         console.log('OAuth URL:', data.url);
 
-        // URL 유효성 검사
         if (!data.url || !data.url.startsWith('https://')) {
           Alert.alert('오류', '잘못된 OAuth URL입니다.');
           return;
@@ -139,9 +131,6 @@ function AuthScreen() {
           const accessToken = urlObj.hash.match(/access_token=([^&]+)/)?.[1];
           const refreshToken = urlObj.hash.match(/refresh_token=([^&]+)/)?.[1];
 
-          console.log('Access Token:', accessToken);
-          console.log('Refresh Token:', refreshToken);
-
           if (!accessToken || !refreshToken) {
             console.error('토큰을 찾을 수 없습니다.');
             Alert.alert('로그인 실패', '토큰을 찾을 수 없습니다.');
@@ -149,10 +138,7 @@ function AuthScreen() {
           }
 
           // 세션 설정
-          const {
-            data: {session},
-            error,
-          } = await supabase.auth.setSession({
+          const {error} = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           });
@@ -161,14 +147,12 @@ function AuthScreen() {
             console.error('세션 설정 실패:', error);
             Alert.alert('로그인 실패', error.message);
           } else {
-            console.log('세션 성공:', session);
-            logSessionDetails(session, '딥링크 OAuth 로그인 성공');
-
-            Alert.alert(
-              '로그인 성공',
-              `환영합니다, ${session?.user?.email || '사용자'}님!`,
-            );
             // 메인 화면으로 이동
+            setShowWebView(false);
+            console.log('navigation', navigation);
+            if (navigation) {
+              navigation.navigate('Tabs', {screen: 'Home'});
+            }
           }
         } catch (error) {
           console.error('딥링크 처리 중 오류:', error);
@@ -190,36 +174,13 @@ function AuthScreen() {
     });
 
     return () => subscription?.remove();
-  }, []);
+  }, [navigation]);
 
-  // 로딩 중
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0182ff" />
-          <Text style={styles.loadingText}>로딩 중...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // 이미 로그인된 경우
-  if (isLoggedIn && session) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-        <View style={styles.loggedInContainer}>
-          <Text style={styles.welcomeText}>
-            환영합니다, {session.user?.email || '사용자'}님!
-          </Text>
-          <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
-            <Text style={styles.logoutButtonText}>로그아웃</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  useEffect(() => {
+    if (isLoggedIn && navigation) {
+      navigation.navigate('Tabs', {screen: 'Home'});
+    }
+  }, [isLoggedIn, navigation]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -346,7 +307,7 @@ function AuthScreen() {
             source={{uri: webViewUrl}}
             style={styles.webView}
             startInLoadingState={true}
-            // userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1"
+            userAgent="Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1"
             allowsInlineMediaPlayback={true}
             mediaPlaybackRequiresUserAction={false}
             renderLoading={() => (
@@ -357,45 +318,6 @@ function AuthScreen() {
                 </Text>
               </View>
             )}
-            onNavigationStateChange={navState => {
-              console.log('웹뷰 네비게이션:', navState.url);
-
-              const url = navState.url;
-              console.log('url', url);
-
-              // 딥링크 감지 시 웹뷰 닫기
-              if (url.startsWith('pushupapp://login-callback')) {
-                console.log('딥링크 감지, 웹뷰 닫기:', url);
-                setShowWebView(false);
-                // 딥링크를 직접 처리
-                Linking.openURL(url);
-                return;
-              }
-
-              // Supabase 콜백 URL 감지 (백업)
-              if (navState.url.includes('/auth/v1/callback')) {
-                console.log('Supabase 콜백 감지:', navState.url);
-                setShowWebView(false);
-
-                // 잠시 대기 후 세션 확인
-                setTimeout(async () => {
-                  const {
-                    data: {session},
-                    error,
-                  } = await supabase.auth.getSession();
-                  if (error) {
-                    console.error('세션 가져오기 실패:', error);
-                  } else if (session) {
-                    Alert.alert(
-                      '로그인 성공',
-                      `환영합니다, ${session.user?.email || '사용자'}님!`,
-                    );
-                  } else {
-                    console.log('세션이 없습니다.');
-                  }
-                }, 1000);
-              }
-            }}
             onError={error => {
               console.error('웹뷰 오류:', error);
               console.error('오류 상세:', error.nativeEvent);

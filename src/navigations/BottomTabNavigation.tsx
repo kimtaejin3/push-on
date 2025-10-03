@@ -4,7 +4,12 @@ import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import Fontawesome6 from '@react-native-vector-icons/fontawesome6';
 import StatisticScreen from '../screens/StatisticScreen';
 
-const Tab = createBottomTabNavigator();
+export type BottomTabParamList = {
+  Home: undefined;
+  Statistic: undefined;
+};
+
+const Tab = createBottomTabNavigator<BottomTabParamList>();
 
 const BottomTabNavigation = () => {
   return (

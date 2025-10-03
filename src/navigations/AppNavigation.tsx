@@ -1,10 +1,15 @@
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {createStaticNavigation} from '@react-navigation/native';
+import {
+  createStaticNavigation,
+  NavigatorScreenParams,
+} from '@react-navigation/native';
 
 import Challenge from '../screens/ChallengeScreen';
-import BottomTabNavigation from './BottomTabNavigation';
+import BottomTabNavigation, {BottomTabParamList} from './BottomTabNavigation';
+import AuthScreen from '../screens/AuthScreen';
 
 const AppStack = createNativeStackNavigator({
+  initialRouteName: 'Auth',
   screenOptions: {
     headerTitleAlign: 'center',
     headerBackButtonDisplayMode: 'minimal',
@@ -15,6 +20,7 @@ const AppStack = createNativeStackNavigator({
     headerShown: false,
   },
   screens: {
+    Auth: AuthScreen,
     Tabs: {
       screen: BottomTabNavigation,
     },
@@ -25,8 +31,9 @@ const AppStack = createNativeStackNavigator({
 const AppNavigation = createStaticNavigation(AppStack);
 
 export type AppStackParamList = {
-  Tabs: undefined;
+  Tabs: NavigatorScreenParams<BottomTabParamList>;
   Challenge: undefined;
+  Auth: undefined;
 };
 
 declare global {

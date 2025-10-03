@@ -54,6 +54,10 @@
 			</array>
 		</dict>
 	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>kakaotalk</string>
+	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>AR 푸쉬업 감지를 위해 카메라 사용</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

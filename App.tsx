@@ -5,8 +5,8 @@ import AuthScreen from './src/screens/AuthScreen';
 function App(): React.JSX.Element {
   return (
     <SafeAreaView style={styles.container}>
-      {/* <AppNavigation /> */}
-      <AuthScreen />
+      <AppNavigation />
+      {/* <AuthScreen /> */}
     </SafeAreaView>
   );
 }

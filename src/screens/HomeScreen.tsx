@@ -15,9 +15,14 @@ import {
   Notification,
   Setting,
 } from '../components/common/Header';
+import {useAuth} from '../hooks/useAuth';
 
 function HomeScreen(): React.JSX.Element {
   const navigation = useNavigation();
+
+  const {user} = useAuth();
+
+  console.log('user', user);
 
   // 일주일간의 푸쉬업 데이터 (예시)
 

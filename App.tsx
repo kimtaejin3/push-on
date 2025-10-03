@@ -1,12 +1,12 @@
 import {SafeAreaView, StyleSheet} from 'react-native';
 import AppNavigation from './src/navigations/AppNavigation';
-import AuthScreen from './src/screens/AuthScreen';
+import OnboardingScreen from './src/screens/OnboardingScreen';
 
 function App(): React.JSX.Element {
   return (
     <SafeAreaView style={styles.container}>
-      <AppNavigation />
-      {/* <AuthScreen /> */}
+      {/* <AppNavigation /> */}
+      <OnboardingScreen />
     </SafeAreaView>
   );
 }

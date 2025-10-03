@@ -4,6 +4,7 @@ import usePushUpManager from '../hooks/usePushUpManager';
 import CustomButton from '../components/common/CustomButton';
 import {useNavigation} from '@react-navigation/native';
 import Engagement from '../components/features/push-up/Engagement';
+import {colors} from '../constants/colors';
 
 function ChallengeScreen(): React.JSX.Element {
   const navigation = useNavigation();
@@ -44,7 +45,7 @@ function ChallengeScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.backgroundLight,
   },
   container: {
     flex: 1,
@@ -76,7 +77,7 @@ const styles = StyleSheet.create({
   },
   button: {
     width: 300,
-    backgroundColor: '#097eed',
+    backgroundColor: colors.primaryDark,
   },
 });
 

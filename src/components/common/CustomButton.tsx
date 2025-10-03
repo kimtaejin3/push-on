@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   TouchableOpacityProps,
 } from 'react-native';
+import {colors} from '../../constants/colors';
 
 interface CustomButtonProps extends TouchableOpacityProps {
   title: string;
@@ -45,10 +46,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   defaultButton: {
-    backgroundColor: '#9faab5',
+    backgroundColor: colors.buttonDisabled,
   },
   startButton: {
-    backgroundColor: '#242424',
+    backgroundColor: colors.tabInactive,
   },
   stopButton: {
     backgroundColor: 'gray',

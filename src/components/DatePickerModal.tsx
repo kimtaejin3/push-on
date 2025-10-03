@@ -8,6 +8,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
+import {colors} from '../constants/colors';
 
 type MonthPickerModalProps = {
   isVisible: boolean;
@@ -60,7 +61,7 @@ const DatePickerModal: React.FC<MonthPickerModalProps> = ({
                 name="chevron-left"
                 iconStyle="solid"
                 size={16}
-                color="#0182ff"
+                color={colors.primary}
               />
             </TouchableOpacity>
             <Text style={styles.yearText}>{selectedYear}년</Text>
@@ -71,7 +72,7 @@ const DatePickerModal: React.FC<MonthPickerModalProps> = ({
                 name="chevron-right"
                 iconStyle="solid"
                 size={16}
-                color="#0182ff"
+                color={colors.primary}
               />
             </TouchableOpacity>
           </View>
@@ -113,7 +114,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
     borderRadius: 15,
     padding: 20,
     width: '80%',
@@ -132,15 +133,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   selectedMonthItem: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.backgroundLight,
     borderRadius: 5,
   },
   monthItemText: {
     fontSize: 16,
-    color: '#333',
+    color: colors.textPrimary,
   },
   selectedMonthItemText: {
-    color: '#097eed',
+    color: colors.primaryDark,
     fontWeight: 'bold',
   },
   yearSelector: {

@@ -1,6 +1,7 @@
 import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
+import {colors} from '../constants/colors';
 
 type SetData = {
   setNumber: number;
@@ -54,11 +55,11 @@ const SetCard: React.FC<SetCardProps> = ({set, maxReps}) => {
 
 const styles = StyleSheet.create({
   setCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
     borderRadius: 15,
     padding: 15,
     marginBottom: 10,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: colors.gray100,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
@@ -81,7 +82,7 @@ const styles = StyleSheet.create({
   setNumber: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#333',
+    color: colors.textPrimary,
   },
   setInfo: {
     flex: 1,
@@ -96,24 +97,24 @@ const styles = StyleSheet.create({
   setReps: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    color: colors.textPrimary,
     marginRight: 10,
   },
   setTime: {
     fontSize: 12,
-    color: '#666',
+    color: colors.textSecondary,
   },
   bestBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#097eed',
+    backgroundColor: colors.primaryDark,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 10,
   },
   bestText: {
     fontSize: 10,
-    color: '#fff',
+    color: colors.textLight,
     fontWeight: 'bold',
     marginLeft: 2,
   },
@@ -125,19 +126,19 @@ const styles = StyleSheet.create({
   progressBar: {
     flex: 1,
     height: 6,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: colors.gray100,
     borderRadius: 3,
     overflow: 'hidden',
     marginRight: 10,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#097eed',
+    backgroundColor: colors.primaryDark,
     borderRadius: 3,
   },
   progressText: {
     fontSize: 10,
-    color: '#666',
+    color: colors.textSecondary,
     minWidth: 26,
     textAlign: 'right',
   },
@@ -148,7 +149,7 @@ const styles = StyleSheet.create({
   },
   restTimeText: {
     fontSize: 10,
-    color: '#666',
+    color: colors.textSecondary,
     marginLeft: 4,
   },
 });

@@ -2,6 +2,7 @@ import {useState} from 'react';
 import {useEffect} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {encouragements, FIRST_ENCOURAGEMENT} from '../../../constants/push-up';
+import {colors} from '../../../constants/colors';
 
 function Engagement({show, pushUpCount}: {show: boolean; pushUpCount: number}) {
   const [encouragement, setEncouragement] = useState(FIRST_ENCOURAGEMENT);
@@ -31,7 +32,7 @@ const styles = StyleSheet.create({
   encouragementText: {
     fontSize: 18,
     fontWeight: '500',
-    color: '#097eed',
+    color: colors.primaryDark,
     textAlign: 'center',
     marginTop: 20,
     marginBottom: 20,

@@ -3,6 +3,7 @@ import HomeScreen from '../screens/HomeScreen';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import Fontawesome6 from '@react-native-vector-icons/fontawesome6';
 import StatisticScreen from '../screens/StatisticScreen';
+import {colors} from '../constants/colors';
 
 export type BottomTabParamList = {
   Home: undefined;
@@ -16,8 +17,8 @@ const BottomTabNavigation = () => {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#0182ff',
-        tabBarInactiveTintColor: '#242424',
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.tabInactive,
         tabBarLabelStyle: {
           fontSize: 12,
         },

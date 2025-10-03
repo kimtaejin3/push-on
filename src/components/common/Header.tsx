@@ -1,6 +1,7 @@
 import React from 'react';
 import {View, StyleSheet, Text} from 'react-native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
+import {colors} from '../../constants/colors';
 
 interface HeaderProps {
   left: React.ReactNode;
@@ -50,7 +51,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
     padding: 15,
     gap: 10,
     borderRadius: 9999,

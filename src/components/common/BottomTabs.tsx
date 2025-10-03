@@ -1,6 +1,7 @@
 import {StyleSheet, View} from 'react-native';
 import {useLinkBuilder} from '@react-navigation/native';
 import {Text, PlatformPressable} from '@react-navigation/elements';
+import {colors} from '../../constants/colors';
 
 function MyTabBar({state, descriptors, navigation}: any) {
   const {buildHref} = useLinkBuilder();
@@ -66,10 +67,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   activeTabText: {
-    color: '#3EB489',
+    color: colors.success,
   },
   inactiveTabText: {
-    color: '#242424',
+    color: colors.tabInactive,
   },
 });
 

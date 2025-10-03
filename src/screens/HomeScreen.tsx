@@ -16,6 +16,7 @@ import {
   Setting,
 } from '../components/common/Header';
 import {useAuth} from '../hooks/useAuth';
+import {colors} from '../constants/colors';
 
 function HomeScreen(): React.JSX.Element {
   const navigation = useNavigation();
@@ -37,7 +38,7 @@ function HomeScreen(): React.JSX.Element {
                 name="home"
                 size={18}
                 iconStyle="solid"
-                color="#0182ff"
+                color={colors.primary}
               />
             }
           />
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.backgroundLight,
   },
   scrollView: {
     flex: 1,
@@ -170,9 +171,9 @@ const styles = StyleSheet.create({
   card: {
     padding: 20,
     borderRadius: 15,
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -182,7 +183,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 15,
-    color: '#333',
+    color: colors.textPrimary,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -197,20 +198,20 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#bacfe3',
+    backgroundColor: colors.pastelBlue,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
   },
   statLabel: {
     fontSize: 12,
-    color: '#666',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   statValue: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    color: colors.textPrimary,
   },
   rankingItem: {
     flexDirection: 'row',
@@ -228,28 +229,28 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#58a8f5',
+    backgroundColor: colors.lightBlue,
     marginRight: 15,
   },
   rankNumber: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#fff',
+    color: colors.textLight,
   },
   rankTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#333',
+    color: colors.textPrimary,
   },
   rankDesc: {
     fontSize: 12,
-    color: '#666',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   startButton: {
     marginTop: 10,
     marginBottom: 30,
-    backgroundColor: '#0182ff',
+    backgroundColor: colors.primary,
     borderRadius: 12,
     paddingVertical: 15,
   },

@@ -12,6 +12,7 @@ import Fontawesome6 from '@react-native-vector-icons/fontawesome6';
 import {Header, HeaderTitle} from '../components/common/Header';
 import SetCard, {SetData} from '../components/SetCard';
 import DatePickerModal from '../components/DatePickerModal';
+import {colors} from '../constants/colors';
 
 function getDayOfWeek(date: Date) {
   const days = [
@@ -119,7 +120,7 @@ function StatisticScreen() {
                 name="chart-simple"
                 size={18}
                 iconStyle="solid"
-                color="#0182ff"
+                color={colors.primary}
               />
             }
           />
@@ -132,7 +133,7 @@ function StatisticScreen() {
             name="chevron-left"
             iconStyle="solid"
             size={16}
-            color="#0182ff"
+            color={colors.primary}
           />
         </TouchableOpacity>
 
@@ -158,7 +159,7 @@ function StatisticScreen() {
             name="chevron-right"
             iconStyle="solid"
             size={16}
-            color="#0182ff"
+            color={colors.primary}
           />
         </TouchableOpacity>
       </View>
@@ -221,7 +222,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.backgroundLight,
   },
   scrollView: {
     flex: 1,
@@ -240,7 +241,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: colors.gray100,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -252,12 +253,12 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    color: colors.textPrimary,
     marginBottom: 2,
   },
   dayOfWeekText: {
     fontSize: 12,
-    color: '#666',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   calendarIcon: {
@@ -268,11 +269,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#0182ff',
+    backgroundColor: colors.primary,
     marginBottom: 15,
   },
   todayButtonText: {
-    color: '#fff',
+    color: colors.textLight,
     fontSize: 14,
     fontWeight: 'bold',
   },
@@ -287,18 +288,18 @@ const styles = StyleSheet.create({
   },
   historySummaryItem: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
     borderRadius: 15,
     padding: 10,
   },
   historySummaryTitle: {
     fontSize: 12,
-    color: '#000',
+    color: colors.textBlack,
   },
   historySummaryText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#000',
+    color: colors.textBlack,
   },
   setDetailsTitle: {
     fontSize: 14,

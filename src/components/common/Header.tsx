@@ -38,7 +38,7 @@ function Notification() {
 function Setting() {
   const navigation = useNavigation();
   const handleSetting = () => {
-    navigation.navigate('Tabs', {screen: 'Setting'});
+    navigation.navigate('Setting');
   };
   return (
     <Fontawesome5

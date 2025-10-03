@@ -1,15 +1,12 @@
 import {useEffect, useCallback} from 'react';
 import {Linking, Alert} from 'react-native';
 import {supabase} from '../lib/supabase';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {AppStackParamList} from '../navigations/AppNavigation';
 
 interface UseDeepLinkProps {
-  navigation: NativeStackNavigationProp<AppStackParamList>;
   onLoginSuccess?: () => void;
 }
 
-export const useDeepLink = ({navigation, onLoginSuccess}: UseDeepLinkProps) => {
+export const useDeepLink = ({onLoginSuccess}: UseDeepLinkProps) => {
   const handleDeepLink = useCallback(
     async (url: string) => {
       if (url.includes('login-callback')) {
@@ -39,12 +36,7 @@ export const useDeepLink = ({navigation, onLoginSuccess}: UseDeepLinkProps) => {
           } else {
             // 로그인 성공 콜백 실행
             onLoginSuccess?.();
-
-            // 메인 화면으로 이동
-            console.log('navigation', navigation);
-            if (navigation) {
-              navigation.navigate('Tabs', {screen: 'Home'});
-            }
+            // 네비게이션은 조건부 렌더링에서 자동으로 처리됨
           }
         } catch (error) {
           console.error('딥링크 처리 중 오류:', error);
@@ -52,7 +44,7 @@ export const useDeepLink = ({navigation, onLoginSuccess}: UseDeepLinkProps) => {
         }
       }
     },
-    [navigation, onLoginSuccess],
+    [onLoginSuccess],
   );
 
   useEffect(() => {

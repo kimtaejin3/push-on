@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {
   StyleSheet,
   Text,
@@ -11,10 +11,6 @@ import {
 } from 'react-native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import {SvgXml} from 'react-native-svg';
-import {useAuth} from '../hooks/useAuth';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {AppStackParamList} from '../navigations/AppNavigation';
-import {useNavigation} from '@react-navigation/native';
 import {colors} from '../constants/colors';
 import {useDeepLink} from '../hooks/useDeepLink';
 import KakaoWebView from '../components/features/webview/KakaoWebView';
@@ -32,17 +28,12 @@ const logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="
 </svg>`;
 
 function AuthScreen() {
-  const {isLoggedIn} = useAuth();
-  const navigation =
-    useNavigation<NativeStackNavigationProp<AppStackParamList>>();
-
   // 카카오 로그인 훅 사용
   const {isLoading, showWebView, webViewUrl, handleKakaoLogin, closeWebView} =
     useKakaoLoginWithWebView();
 
   // 딥링크 처리 훅 사용
   useDeepLink({
-    navigation,
     onLoginSuccess: closeWebView,
   });
 
@@ -85,12 +76,6 @@ function AuthScreen() {
     // TODO: 이용약관 링크
     console.log('이용약관');
   };
-
-  useEffect(() => {
-    if (isLoggedIn && navigation) {
-      navigation.navigate('Tabs', {screen: 'Home'});
-    }
-  }, [isLoggedIn, navigation]);
 
   return (
     <SafeAreaView style={styles.container}>

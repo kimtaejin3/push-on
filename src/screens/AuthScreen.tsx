@@ -17,7 +17,7 @@ import {AppStackParamList} from '../navigations/AppNavigation';
 import {useNavigation} from '@react-navigation/native';
 import {colors} from '../constants/colors';
 import {useDeepLink} from '../hooks/useDeepLink';
-import KakaoWebView from '../components/KakaoWebView';
+import KakaoWebView from '../components/features/webview/KakaoWebView';
 import {useKakaoLoginWithWebView} from '../hooks/useKakaoLogin';
 
 const logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="-5.0 -10.0 110.0 135.0">

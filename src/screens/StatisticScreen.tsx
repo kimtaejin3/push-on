@@ -10,9 +10,9 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import Fontawesome6 from '@react-native-vector-icons/fontawesome6';
 import {Header, HeaderTitle} from '../components/common/Header';
-import SetCard, {SetData} from '../components/SetCard';
-import DatePickerModal from '../components/DatePickerModal';
+import DatePickerModal from '../components/common/DatePickerModal';
 import {colors} from '../constants/colors';
+import SetCard, {SetData} from '../components/features/push-up/SetCard';
 
 function getDayOfWeek(date: Date) {
   const days = [

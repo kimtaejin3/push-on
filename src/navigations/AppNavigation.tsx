@@ -4,9 +4,11 @@ import {
   NavigatorScreenParams,
 } from '@react-navigation/native';
 
-import Challenge from '../screens/ChallengeScreen';
+import ChallengeScreen from '../screens/ChallengeScreen';
 import BottomTabNavigation, {BottomTabParamList} from './BottomTabNavigation';
 import AuthScreen from '../screens/AuthScreen';
+import OnboardingScreen from '../screens/OnboardingScreen';
+import SettingScreen from '../screens/SettingScreen';
 
 const AppStack = createNativeStackNavigator({
   initialRouteName: 'Auth',
@@ -24,7 +26,9 @@ const AppStack = createNativeStackNavigator({
     Tabs: {
       screen: BottomTabNavigation,
     },
-    Challenge: Challenge,
+    Challenge: ChallengeScreen,
+    Onboarding: OnboardingScreen,
+    Setting: SettingScreen,
   },
 });
 

@@ -14,9 +14,11 @@ import {colors} from '../constants/colors';
 import CustomButton from '../components/common/CustomButton';
 import {supabase} from '../lib/supabase';
 import {useAuth} from '../hooks/useAuth';
+import {useIsOnboarded} from '../hooks/useIsOnboarded';
 
-function OnboardingScreen() {
+function OnboardingScreen({onComplete}: {onComplete: () => void}) {
   const {user} = useAuth();
+  const {refresh} = useIsOnboarded();
   const [targetRepsPerSet, setTargetRepsPerSet] = useState('10');
   const [targetSetsPerDay, setTargetSetsPerDay] = useState('3');
   const [isLoading, setIsLoading] = useState(false);
@@ -59,9 +61,11 @@ function OnboardingScreen() {
         Alert.alert('성공', '목표가 설정되었습니다!', [
           {
             text: '확인',
-            onPress: () => {
-              // TODO: 메인 화면으로 이동
+            onPress: async () => {
+              // 온보딩 상태 새로고침
+              await refresh();
               console.log('온보딩 완료');
+              onComplete();
             },
           },
         ]);

@@ -52,4 +52,8 @@ class PushupManager: NSObject {
   @objc static func requiresMainQueueSetup() -> Bool {
     return true
   }
+
+  @objc func getIsGoingDown() -> Bool {
+    return pushupRecognition?.isGoingDown ?? false
+  }
 }

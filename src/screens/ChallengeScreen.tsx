@@ -1,23 +1,38 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {SafeAreaView, StyleSheet, Text, View} from 'react-native';
 import usePushUpManager from '../hooks/usePushUpManager';
 import CustomButton from '../components/common/CustomButton';
 import {useNavigation} from '@react-navigation/native';
 import Engagement from '../components/features/push-up/Engagement';
 import {colors} from '../constants/colors';
+import {Vibration} from 'react-native';
 
 function ChallengeScreen(): React.JSX.Element {
   const navigation = useNavigation();
 
-  const {pushUpCount, isTracking, startTracking, stopTracking} =
+  const {pushUpCount, isTracking, isGoingDown, startTracking, stopTracking} =
     usePushUpManager();
+
+  useEffect(() => {
+    // 첫 번째 카운트는 진동하지 않음
+    if (pushUpCount === 0) {
+      return;
+    }
+    // 매우 짧은 진동 (1ms)
+    Vibration.vibrate([1, 1]);
+    console.log('pushUpCount!', pushUpCount);
+  }, [pushUpCount]);
+
+  console.log('isGoingDown', isGoingDown);
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Text style={styles.title}>SET 1</Text>
 
-        <Text style={styles.countText}>{pushUpCount}</Text>
+        <View style={styles.countContainer}>
+          <Text style={styles.countText}>{pushUpCount}</Text>
+        </View>
         <Engagement show={isTracking} pushUpCount={pushUpCount} />
 
         <Text style={styles.instructionText}>
@@ -58,9 +73,8 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   countText: {
-    fontSize: 80,
+    fontSize: 50,
     fontWeight: '400',
-    marginTop: 100,
   },
   countLabel: {
     fontSize: 30,
@@ -78,6 +92,15 @@ const styles = StyleSheet.create({
   button: {
     width: 300,
     backgroundColor: colors.primaryDark,
+  },
+  countContainer: {
+    borderWidth: 5,
+    borderColor: colors.lightBlue,
+    borderRadius: 9999,
+    width: 200,
+    height: 200,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

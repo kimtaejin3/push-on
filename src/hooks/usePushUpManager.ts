@@ -10,6 +10,7 @@ const PUSHUP_POLLING_INTERVAL = 100;
 function usePushUpManager() {
   const [pushUpCount, setPushUpCount] = useState(INITIAL_COUNT);
   const [isTracking, setIsTracking] = useState(false);
+  const [isGoingDown, setIsGoingDown] = useState(false);
 
   const getPushupCount = useCallback(async () => {
     try {
@@ -20,7 +21,14 @@ function usePushUpManager() {
     }
   }, []);
 
+  const getIsGoingDown = useCallback(async () => {
+    const isGoingDownValue = await PushupManager.getIsGoingDown();
+    console.log('isGoingDownValue', isGoingDownValue);
+    setIsGoingDown(isGoingDownValue);
+  }, []);
+
   useInterval(getPushupCount, isTracking ? PUSHUP_POLLING_INTERVAL : null);
+  useInterval(getIsGoingDown, isTracking ? 10 : null);
 
   const startTracking = () => {
     setIsTracking(true);
@@ -36,6 +44,7 @@ function usePushUpManager() {
   return {
     pushUpCount,
     isTracking,
+    isGoingDown,
     startTracking,
     stopTracking,
   };

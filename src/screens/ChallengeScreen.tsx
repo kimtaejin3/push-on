@@ -5,7 +5,7 @@ import CustomButton from '../components/common/CustomButton';
 import {useNavigation} from '@react-navigation/native';
 import Engagement from '../components/features/push-up/Engagement';
 import {colors} from '../constants/colors';
-import {Vibration} from 'react-native';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
 function ChallengeScreen(): React.JSX.Element {
   const navigation = useNavigation();
@@ -19,7 +19,10 @@ function ChallengeScreen(): React.JSX.Element {
       return;
     }
     // 매우 짧은 진동 (1ms)
-    Vibration.vibrate([1, 1]);
+    ReactNativeHapticFeedback.trigger('impactHeavy', {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: false,
+    });
     console.log('pushUpCount!', pushUpCount);
   }, [pushUpCount]);
 
@@ -101,6 +104,7 @@ const styles = StyleSheet.create({
     height: 200,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 40,
   },
 });
 

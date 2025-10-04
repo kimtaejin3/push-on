@@ -41,14 +41,21 @@ function ChallengeScreen(): React.JSX.Element {
     stopTracking();
   };
 
-  console.log('isGoingDown', isGoingDown);
+  // isGoingDown 상태 변화 감지
+  useEffect(() => {
+    console.log('🔄 isGoingDown 상태 변경:', isGoingDown);
+  }, [isGoingDown]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Text style={styles.title}>SET 1</Text>
 
-        <View style={styles.countContainer}>
+        <View
+          style={[
+            styles.countContainer,
+            isGoingDown && styles.countContainerActive,
+          ]}>
           <Text style={styles.countText}>{pushUpCount}</Text>
         </View>
 
@@ -121,6 +128,16 @@ const styles = StyleSheet.create({
     height: 200,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  countContainerActive: {
+    borderColor: colors.primary, // 활성화 시 파란색으로 변경
+    borderWidth: 8, // 더 두꺼운 테두리
+    backgroundColor: colors.backgroundAccent, // 배경색 추가
+    shadowColor: colors.primary, // 그림자 효과
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5, // Android 그림자
   },
   timeText: {
     fontSize: 20,

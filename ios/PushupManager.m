@@ -7,5 +7,7 @@ RCT_EXTERN_METHOD(startPushupSession)
 RCT_EXTERN_METHOD(stopPushupSession)
 RCT_EXTERN_METHOD(getPushupCount:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(getIsGoingDown:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
 
 @end

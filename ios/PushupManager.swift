@@ -53,7 +53,11 @@ class PushupManager: NSObject {
     return true
   }
 
-  @objc func getIsGoingDown() -> Bool {
-    return pushupRecognition?.isGoingDown ?? false
+  @objc func getIsGoingDown(_ resolve: RCTPromiseResolveBlock, rejecter reject: RCTPromiseRejectBlock) {
+    guard let isGoingDown = pushupRecognition?.isGoingDown else {
+      reject("NO_SESSION", "Pushup session not started", nil)
+      return
+    }
+    resolve(isGoingDown)
   }
 }

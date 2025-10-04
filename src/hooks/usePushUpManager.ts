@@ -22,13 +22,16 @@ function usePushUpManager() {
   }, []);
 
   const getIsGoingDown = useCallback(async () => {
-    const isGoingDownValue = await PushupManager.getIsGoingDown();
-    console.log('isGoingDownValue', isGoingDownValue);
-    setIsGoingDown(isGoingDownValue);
+    try {
+      const isGoingDownValue = await PushupManager.getIsGoingDown();
+      setIsGoingDown(isGoingDownValue);
+    } catch (error) {
+      console.error('Failed to get is going down:', error);
+    }
   }, []);
 
+  useInterval(getIsGoingDown, isTracking ? PUSHUP_POLLING_INTERVAL : null);
   useInterval(getPushupCount, isTracking ? PUSHUP_POLLING_INTERVAL : null);
-  useInterval(getIsGoingDown, isTracking ? 10 : null);
 
   const startTracking = () => {
     setIsTracking(true);

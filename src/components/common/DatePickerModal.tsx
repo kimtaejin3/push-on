@@ -8,7 +8,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
-import {colors} from '../constants/colors';
+import {colors} from '../../constants/colors';
 
 type MonthPickerModalProps = {
   isVisible: boolean;

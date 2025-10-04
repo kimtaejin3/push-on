@@ -5,8 +5,7 @@ import UIKit
 class PushupRecognition: NSObject, ARSessionDelegate {
 
     @objc var pushupCount: Int = 0
-
-    private var isGoingDown = false
+    @objc var isGoingDown = false
     private let closeThreshold: Float = 0.25
     private let farThreshold: Float = 0.35
     

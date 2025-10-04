@@ -1,7 +1,7 @@
 import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
-import {colors} from '../constants/colors';
+import {colors} from '../../../constants/colors';
 
 type SetData = {
   setNumber: number;

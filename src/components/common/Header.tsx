@@ -2,6 +2,7 @@ import React from 'react';
 import {View, StyleSheet, Text} from 'react-native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import {colors} from '../../constants/colors';
+import {useNavigation} from '@react-navigation/native';
 
 interface HeaderProps {
   left: React.ReactNode;
@@ -35,8 +36,18 @@ function Notification() {
 
 //TODO: 이 Setting은 굳이 Header.tsx에 포함되지 않아도 될 것 같아.
 function Setting() {
+  const navigation = useNavigation();
+  const handleSetting = () => {
+    navigation.navigate('Setting');
+  };
   return (
-    <Fontawesome5 name="cog" size={20} iconStyle="solid" color="#242424" />
+    <Fontawesome5
+      name="cog"
+      size={20}
+      iconStyle="solid"
+      color="#242424"
+      onPress={handleSetting}
+    />
   );
 }
 

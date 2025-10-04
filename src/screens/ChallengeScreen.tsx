@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {SafeAreaView, StyleSheet, Text, View} from 'react-native';
 import usePushUpManager from '../hooks/usePushUpManager';
 import CustomButton from '../components/common/CustomButton';
@@ -6,13 +6,26 @@ import {useNavigation} from '@react-navigation/native';
 import Engagement from '../components/features/push-up/Engagement';
 import {colors} from '../constants/colors';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import useInterval from '../hooks/useInterval';
 
 function ChallengeScreen(): React.JSX.Element {
   const navigation = useNavigation();
+  const [elapsedTime, setElapsedTime] = useState(0); // 경과 시간 (초)
 
   const {pushUpCount, isTracking, isGoingDown, startTracking, stopTracking} =
     usePushUpManager();
 
+  // 타이머 로직 (1초마다 업데이트)
+  useInterval(
+    () => {
+      if (isTracking) {
+        setElapsedTime(prev => prev + 1);
+      }
+    },
+    isTracking ? 1000 : null,
+  );
+
+  // 푸쉬업 카운트가 증가할 때 진동
   useEffect(() => {
     // 첫 번째 카운트는 진동하지 않음
     if (pushUpCount === 0) {
@@ -26,6 +39,21 @@ function ChallengeScreen(): React.JSX.Element {
     console.log('pushUpCount!', pushUpCount);
   }, [pushUpCount]);
 
+  // 시간 포맷팅 함수 (분:초)
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs
+      .toString()
+      .padStart(2, '0')}`;
+  };
+
+  // 추적 시작 시 시간 리셋
+  const handleStartTracking = () => {
+    setElapsedTime(0);
+    startTracking();
+  };
+
   console.log('isGoingDown', isGoingDown);
 
   return (
@@ -36,6 +64,8 @@ function ChallengeScreen(): React.JSX.Element {
         <View style={styles.countContainer}>
           <Text style={styles.countText}>{pushUpCount}</Text>
         </View>
+
+        <Text style={styles.timeText}>{formatTime(elapsedTime)}</Text>
         <Engagement show={isTracking} pushUpCount={pushUpCount} />
 
         <Text style={styles.instructionText}>
@@ -51,7 +81,7 @@ function ChallengeScreen(): React.JSX.Element {
               stopTracking();
               navigation.goBack();
             } else {
-              startTracking();
+              handleStartTracking();
             }
           }}
         />
@@ -104,7 +134,12 @@ const styles = StyleSheet.create({
     height: 200,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  timeText: {
+    fontSize: 20,
+    fontWeight: 'medium',
     marginBottom: 40,
+    marginTop: 20,
   },
 });
 

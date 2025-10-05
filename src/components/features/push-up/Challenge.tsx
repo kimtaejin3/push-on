@@ -11,7 +11,6 @@ import {useTimer} from '../../../hooks/useTimer';
 import Timer from '../../common/Timer';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
 import {pushupService} from '../../../services/pushupService';
-import {supabase} from '../../../lib/supabase';
 
 const generateCircles = () => {
   const screenWidth = Dimensions.get('window').width;
@@ -63,7 +62,6 @@ function Challenge(): React.JSX.Element {
       enableVibrateFallback: true,
       ignoreAndroidSystemSettings: false,
     });
-    console.log('pushUpCount!', pushUpCount);
   }, [pushUpCount]);
 
   // 추적 시작 시 타이머도 함께 시작
@@ -82,30 +80,10 @@ function Challenge(): React.JSX.Element {
   // 푸쉬업 세션 저장 및 홈으로 이동
   const handleSaveAndGoHome = async () => {
     try {
-      // 사용자 프로필에서 목표 개수 가져오기
-      const {data: user} = await supabase.auth.getUser();
-      let targetReps = null;
-
-      if (user.user) {
-        const {data: profile} = await supabase
-          .from('profiles')
-          .select('target_reps_per_set')
-          .eq('user_id', user.user.id)
-          .single();
-
-        targetReps = profile?.target_reps_per_set || null;
-      }
-
-      // 목표 달성 여부 확인
-      const isGoalAchieved = targetReps ? pushUpCount >= targetReps : false;
-
       await pushupService.savePushupSession({
         reps: pushUpCount,
         duration_seconds: Math.floor(elapsedTime / 1000),
         set_number: 1, // TODO: 실제 세트 번호로 변경
-        target_reps: targetReps,
-        is_goal_achieved: isGoalAchieved,
-        is_personal_best: false, // TODO: 개인 최고 기록 확인 로직 추가
       });
 
       setShowResult(false);

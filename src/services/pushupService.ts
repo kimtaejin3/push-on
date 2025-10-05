@@ -4,9 +4,6 @@ export interface PushupSetData {
   reps: number;
   duration_seconds: number;
   set_number: number;
-  target_reps?: number;
-  is_personal_best?: boolean;
-  is_goal_achieved?: boolean;
 }
 
 export interface DailyStatsData {
@@ -32,9 +29,6 @@ class PushupService {
         set_number: data.set_number,
         reps: data.reps,
         duration_seconds: data.duration_seconds,
-        target_reps: data.target_reps || null,
-        is_personal_best: data.is_personal_best || false,
-        is_goal_achieved: data.is_goal_achieved || false,
         created_at: new Date().toISOString(),
       });
 
@@ -131,20 +125,27 @@ class PushupService {
 
   /**
    * 사용자의 오늘 푸쉬업 세트 목록 조회
+   * TODO(수정): 데이터를 가져오는 부분이니 service라고 볼 수 없을 것 같다.
    */
-  async getTodayPushupSets(): Promise<PushupSetData[]> {
+  async getTodayPushupSets({
+    year,
+    month,
+    day,
+  }: {
+    year: number;
+    month: number;
+    day: number;
+  }): Promise<PushupSetData[]> {
     try {
       const {data: user} = await supabase.auth.getUser();
       if (!user.user) {
         throw new Error('사용자가 로그인되지 않았습니다.');
       }
 
-      const today = new Date().toISOString().split('T')[0];
       const {data, error} = await supabase
         .from('pushup_sets')
         .select('*')
-        .gte('created_at', `${today}T00:00:00`)
-        .lte('created_at', `${today}T23:59:59`)
+        .eq('workout_date', `${year}-${month}-${day}`)
         .order('created_at', {ascending: true});
 
       if (error) {

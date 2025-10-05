@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {Suspense, useState} from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,12 +7,19 @@ import {
   ScrollView,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {useAtom} from 'jotai';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import Fontawesome6 from '@react-native-vector-icons/fontawesome6';
 import {Header, HeaderTitle} from '../components/common/Header';
 import DatePickerModal from '../components/common/DatePickerModal';
 import {colors} from '../constants/colors';
-import SetCard, {SetData} from '../components/features/push-up/SetCard';
+import SetCard from '../components/features/push-up/SetCard';
+import HistorySummary from '../components/features/push-up/HistorySummary';
+import {useAuth} from '../hooks/useAuth';
+import {selectedDateAtom, updateSelectedDateAtom} from '../atoms/statistics';
+import {pushUpSetsByDateQueryOptions} from '../queryOptions/pushup';
+import {useSuspenseQuery, useQuery} from '@tanstack/react-query';
+import {profileQueryOptions} from '../queryOptions/profile';
 
 function getDayOfWeek(date: Date) {
   const days = [
@@ -28,7 +35,9 @@ function getDayOfWeek(date: Date) {
 }
 
 function StatisticScreen() {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate] = useAtom(selectedDateAtom);
+  const [, updateSelectedDate] = useAtom(updateSelectedDateAtom);
+
   const [isCalendarModalVisible, setCalendarModalVisible] =
     useState<boolean>(false);
 
@@ -36,13 +45,13 @@ function StatisticScreen() {
   const goToPreviousDay = () => {
     const newDate = new Date(selectedDate);
     newDate.setDate(newDate.getDate() - 1);
-    setSelectedDate(newDate);
+    updateSelectedDate(newDate);
   };
 
   const goToNextDay = () => {
     const newDate = new Date(selectedDate);
     newDate.setDate(newDate.getDate() + 1);
-    setSelectedDate(newDate);
+    updateSelectedDate(newDate);
   };
 
   // 스와이프 제스처 처리
@@ -61,53 +70,6 @@ function StatisticScreen() {
     '11월',
     '12월',
   ];
-
-  const setData: SetData[] = [
-    {
-      setNumber: 1,
-      reps: 12,
-      time: '30초',
-      isPersonalBest: true,
-    },
-    {
-      setNumber: 2,
-      reps: 10,
-      time: '25초',
-      isPersonalBest: false,
-    },
-    {
-      setNumber: 3,
-      reps: 8,
-      time: '20초',
-      isPersonalBest: false,
-    },
-    {
-      setNumber: 4,
-      reps: 10,
-      time: '25초',
-      isPersonalBest: false,
-    },
-    {
-      setNumber: 4,
-      reps: 10,
-      time: '25초',
-      isPersonalBest: false,
-    },
-    {
-      setNumber: 4,
-      reps: 10,
-      time: '25초',
-      isPersonalBest: false,
-    },
-    {
-      setNumber: 4,
-      reps: 10,
-      time: '25초',
-      isPersonalBest: false,
-    },
-  ];
-
-  const maxReps = Math.max(...setData.map(set => set.reps));
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -168,31 +130,14 @@ function StatisticScreen() {
         <ScrollView style={styles.scrollView}>
           <View style={styles.historyContainer}>
             <View>
-              {/* 월 선택 헤더 */}
-
-              <View style={styles.historySummary}>
-                <View style={styles.historySummaryItem}>
-                  <View>
-                    <Text style={styles.historySummaryTitle}>푸쉬업 수</Text>
-                    <Text style={styles.historySummaryText}>40번</Text>
-                  </View>
-                </View>
-                <View style={styles.historySummaryItem}>
-                  <Text style={styles.historySummaryTitle}>총 세트 수</Text>
-                  <Text style={styles.historySummaryText}>4세트</Text>
-                </View>
-                <View style={styles.historySummaryItem}>
-                  <Text style={styles.historySummaryTitle}>총 시간</Text>
-                  <Text style={styles.historySummaryText}>1분 40초</Text>
-                </View>
-              </View>
+              <HistorySummary />
               <View style={styles.historyDetails}>
                 <View style={styles.setDetailsHeader}>
                   <Text style={styles.setDetailsTitle}>세트별 상세 기록</Text>
                 </View>
-                {setData.map((set, index) => (
-                  <SetCard key={index} set={set} maxReps={maxReps} />
-                ))}
+                <Suspense fallback={<Text>Loading</Text>}>
+                  <SetCardList />
+                </Suspense>
               </View>
             </View>
           </View>
@@ -205,16 +150,51 @@ function StatisticScreen() {
           onMonthSelect={month => {
             const newDate = new Date(selectedDate);
             newDate.setMonth(month);
-            setSelectedDate(newDate);
+            updateSelectedDate(newDate);
           }}
           onYearChange={year => {
             const newDate = new Date(selectedDate);
             newDate.setFullYear(year);
-            setSelectedDate(newDate);
+            updateSelectedDate(newDate);
           }}
         />
       </View>
     </SafeAreaView>
+  );
+}
+
+function SetCardList() {
+  const [selectedDate] = useAtom(selectedDateAtom);
+  const {year, month, day} = {
+    year: selectedDate.getFullYear(),
+    month: selectedDate.getMonth() + 1,
+    day: selectedDate.getDate(),
+  };
+
+  const {user} = useAuth();
+
+  const {data: pushupSets} = useSuspenseQuery(
+    pushUpSetsByDateQueryOptions(year, month, day),
+  );
+  const {data: profile} = useQuery({
+    ...profileQueryOptions(user?.id || ''),
+    enabled: user !== null,
+  });
+
+  return (
+    <View>
+      {pushupSets.map((set, index) => (
+        <SetCard
+          key={index}
+          set={{
+            setNumber: index + 1,
+            reps: set.reps,
+            time: set.duration_seconds.toString(),
+          }}
+          targetReps={profile?.target_reps_per_set || 0}
+        />
+      ))}
+    </View>
   );
 }
 
@@ -279,27 +259,6 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
-  },
-  historySummary: {
-    marginTop: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 15,
-  },
-  historySummaryItem: {
-    flex: 1,
-    backgroundColor: colors.background,
-    borderRadius: 15,
-    padding: 10,
-  },
-  historySummaryTitle: {
-    fontSize: 12,
-    color: colors.textBlack,
-  },
-  historySummaryText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: colors.textBlack,
   },
   setDetailsTitle: {
     fontSize: 14,

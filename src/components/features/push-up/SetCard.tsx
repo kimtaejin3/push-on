@@ -1,22 +1,21 @@
 import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
-import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import {colors} from '../../../constants/colors';
+import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 
 type SetData = {
   setNumber: number;
   reps: number;
   time: string;
-  isPersonalBest: boolean;
 };
 
 type SetCardProps = {
   set: SetData;
-  maxReps: number;
+  targetReps: number;
 };
 
-const SetCard: React.FC<SetCardProps> = ({set, maxReps}) => {
-  const progressWidth = (set.reps / maxReps) * 100;
+const SetCard: React.FC<SetCardProps> = ({set, targetReps}) => {
+  const progressWidth = (set.reps / targetReps) * 100;
 
   return (
     <View style={styles.setCard}>
@@ -29,15 +28,15 @@ const SetCard: React.FC<SetCardProps> = ({set, maxReps}) => {
             <Text style={styles.setReps}>{set.reps}회</Text>
             <Text style={styles.setTime}>{set.time}</Text>
           </View>
-          {set.isPersonalBest && (
+          {progressWidth === 100 && (
             <View style={styles.bestBadge}>
               <Fontawesome5
-                name="crown"
+                name="star"
                 iconStyle="solid"
                 size={10}
                 color="#fff"
               />
-              <Text style={styles.bestText}>BEST</Text>
+              <Text style={styles.bestText}>GOAL ACHIEVED</Text>
             </View>
           )}
         </View>

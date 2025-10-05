@@ -2,6 +2,7 @@ import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {colors} from '../../../constants/colors';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
+import {formatTime} from '../../../utils/time';
 
 type SetData = {
   setNumber: number;
@@ -26,7 +27,7 @@ const SetCard: React.FC<SetCardProps> = ({set, targetReps}) => {
         <View style={styles.setInfo}>
           <View style={styles.setMainInfo}>
             <Text style={styles.setReps}>{set.reps}회</Text>
-            <Text style={styles.setTime}>{set.time}</Text>
+            <Text style={styles.setTime}>{formatTime(Number(set.time))}</Text>
           </View>
           {progressWidth === 100 && (
             <View style={styles.bestBadge}>

@@ -1,5 +1,6 @@
 import {useState, useCallback} from 'react';
 import useInterval from './useInterval';
+import {formatTime} from '../utils/time';
 
 export const useTimer = () => {
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -14,15 +15,6 @@ export const useTimer = () => {
     },
     isRunning ? 1000 : null,
   );
-
-  // 시간 포맷팅 함수 (분:초)
-  const formatTime = useCallback((seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs
-      .toString()
-      .padStart(2, '0')}`;
-  }, []);
 
   // 타이머 시작
   const startTimer = useCallback(() => {

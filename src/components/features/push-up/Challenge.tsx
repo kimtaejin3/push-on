@@ -82,7 +82,7 @@ function Challenge(): React.JSX.Element {
     try {
       await pushupService.savePushupSession({
         reps: pushUpCount,
-        duration_seconds: Math.floor(elapsedTime / 1000),
+        duration_seconds: elapsedTime,
         set_number: 1, // TODO: 실제 세트 번호로 변경
       });
 

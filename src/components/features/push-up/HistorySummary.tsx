@@ -20,27 +20,14 @@ const historySummaryItems = [
   {
     type: 'duration',
     label: '총 시간',
-    prefix: '분',
+    //TODO: 시간에 따라 분/초 표시
+    prefix: '초',
   },
 ];
 
 function HistorySummary() {
   return (
     <View style={styles.historySummary}>
-      {/* <View style={styles.historySummaryItem}>
-        <View>
-          <Text style={styles.historySummaryTitle}>푸쉬업 수</Text>
-          <Text style={styles.historySummaryText}>{totalReps}번</Text>
-        </View>
-      </View>
-      <View style={styles.historySummaryItem}>
-        <Text style={styles.historySummaryTitle}>총 세트 수</Text>
-        <Text style={styles.historySummaryText}>{totalSets}세트</Text>
-      </View>
-      <View style={styles.historySummaryItem}>
-        <Text style={styles.historySummaryTitle}>총 시간</Text>
-        <Text style={styles.historySummaryText}>{totalDuration}</Text>
-      </View> */}
       {historySummaryItems.map((item, index) => (
         <View style={styles.historySummaryItem} key={index}>
           <Text style={styles.historySummaryTitle}>{item.label}</Text>
@@ -76,10 +63,6 @@ function HistoryValue({
     (acc, item) => acc + item.duration_seconds,
     0,
   );
-
-  console.log('totalReps', totalReps);
-  console.log('totalSets', totalSets);
-  console.log('totalDuration', totalDuration);
 
   return (
     <Text style={styles.historySummaryText}>

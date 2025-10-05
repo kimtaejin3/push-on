@@ -25,7 +25,11 @@ export const colors = {
   gray300: '#cccccc',
   gray400: '#999999',
   gray500: '#666666',
+  gray600: '#757373',
+  gray700: '#6e6e6e',
+  gray800: '#4f4d4d',
   gray900: '#333333',
+  grayLight: '#ededed',
 
   // Shadow
   shadow: '#000000',

@@ -134,7 +134,7 @@ function Challenge(): React.JSX.Element {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#ededed',
+    backgroundColor: colors.grayLight,
   },
   backgroundPattern: {
     position: 'absolute',
@@ -159,18 +159,12 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 40,
-    // color: colors.textLight,
-    color: '#757373',
-    // textShadowOffset: {width: 0, height: 2},
-    // textShadowRadius: 4,
+    color: colors.gray600,
   },
   countText: {
     fontSize: 50,
     fontWeight: '400',
-    // color: colors.textLight,
-    color: '#4f4d4d',
-    // textShadowOffset: {width: 0, height: 2},
-    // textShadowRadius: 4,
+    color: colors.gray800,
   },
   countLabel: {
     fontSize: 30,
@@ -183,8 +177,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     opacity: 0.8,
-    // color: colors.textLight,
-    color: '#6e6e6e',
+    color: colors.gray700,
   },
   footer: {
     marginTop: 'auto',

@@ -1,5 +1,5 @@
-import React, {useEffect} from 'react';
-import {SafeAreaView, StyleSheet, Text, View} from 'react-native';
+import React, {useEffect, useMemo} from 'react';
+import {SafeAreaView, StyleSheet, Text, View, Dimensions} from 'react-native';
 import usePushUpManager from '../../../hooks/usePushUpManager';
 import CustomButton from '../../common/CustomButton';
 import {useNavigation} from '@react-navigation/native';
@@ -10,11 +10,42 @@ import {useTimer} from '../../../hooks/useTimer';
 import Timer from '../../common/Timer';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
 
+const generateCircles = () => {
+  const screenWidth = Dimensions.get('window').width;
+  const screenHeight = Dimensions.get('window').height;
+  const circles = [];
+
+  for (let i = 0; i < 30; i++) {
+    const size = Math.random() * 8 + 4; // 4-12px 크기
+    const opacity = Math.random() * 0.3 + 0.1; // 0.1-0.4 투명도
+    const left = Math.random() * screenWidth;
+    const top = Math.random() * screenHeight;
+
+    circles.push(
+      <View
+        key={i}
+        style={[
+          styles.circle,
+          {
+            width: size,
+            height: size,
+            left: left,
+            top: top,
+            opacity: opacity,
+          },
+        ]}
+      />,
+    );
+  }
+  return circles;
+};
+
 function Challenge(): React.JSX.Element {
   const navigation = useNavigation();
   const {pushUpCount, isTracking, isGoingDown, startTracking, stopTracking} =
     usePushUpManager();
   const {formattedTime, stopTimer, startAndResetTimer} = useTimer();
+  const generatedCircles = useMemo(() => generateCircles(), []);
 
   // 푸쉬업 카운트가 증가할 때 진동
   useEffect(() => {
@@ -47,8 +78,13 @@ function Challenge(): React.JSX.Element {
     console.log('🔄 isGoingDown 상태 변경:', isGoingDown);
   }, [isGoingDown]);
 
+  // 동그라미 패턴 생성
+
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* 동그라미 패턴 배경 */}
+      <View style={styles.backgroundPattern}>{generatedCircles}</View>
+
       <View style={styles.container}>
         <Text style={styles.title}>SET 1</Text>
 
@@ -98,21 +134,43 @@ function Challenge(): React.JSX.Element {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.backgroundLight,
+    backgroundColor: '#ededed',
+  },
+  backgroundPattern: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 0,
+  },
+  circle: {
+    position: 'absolute',
+    borderRadius: 50,
+    backgroundColor: colors.primary,
   },
   container: {
     flex: 1,
     alignItems: 'center',
     padding: 20,
+    zIndex: 1,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 40,
+    // color: colors.textLight,
+    color: '#757373',
+    // textShadowOffset: {width: 0, height: 2},
+    // textShadowRadius: 4,
   },
   countText: {
     fontSize: 50,
     fontWeight: '400',
+    // color: colors.textLight,
+    color: '#4f4d4d',
+    // textShadowOffset: {width: 0, height: 2},
+    // textShadowRadius: 4,
   },
   countLabel: {
     fontSize: 30,
@@ -124,7 +182,9 @@ const styles = StyleSheet.create({
     marginTop: 'auto',
     fontSize: 16,
     textAlign: 'center',
-    opacity: 0.7,
+    opacity: 0.8,
+    // color: colors.textLight,
+    color: '#6e6e6e',
   },
   footer: {
     marginTop: 'auto',
@@ -134,6 +194,11 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: colors.primaryDark,
+    shadowColor: colors.primary,
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   countContainer: {
     borderWidth: 5,
@@ -143,27 +208,46 @@ const styles = StyleSheet.create({
     height: 230,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    shadowColor: colors.lightBlue,
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    elevation: 5,
   },
   countContainerActive: {
-    borderColor: colors.primary, // 활성화 시 파란색으로 변경
-    borderWidth: 8, // 더 두꺼운 테두리
-    backgroundColor: colors.backgroundAccent, // 배경색 추가
-    shadowColor: colors.primary, // 그림자 효과
+    borderColor: colors.primary,
+    borderWidth: 8,
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    shadowColor: colors.primary,
     shadowOffset: {width: 0, height: 0},
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 5, // Android 그림자
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 10,
+    transform: [{scale: 1.05}],
   },
   timeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     marginTop: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 20,
+    shadowColor: colors.gray900,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   timeText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: colors.gray500,
+    color: colors.textLight,
+    textShadowColor: colors.gray900,
+    textShadowOffset: {width: 0, height: 1},
+    textShadowRadius: 2,
   },
 });
 

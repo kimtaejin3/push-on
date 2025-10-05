@@ -1,14 +1,17 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {SafeAreaView, StyleSheet, Text, View, Dimensions} from 'react-native';
 import usePushUpManager from '../../../hooks/usePushUpManager';
 import CustomButton from '../../common/CustomButton';
 import {useNavigation} from '@react-navigation/native';
 import Engagement from '../../features/push-up/Engagement';
+import ChallengeResult from './ChallengeResult';
 import {colors} from '../../../constants/colors';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import {useTimer} from '../../../hooks/useTimer';
 import Timer from '../../common/Timer';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
+import {pushupService} from '../../../services/pushupService';
+import {supabase} from '../../../lib/supabase';
 
 const generateCircles = () => {
   const screenWidth = Dimensions.get('window').width;
@@ -44,8 +47,10 @@ function Challenge(): React.JSX.Element {
   const navigation = useNavigation();
   const {pushUpCount, isTracking, isGoingDown, startTracking, stopTracking} =
     usePushUpManager();
-  const {formattedTime, stopTimer, startAndResetTimer} = useTimer();
+  const {formattedTime, stopTimer, startAndResetTimer, elapsedTime} =
+    useTimer();
   const generatedCircles = useMemo(() => generateCircles(), []);
+  const [showResult, setShowResult] = useState(false);
 
   // 푸쉬업 카운트가 증가할 때 진동
   useEffect(() => {
@@ -67,10 +72,50 @@ function Challenge(): React.JSX.Element {
     startTracking();
   };
 
-  // 추적 중지 시 타이머도 중지
+  // 추적 중지 시 타이머도 중지하고 결과 화면 표시
   const handleStopTracking = () => {
     stopTimer();
     stopTracking();
+    setShowResult(true);
+  };
+
+  // 푸쉬업 세션 저장 및 홈으로 이동
+  const handleSaveAndGoHome = async () => {
+    try {
+      // 사용자 프로필에서 목표 개수 가져오기
+      const {data: user} = await supabase.auth.getUser();
+      let targetReps = null;
+
+      if (user.user) {
+        const {data: profile} = await supabase
+          .from('profiles')
+          .select('target_reps_per_set')
+          .eq('user_id', user.user.id)
+          .single();
+
+        targetReps = profile?.target_reps_per_set || null;
+      }
+
+      // 목표 달성 여부 확인
+      const isGoalAchieved = targetReps ? pushUpCount >= targetReps : false;
+
+      await pushupService.savePushupSession({
+        reps: pushUpCount,
+        duration_seconds: Math.floor(elapsedTime / 1000),
+        set_number: 1, // TODO: 실제 세트 번호로 변경
+        target_reps: targetReps,
+        is_goal_achieved: isGoalAchieved,
+        is_personal_best: false, // TODO: 개인 최고 기록 확인 로직 추가
+      });
+
+      setShowResult(false);
+      navigation.navigate('Tabs' as never);
+    } catch (error) {
+      console.error('푸쉬업 세션 저장 실패:', error);
+      // 에러가 발생해도 홈으로 이동
+      setShowResult(false);
+      navigation.navigate('Tabs' as never);
+    }
   };
 
   // isGoingDown 상태 변화 감지
@@ -79,6 +124,17 @@ function Challenge(): React.JSX.Element {
   }, [isGoingDown]);
 
   // 동그라미 패턴 생성
+
+  // 결과 화면 표시
+  if (showResult) {
+    return (
+      <ChallengeResult
+        pushUpCount={pushUpCount}
+        duration={formattedTime}
+        onSaveAndGoHome={handleSaveAndGoHome}
+      />
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -114,12 +170,11 @@ function Challenge(): React.JSX.Element {
 
           <CustomButton
             style={styles.button}
-            title={isTracking ? '중지하기' : '시작하기'}
+            title={isTracking ? '그만하기' : '시작하기'}
             variant={isTracking ? 'stop' : 'start'}
             onPress={() => {
               if (isTracking) {
                 handleStopTracking();
-                navigation.goBack();
               } else {
                 handleStartTracking();
               }

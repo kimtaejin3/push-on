@@ -8,6 +8,7 @@ import {colors} from '../constants/colors';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import {useTimer} from '../hooks/useTimer';
 import Timer from '../components/common/Timer';
+import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
 
 function ChallengeScreen(): React.JSX.Element {
   const navigation = useNavigation();
@@ -59,26 +60,36 @@ function ChallengeScreen(): React.JSX.Element {
           <Text style={styles.countText}>{pushUpCount}</Text>
         </View>
 
-        <Timer time={formattedTime} style={styles.timeText} />
+        <View style={styles.timeContainer}>
+          <FontAwesome5
+            name="clock"
+            iconStyle="solid"
+            size={17}
+            color={colors.gray400}
+          />
+          <Timer time={formattedTime} style={styles.timeText} />
+        </View>
         <Engagement show={isTracking} pushUpCount={pushUpCount} />
 
-        <Text style={styles.instructionText}>
-          {!isTracking && '기기를 얼굴과 마주보게 바닥에 두세요'}
-        </Text>
+        <View style={styles.footer}>
+          <Text style={styles.instructionText}>
+            {!isTracking && '기기를 얼굴과 마주보게 바닥에 두세요'}
+          </Text>
 
-        <CustomButton
-          style={styles.button}
-          title={isTracking ? '중지하기' : '시작하기'}
-          variant={isTracking ? 'stop' : 'start'}
-          onPress={() => {
-            if (isTracking) {
-              handleStopTracking();
-              navigation.goBack();
-            } else {
-              handleStartTracking();
-            }
-          }}
-        />
+          <CustomButton
+            style={styles.button}
+            title={isTracking ? '중지하기' : '시작하기'}
+            variant={isTracking ? 'stop' : 'start'}
+            onPress={() => {
+              if (isTracking) {
+                handleStopTracking();
+                navigation.goBack();
+              } else {
+                handleStartTracking();
+              }
+            }}
+          />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -110,22 +121,26 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   instructionText: {
-    marginTop: 60,
-    marginBottom: 10,
+    marginTop: 'auto',
     fontSize: 16,
     textAlign: 'center',
     opacity: 0.7,
   },
+  footer: {
+    marginTop: 'auto',
+    width: '100%',
+    alignItems: 'center',
+    gap: 20,
+  },
   button: {
-    width: 300,
     backgroundColor: colors.primaryDark,
   },
   countContainer: {
     borderWidth: 5,
     borderColor: colors.lightBlue,
     borderRadius: 9999,
-    width: 200,
-    height: 200,
+    width: 230,
+    height: 230,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -139,11 +154,16 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 5, // Android 그림자
   },
+  timeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 20,
+  },
   timeText: {
     fontSize: 20,
-    fontWeight: 'medium',
-    marginBottom: 40,
-    marginTop: 20,
+    fontWeight: 'bold',
+    color: colors.gray500,
   },
 });
 

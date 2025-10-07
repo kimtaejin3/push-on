@@ -1,13 +1,15 @@
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
-import Fontawesome6 from '@react-native-vector-icons/fontawesome6';
-import StatisticScreen from '../screens/StatisticScreen';
 import {colors} from '../constants/colors';
+import HistoryScreen from '../screens/HistoryScreen';
+import StatisticScreen from '../screens/StatisticScreen';
+import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 
 export type BottomTabParamList = {
   Home: undefined;
   Statistic: undefined;
+  History: undefined;
 };
 
 const Tab = createBottomTabNavigator<BottomTabParamList>();
@@ -44,11 +46,25 @@ const BottomTabNavigation = () => {
         }}
       />
       <Tab.Screen
+        name="History"
+        component={HistoryScreen}
+        options={{
+          tabBarIcon: ({color}) => (
+            <Fontawesome5
+              name="history"
+              size={20}
+              color={color}
+              iconStyle="solid"
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
         name="Statistic"
         component={StatisticScreen}
         options={{
           tabBarIcon: ({color}) => (
-            <Fontawesome6
+            <FontAwesome6
               name="chart-simple"
               size={20}
               color={color}

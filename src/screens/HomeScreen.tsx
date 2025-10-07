@@ -9,12 +9,7 @@ import {
 } from 'react-native';
 import CustomButton from '../components/common/CustomButton';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
-import {
-  Header,
-  HeaderTitle,
-  Notification,
-  Setting,
-} from '../components/common/Header';
+import {Header, HeaderTitle, Setting} from '../components/common/Header';
 import {useAuth} from '../hooks/useAuth';
 import {colors} from '../constants/colors';
 
@@ -45,7 +40,6 @@ function HomeScreen(): React.JSX.Element {
         }
         right={
           <>
-            <Notification />
             <Setting />
           </>
         }

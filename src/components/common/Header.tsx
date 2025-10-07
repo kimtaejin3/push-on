@@ -27,13 +27,6 @@ function HeaderTitle({title, icon}: {title: string; icon: React.ReactNode}) {
   );
 }
 
-//TODO: 이 Notification은 굳이 Header.tsx에 포함되지 않아도 될 것 같아.
-function Notification() {
-  return (
-    <Fontawesome5 name="bell" size={20} iconStyle="solid" color="#242424" />
-  );
-}
-
 //TODO: 이 Setting은 굳이 Header.tsx에 포함되지 않아도 될 것 같아.
 function Setting() {
   const navigation = useNavigation();
@@ -74,4 +67,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export {Header, HeaderTitle, Notification, Setting};
+export {Header, HeaderTitle, Setting};

@@ -1,5 +1,5 @@
 import {useState, useCallback} from 'react';
-import {NativeModules} from 'react-native';
+import {NativeModules, PermissionsAndroid, Platform} from 'react-native';
 import useInterval from './useInterval';
 
 const {PushupManager} = NativeModules;
@@ -33,10 +33,55 @@ function usePushUpManager() {
   useInterval(getIsGoingDown, isTracking ? PUSHUP_POLLING_INTERVAL : null);
   useInterval(getPushupCount, isTracking ? PUSHUP_POLLING_INTERVAL : null);
 
-  const startTracking = () => {
+  const requestCameraPermission = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.CAMERA,
+          {
+            title: '카메라 권한',
+            message: '푸쉬업 카운팅을 위해 카메라 권한이 필요합니다.',
+            buttonNeutral: '나중에',
+            buttonNegative: '취소',
+            buttonPositive: '확인',
+          },
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } catch (err) {
+        console.warn(err);
+        return false;
+      }
+    }
+    return true; // iOS는 Info.plist에서 처리
+  };
+
+  const startTracking = async () => {
+    console.log('🚀 startTracking 호출됨');
+
+    // PushupManager 모듈 확인
+    if (!PushupManager) {
+      console.error('❌ PushupManager 모듈이 없습니다!');
+      return;
+    }
+    console.log('✅ PushupManager 모듈 확인됨:', PushupManager);
+
+    // 카메라 권한 확인
+    const hasPermission = await requestCameraPermission();
+    if (!hasPermission) {
+      console.error('❌ 카메라 권한이 거부되었습니다');
+      return;
+    }
+
+    console.log('✅ 카메라 권한 확인됨, 푸쉬업 세션 시작');
     setIsTracking(true);
     setPushUpCount(INITIAL_COUNT);
-    PushupManager.startPushupSession();
+
+    try {
+      await PushupManager.startPushupSession();
+      console.log('✅ PushupManager.startPushupSession() 호출 완료');
+    } catch (error) {
+      console.error('❌ PushupManager.startPushupSession() 에러:', error);
+    }
   };
 
   const stopTracking = () => {

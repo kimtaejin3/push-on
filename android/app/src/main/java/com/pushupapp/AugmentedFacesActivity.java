@@ -30,8 +30,8 @@ public class AugmentedFacesActivity implements GLSurfaceView.Renderer {
     private int pushUpCount = 0;
     private boolean isGoingDown = false;
 
-    private final float CLOSE_THRESHOLD = 0.25f;
-    private final float FAR_THRESHOLD = 0.35f;
+    private final float CLOSE_THRESHOLD = 0.35f;
+    private final float FAR_THRESHOLD = 0.40f;
 
     private ReactApplicationContext reactContext;
 

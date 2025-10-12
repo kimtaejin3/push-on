@@ -143,7 +143,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 40,
-    color: colors.gray600,
   },
   countText: {
     fontSize: 50,

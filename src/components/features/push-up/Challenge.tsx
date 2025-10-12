@@ -47,6 +47,11 @@ function Challenge(): React.JSX.Element {
     setShowResult(true);
   };
 
+  // 타이머만 중지 (추적은 계속)
+  const handlePauseTimer = () => {
+    stopTimer();
+  };
+
   // 푸쉬업 세션 저장 및 홈으로 이동
   const handleSaveAndGoHome = async () => {
     try {
@@ -120,18 +125,31 @@ function Challenge(): React.JSX.Element {
             {!isTracking && '기기를 얼굴과 마주보게 바닥에 두세요'}
           </Text>
 
-          <CustomButton
-            style={styles.button}
-            title={isTracking ? '그만하기' : '시작하기'}
-            variant={isTracking ? 'stop' : 'start'}
-            onPress={() => {
-              if (isTracking) {
-                handleStopTracking();
-              } else {
-                handleStartTracking();
-              }
-            }}
-          />
+          <View style={styles.buttonContainer}>
+            {isTracking ? (
+              <>
+                <CustomButton
+                  style={[styles.button, styles.pauseButton]}
+                  title="일시정지"
+                  variant="default"
+                  onPress={handlePauseTimer}
+                />
+                <CustomButton
+                  style={[styles.button, styles.stopButton]}
+                  title="종료하기"
+                  variant="stop"
+                  onPress={handleStopTracking}
+                />
+              </>
+            ) : (
+              <CustomButton
+                style={styles.button}
+                title="시작하기"
+                variant="start"
+                onPress={handleStartTracking}
+              />
+            )}
+          </View>
         </View>
       </View>
     </SafeAreaView>
@@ -179,6 +197,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 20,
   },
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: 15,
+    width: '100%',
+    justifyContent: 'center',
+  },
   button: {
     backgroundColor: colors.primaryDark,
     shadowColor: colors.primary,
@@ -186,6 +210,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+    flex: 1,
+  },
+  pauseButton: {
+    backgroundColor: colors.gray400,
+  },
+  stopButton: {
+    backgroundColor: colors.primary,
   },
   countContainer: {
     borderWidth: 10,

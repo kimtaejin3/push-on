@@ -125,7 +125,7 @@ function StatisticScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.backgroundLight,
+    backgroundColor: colors.backgroundDark,
   },
   scrollView: {
     flex: 1,
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   },
   periodSelector: {
     flexDirection: 'row',
-    backgroundColor: colors.gray100,
+    backgroundColor: colors.overlayLight,
     borderRadius: 12,
     padding: 4,
     marginBottom: 20,
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   periodButtonActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primaryDark,
   },
   periodButtonText: {
     fontSize: 14,
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   },
   metricSelector: {
     flexDirection: 'row',
-    backgroundColor: colors.background,
+    backgroundColor: colors.overlayLight,
     borderRadius: 12,
     padding: 4,
     marginBottom: 20,
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   metricButtonActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primaryDark,
   },
   metricButtonText: {
     fontSize: 12,
@@ -202,14 +202,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
-    backgroundColor: colors.background,
+    backgroundColor: colors.overlayLight,
     borderRadius: 16,
     marginVertical: 10,
   },
   emptyText: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: colors.textLight,
     marginBottom: 8,
   },
   emptySubText: {

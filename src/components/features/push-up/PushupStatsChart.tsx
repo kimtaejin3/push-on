@@ -36,7 +36,7 @@ function PushupStatsChart({data, type, metric}: PushupStatsChartProps) {
         case 'sets':
           return item.totalSets;
         case 'duration':
-          return Math.round(item.totalDuration / 60); // 분 단위로 변환
+          return Math.round(item.totalDuration / 60);
         default:
           return 0;
       }
@@ -47,7 +47,7 @@ function PushupStatsChart({data, type, metric}: PushupStatsChartProps) {
       datasets: [
         {
           data: values,
-          color: (opacity = 1) => `rgba(1, 130, 255, ${opacity})`, // primary 색상
+          color: (opacity = 1) => `rgba(91, 63, 255, ${opacity})`,
           strokeWidth: 2,
         },
       ],
@@ -98,39 +98,46 @@ function PushupStatsChart({data, type, metric}: PushupStatsChartProps) {
           contentContainerStyle={styles.scrollContent}>
           <BarChart
             data={chartData}
-            width={screenWidth - 50}
-            height={220}
+            width={screenWidth - 10}
+            height={350}
             yAxisLabel=""
             yAxisSuffix={yAxisSuffix}
             chartConfig={{
-              backgroundColor: colors.background,
-              backgroundGradientFrom: colors.background,
-              backgroundGradientTo: colors.background,
+              backgroundGradientFrom: colors.backgroundDark,
+              backgroundGradientTo: colors.backgroundDark,
               decimalPlaces: 0,
-              color: (opacity = 1) => `rgba(1, 130, 255, ${opacity})`,
-              labelColor: (opacity = 1) => `rgba(51, 51, 51, ${opacity})`,
+              color: (opacity = 1) => `rgba(91, 63, 255, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
               style: {
                 borderRadius: 16,
+              },
+              propsForLabels: {
+                fontSize: 12,
+                fill: colors.textLight,
+              },
+              propsForHorizontalLabels: {
+                fontSize: 12,
+                fill: colors.textLight,
               },
               propsForDots: {
                 r: '6',
                 strokeWidth: '2',
-                stroke: colors.primary,
+                stroke: colors.primaryDark,
               },
               propsForBackgroundLines: {
                 strokeWidth: 0,
               },
               barPercentage: 0.7,
-              fillShadowGradient: colors.primary,
+              fillShadowGradient: colors.primaryDark,
               fillShadowGradientOpacity: 0.3,
             }}
             style={styles.chart}
-            showValuesOnTopOfBars={true}
             fromZero={true}
             withInnerLines={true}
             withHorizontalLabels={true}
             withVerticalLabels={true}
             segments={4}
+            showValuesOnTopOfBars={true}
           />
         </ScrollView>
       </View>
@@ -169,9 +176,7 @@ function PushupStatsChart({data, type, metric}: PushupStatsChartProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.background,
     borderRadius: 16,
-    padding: 20,
     marginVertical: 10,
     shadowColor: colors.gray900,
     shadowOffset: {width: 0, height: 2},
@@ -185,7 +190,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: colors.textPrimary,
+    color: colors.textLight,
     textAlign: 'center',
   },
   chartContainer: {
@@ -203,7 +208,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingTop: 15,
     borderTopWidth: 1,
-    borderTopColor: colors.gray200,
+    borderTopColor: colors.overlayLight,
   },
   summaryItem: {
     alignItems: 'center',
@@ -216,7 +221,7 @@ const styles = StyleSheet.create({
   summaryValue: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: colors.textPrimary,
+    color: colors.textLight,
   },
 });
 

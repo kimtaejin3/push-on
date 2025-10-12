@@ -34,35 +34,43 @@ function HomeScreen(): React.JSX.Element {
         <TouchableOpacity
           style={styles.startButton}
           onPress={() => navigation.navigate('Challenge')}>
-          <Text style={styles.startButtonText}>Start</Text>
+          <View style={styles.startButtonGradientBorder}>
+            <View style={styles.startButtonGradientBorderInner}>
+              <View style={styles.startButtonInner}>
+                <Text style={styles.startButtonText}>Start</Text>
+              </View>
+            </View>
+          </View>
         </TouchableOpacity>
 
         {/* 오늘의 순위 섹션 */}
         <TouchableOpacity
           style={styles.leaderboardContainer}
           onPress={() => navigation.navigate('Tabs' as never)}>
-          <View style={styles.leaderboardHeader}>
-            <FontAwesome5
-              name="trophy"
-              size={20}
-              color={colors.primary}
-              iconStyle="solid"
-            />
-            <Text style={styles.leaderboardTitle}>오늘의 순위</Text>
-          </View>
-
-          <View style={styles.leaderboardContent}>
-            <Text style={styles.leaderboardDescription}>
-              다른 사용자들과 경쟁하며{'\n'}오늘의 순위를 확인해보세요!
-            </Text>
-            <View style={styles.leaderboardButton}>
-              <Text style={styles.leaderboardButtonText}>순위 확인하기</Text>
+          <View style={styles.leaderboardInner}>
+            <View style={styles.leaderboardHeader}>
               <FontAwesome5
-                name="chevron-right"
-                size={16}
+                name="trophy"
+                size={20}
                 color={colors.primary}
                 iconStyle="solid"
               />
+              <Text style={styles.leaderboardTitle}>오늘의 순위</Text>
+            </View>
+
+            <View style={styles.leaderboardContent}>
+              <Text style={styles.leaderboardDescription}>
+                다른 사용자들과 경쟁하며{'\n'}오늘의 순위를 확인해보세요!
+              </Text>
+              <View style={styles.leaderboardButton}>
+                <Text style={styles.leaderboardButtonText}>순위 확인하기</Text>
+                <FontAwesome5
+                  name="chevron-right"
+                  size={16}
+                  color={colors.primary}
+                  iconStyle="solid"
+                />
+              </View>
             </View>
           </View>
         </TouchableOpacity>
@@ -97,14 +105,32 @@ const styles = StyleSheet.create({
   startButton: {
     marginTop: 20,
     marginBottom: 30,
-    borderWidth: 10,
-    borderColor: colors.primary,
-    borderRadius: 9999,
-    paddingVertical: 15,
+    alignSelf: 'center',
+  },
+  startButtonGradientBorder: {
     height: 260,
     width: 260,
-    alignSelf: 'center',
+    borderRadius: 130,
+    padding: 10,
+    backgroundColor: colors.primary,
+    shadowColor: colors.primary,
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0.5,
+    shadowRadius: 15,
+    elevation: 10,
+  },
+  startButtonGradientBorderInner: {
+    flex: 1,
+    borderRadius: 120,
+    backgroundColor: colors.backgroundDark,
+    padding: 1,
+  },
+  startButtonInner: {
+    flex: 1,
+    borderRadius: 119,
+    backgroundColor: colors.backgroundDark,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   startButtonText: {
     fontSize: 40,
@@ -115,11 +141,26 @@ const styles = StyleSheet.create({
   // 리더보드 스타일
   leaderboardContainer: {
     marginTop: 30,
-    backgroundColor: colors.overlayLight,
+  },
+  gradientBorder: {
     borderRadius: 16,
+    padding: 2,
+    backgroundColor: colors.primary,
+    shadowColor: colors.primary,
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  gradientBorderInner: {
+    borderRadius: 14,
+    backgroundColor: colors.backgroundDark,
+    padding: 1,
+  },
+  leaderboardInner: {
+    backgroundColor: colors.overlayLight,
+    borderRadius: 13,
     padding: 20,
-    borderWidth: 1,
-    borderColor: colors.primaryBorder,
   },
   leaderboardHeader: {
     flexDirection: 'row',

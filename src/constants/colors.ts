@@ -1,7 +1,7 @@
 export const colors = {
   // Primary
-  primary: '#0182ff',
-  primaryDark: '#097eed',
+  primary: '#7D5FFF',
+  primaryDark: '#6B46C1',
 
   // Text
   textPrimary: '#333333',
@@ -13,6 +13,7 @@ export const colors = {
   background: '#ffffff',
   backgroundLight: '#f5f5f5',
   backgroundAccent: '#f0f8ff',
+  backgroundDark: '#0d0d0d',
 
   // Status
   success: '#3EB489',
@@ -39,6 +40,20 @@ export const colors = {
   pastelBlue: '#bacfe3',
   tabInactive: '#242424',
   buttonDisabled: '#9faab5',
+
+  // Medal colors
+  gold: '#FFD700',
+  silver: '#C0C0C0',
+  bronze: '#CD7F32',
+
+  // Transparent overlays
+  overlayLight: 'rgba(255, 255, 255, 0.05)',
+  overlayMedium: 'rgba(255, 255, 255, 0.1)',
+  overlayDark: 'rgba(255, 255, 255, 0.03)',
+  primaryOverlay: 'rgba(125, 95, 255, 0.1)',
+  primaryOverlayMedium: 'rgba(125, 95, 255, 0.15)',
+  primaryBorder: 'rgba(125, 95, 255, 0.2)',
+  primaryBorderMedium: 'rgba(125, 95, 255, 0.3)',
 } as const;
 
 export type ColorKey = keyof typeof colors;

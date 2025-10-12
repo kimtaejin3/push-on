@@ -19,16 +19,18 @@ const BottomTabNavigation = () => {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.primary,
+        tabBarActiveTintColor: '#7D5FFF',
         tabBarInactiveTintColor: colors.tabInactive,
-        tabBarLabelStyle: {
-          fontSize: 12,
-        },
         tabBarShowLabel: false, // This is the correct property to hide labels
         tabBarStyle: {
+          backgroundColor: '#000',
           paddingTop: 10,
-          borderTopLeftRadius: 20,
-          borderTopRightRadius: 20,
+          borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
+          borderRadius: 100,
+          position: 'absolute',
+          bottom: 0,
         },
       }}>
       <Tab.Screen

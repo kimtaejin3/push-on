@@ -54,7 +54,6 @@ const ConditionalNavigation = () => {
     return <OnboardingScreen onComplete={() => setRerender(true)} />;
   }
 
-  // 로그인되고 온보딩도 완료된 경우 메인 네비게이션 표시
   return <AppNavigation />;
 };
 

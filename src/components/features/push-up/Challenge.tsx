@@ -1,5 +1,5 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {SafeAreaView, StyleSheet, Text, View, Dimensions} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {SafeAreaView, StyleSheet, Text, View} from 'react-native';
 import usePushUpManager from '../../../hooks/usePushUpManager';
 import CustomButton from '../../common/CustomButton';
 import {useNavigation} from '@react-navigation/native';
@@ -12,43 +12,12 @@ import Timer from '../../common/Timer';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
 import {pushupService} from '../../../services/pushupService';
 
-const generateCircles = () => {
-  const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
-  const circles = [];
-
-  for (let i = 0; i < 30; i++) {
-    const size = Math.random() * 8 + 4; // 4-12px 크기
-    const opacity = Math.random() * 0.3 + 0.1; // 0.1-0.4 투명도
-    const left = Math.random() * screenWidth;
-    const top = Math.random() * screenHeight;
-
-    circles.push(
-      <View
-        key={i}
-        style={[
-          styles.circle,
-          {
-            width: size,
-            height: size,
-            left: left,
-            top: top,
-            opacity: opacity,
-          },
-        ]}
-      />,
-    );
-  }
-  return circles;
-};
-
 function Challenge(): React.JSX.Element {
   const navigation = useNavigation();
   const {pushUpCount, isTracking, isGoingDown, startTracking, stopTracking} =
     usePushUpManager();
   const {formattedTime, stopTimer, startAndResetTimer, elapsedTime} =
     useTimer();
-  const generatedCircles = useMemo(() => generateCircles(), []);
   const [showResult, setShowResult] = useState(false);
 
   // 푸쉬업 카운트가 증가할 때 진동
@@ -101,8 +70,6 @@ function Challenge(): React.JSX.Element {
     console.log('🔄 isGoingDown 상태 변경:', isGoingDown);
   }, [isGoingDown]);
 
-  // 동그라미 패턴 생성
-
   // 결과 화면 표시
   if (showResult) {
     return (
@@ -116,9 +83,6 @@ function Challenge(): React.JSX.Element {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* 동그라미 패턴 배경 */}
-      <View style={styles.backgroundPattern}>{generatedCircles}</View>
-
       <View style={styles.container}>
         <Text style={styles.title}>SET 1</Text>
 
@@ -168,19 +132,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: colors.grayLight,
-  },
-  backgroundPattern: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 0,
-  },
-  circle: {
-    position: 'absolute',
-    borderRadius: 50,
-    backgroundColor: colors.primary,
   },
   container: {
     flex: 1,

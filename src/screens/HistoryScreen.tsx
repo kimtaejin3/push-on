@@ -71,59 +71,65 @@ function HistoryScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.dateNavigationContainer}>
-        <TouchableOpacity style={styles.navButton} onPress={goToPreviousDay}>
-          <Fontawesome5
-            name="chevron-left"
-            iconStyle="solid"
-            size={16}
-            color={colors.primary}
-          />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.dateDisplay}
-          onPress={() => setCalendarModalVisible(true)}>
-          <Text style={styles.dateText}>
-            {selectedDate.getFullYear()}년 {monthNames[selectedDate.getMonth()]}{' '}
-            {selectedDate.getDate()}일
-          </Text>
-          <Text style={styles.dayOfWeekText}>{getDayOfWeek(selectedDate)}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          disabled={selectedDate.getDate() === new Date().getDate()}
-          style={[
-            styles.navButton,
-            selectedDate.getDate() === new Date().getDate() &&
-              styles.disabledButton,
-          ]}
-          onPress={goToNextDay}>
-          <Fontawesome5
-            name="chevron-right"
-            iconStyle="solid"
-            size={16}
-            color={colors.primary}
-          />
-        </TouchableOpacity>
-      </View>
-
       <View style={styles.scrollContainer}>
         <ScrollView style={styles.scrollView}>
           <View style={styles.historyContainer}>
             <View>
-              <HistorySummary />
-              <View style={styles.historyDetails}>
-                <View style={styles.setDetailsHeader}>
-                  <Text style={styles.setDetailsTitle}>세트별 상세 기록</Text>
-                </View>
-                <Suspense fallback={<Text>Loading</Text>}>
-                  <SetCardList />
-                </Suspense>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.setDetailsTitle}>
+                  {selectedDate.getFullYear()}년{' '}
+                  {monthNames[selectedDate.getMonth()]} {selectedDate.getDate()}
+                  일 푸쉬업 요약
+                </Text>
               </View>
+              <HistorySummary />
+              <View style={styles.sectionHeader}>
+                <Text style={styles.setDetailsTitle}>세트별 상세 기록</Text>
+              </View>
+              <Suspense fallback={<Text>Loading</Text>}>
+                <SetCardList />
+              </Suspense>
             </View>
           </View>
         </ScrollView>
+        <View style={styles.dateNavigationContainer}>
+          <TouchableOpacity style={styles.navButton} onPress={goToPreviousDay}>
+            <Fontawesome5
+              name="chevron-left"
+              iconStyle="solid"
+              size={16}
+              color={colors.primary}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.dateDisplay}
+            onPress={() => setCalendarModalVisible(true)}>
+            <Text style={styles.dateText}>
+              {selectedDate.getFullYear()}년{' '}
+              {monthNames[selectedDate.getMonth()]} {selectedDate.getDate()}일
+            </Text>
+            <Text style={styles.dayOfWeekText}>
+              {getDayOfWeek(selectedDate)}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            disabled={selectedDate.getDate() === new Date().getDate()}
+            style={[
+              styles.navButton,
+              selectedDate.getDate() === new Date().getDate() &&
+                styles.disabledButton,
+            ]}
+            onPress={goToNextDay}>
+            <Fontawesome5
+              name="chevron-right"
+              iconStyle="solid"
+              size={16}
+              color={colors.primary}
+            />
+          </TouchableOpacity>
+        </View>
         <DatePickerModal
           isVisible={isCalendarModalVisible}
           onClose={() => setCalendarModalVisible(false)}
@@ -184,7 +190,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     padding: 20,
-    backgroundColor: colors.backgroundLight,
+    backgroundColor: colors.backgroundDark,
   },
   scrollView: {
     flex: 1,
@@ -196,14 +202,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 40,
     paddingHorizontal: 10,
   },
   navButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.gray100,
+    backgroundColor: colors.overlayLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -215,7 +221,7 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: colors.textPrimary,
+    color: colors.textLight,
     marginBottom: 2,
   },
   dayOfWeekText: {
@@ -246,15 +252,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     marginLeft: 5,
+    color: colors.textLight,
   },
   headerContainer: {
     paddingHorizontal: 10,
     paddingTop: 10,
   },
-  historyDetails: {
-    marginTop: 20,
-  },
-  setDetailsHeader: {
+  sectionHeader: {
     marginTop: 10,
     marginBottom: 20,
   },

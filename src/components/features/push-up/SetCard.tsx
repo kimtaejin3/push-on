@@ -55,7 +55,7 @@ const SetCard: React.FC<SetCardProps> = ({set, targetReps}) => {
 
 const styles = StyleSheet.create({
   setCard: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.overlayLight,
     borderRadius: 15,
     padding: 15,
     marginBottom: 10,
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   setReps: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: colors.textPrimary,
+    color: colors.textLight,
     marginRight: 10,
   },
   setTime: {
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   progressBar: {
     flex: 1,
     height: 6,
-    backgroundColor: colors.gray100,
+    backgroundColor: colors.overlayLight,
     borderRadius: 3,
     overflow: 'hidden',
     marginRight: 10,

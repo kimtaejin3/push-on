@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   historySummary: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
+    backgroundColor: colors.overlayLight,
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
@@ -108,6 +108,7 @@ const styles = StyleSheet.create({
   historySummaryText: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: colors.textLight,
   },
 });
 

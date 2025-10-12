@@ -83,7 +83,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     padding: 20,
-    // backgroundColor: colors.backgroundLight,
     backgroundColor: colors.backgroundDark,
   },
   scrollView: {

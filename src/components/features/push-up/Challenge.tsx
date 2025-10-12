@@ -1,5 +1,5 @@
-import React, {useEffect, useState} from 'react';
-import {SafeAreaView, StyleSheet, Text, View} from 'react-native';
+import React, {useEffect, useState, useRef} from 'react';
+import {SafeAreaView, StyleSheet, Text, View, Animated} from 'react-native';
 import usePushUpManager from '../../../hooks/usePushUpManager';
 import CustomButton from '../../common/CustomButton';
 import {useNavigation} from '@react-navigation/native';
@@ -19,6 +19,7 @@ function Challenge(): React.JSX.Element {
   const {formattedTime, stopTimer, startAndResetTimer, elapsedTime} =
     useTimer();
   const [showResult, setShowResult] = useState(false);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
   // 푸쉬업 카운트가 증가할 때 진동
   useEffect(() => {
@@ -65,10 +66,16 @@ function Challenge(): React.JSX.Element {
     }
   };
 
-  // isGoingDown 상태 변화 감지
+  // isGoingDown 상태 변화 감지 및 애니메이션
   useEffect(() => {
     console.log('🔄 isGoingDown 상태 변경:', isGoingDown);
-  }, [isGoingDown]);
+
+    Animated.timing(scaleAnim, {
+      toValue: isGoingDown ? 0.85 : 1,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  }, [isGoingDown, scaleAnim]);
 
   // 결과 화면 표시
   if (showResult) {
@@ -86,13 +93,16 @@ function Challenge(): React.JSX.Element {
       <View style={styles.container}>
         <Text style={styles.title}>SET 1</Text>
 
-        <View
+        <Animated.View
           style={[
             styles.countContainer,
             isGoingDown && styles.countContainerActive,
+            {
+              transform: [{scale: scaleAnim}],
+            },
           ]}>
           <Text style={styles.countText}>{pushUpCount}</Text>
-        </View>
+        </Animated.View>
 
         <View style={styles.timeContainer}>
           <FontAwesome5
@@ -131,7 +141,7 @@ function Challenge(): React.JSX.Element {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.grayLight,
+    backgroundColor: colors.backgroundDark,
   },
   container: {
     flex: 1,
@@ -143,11 +153,12 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 40,
+    color: colors.textLight,
   },
   countText: {
-    fontSize: 50,
+    fontSize: 70,
     fontWeight: '400',
-    color: colors.gray800,
+    color: colors.textLight,
   },
   countLabel: {
     fontSize: 30,
@@ -177,11 +188,11 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   countContainer: {
-    borderWidth: 5,
-    borderColor: colors.lightBlue,
+    borderWidth: 10,
+    borderColor: '#a294e3',
     borderRadius: 9999,
-    width: 230,
-    height: 230,
+    width: 250,
+    height: 250,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -193,20 +204,18 @@ const styles = StyleSheet.create({
   },
   countContainerActive: {
     borderColor: colors.primary,
-    borderWidth: 8,
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
     shadowColor: colors.primary,
     shadowOffset: {width: 0, height: 0},
     shadowOpacity: 0.5,
     shadowRadius: 20,
     elevation: 10,
-    transform: [{scale: 1.05}],
   },
   timeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    marginTop: 20,
+    marginTop: 40,
+    marginBottom: 30,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     paddingHorizontal: 15,
     paddingVertical: 8,

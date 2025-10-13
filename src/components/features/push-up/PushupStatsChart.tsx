@@ -136,7 +136,7 @@ function PushupStatsChart({data, type, metric}: PushupStatsChartProps) {
             withInnerLines={true}
             withHorizontalLabels={true}
             withVerticalLabels={true}
-            segments={4}
+            segments={2}
             showValuesOnTopOfBars={true}
           />
         </ScrollView>

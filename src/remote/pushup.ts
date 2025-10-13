@@ -53,6 +53,8 @@ export interface MonthlyStatsData {
   totalReps: number;
   totalSets: number;
   totalDuration: number;
+  weekStart: Date;
+  weekEnd: Date;
 }
 
 export const getWeeklyPushupStats = async (): Promise<WeeklyStatsData[]> => {
@@ -111,6 +113,7 @@ export const getMonthlyPushupStats = async (): Promise<MonthlyStatsData[]> => {
     const startDate = new Date();
     startDate.setDate(endDate.getDate() - 29); // 지난 30일
 
+    //TODO: 월간 통계 조회 시 오늘 날짜 이전 30일 데이터부터 조회
     const {data, error} = await supabase
       .from('pushup_sets')
       .select('*')
@@ -122,15 +125,19 @@ export const getMonthlyPushupStats = async (): Promise<MonthlyStatsData[]> => {
       throw error;
     }
 
+    if (!data) {
+      return [];
+    }
+
     // 주별로 그룹화하여 통계 계산
     const weeklyStats: MonthlyStatsData[] = [];
 
     // 4주간의 주별 데이터 초기화
     for (let week = 0; week < 4; week++) {
-      const weekStart = new Date(startDate);
-      weekStart.setDate(startDate.getDate() + week * 7);
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekStart.getDate() + 6);
+      const weekEnd = new Date();
+      weekEnd.setDate(endDate.getDate() - week * 7);
+      const weekStart = new Date();
+      weekStart.setDate(weekEnd.getDate() - 6);
 
       const weekKey = `${weekStart.toISOString().split('T')[0]}_${
         weekEnd.toISOString().split('T')[0]
@@ -138,30 +145,29 @@ export const getMonthlyPushupStats = async (): Promise<MonthlyStatsData[]> => {
 
       weeklyStats.push({
         date: weekKey,
+        weekStart,
+        weekEnd,
         totalReps: 0,
         totalSets: 0,
         totalDuration: 0,
       });
     }
 
-    // 데이터를 주별로 집계
-    data?.forEach(set => {
-      const setDate = new Date(set.workout_date);
-
-      // 해당 날짜가 어느 주에 속하는지 계산
-      const daysDiff = Math.floor(
-        (setDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
-      );
-      const weekIndex = Math.floor(daysDiff / 7);
-
-      if (weekIndex >= 0 && weekIndex < 4) {
-        weeklyStats[weekIndex].totalReps += set.reps;
-        weeklyStats[weekIndex].totalSets += 1;
-        weeklyStats[weekIndex].totalDuration += set.duration_seconds;
-      }
+    data.forEach(set => {
+      weeklyStats.forEach(week => {
+        //TODO: 조건 로직 간소화가 가능할 것 같다.
+        if (
+          set.workout_date >= week.weekStart.toISOString().split('T')[0] &&
+          set.workout_date <= week.weekEnd.toISOString().split('T')[0]
+        ) {
+          week.totalReps += set.reps;
+          week.totalSets += 1;
+          week.totalDuration += set.duration_seconds;
+        }
+      });
     });
 
-    return weeklyStats;
+    return weeklyStats.reverse();
   } catch (error) {
     console.error('월간 푸쉬업 통계 조회 실패:', error);
     throw error;

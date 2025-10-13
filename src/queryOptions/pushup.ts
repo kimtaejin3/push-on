@@ -1,4 +1,8 @@
-import {getTodayPushupSets, getWeeklyPushupStats, getMonthlyPushupStats} from '../remote/pushup';
+import {
+  getTodayPushupSets,
+  getWeeklyPushupStats,
+  getMonthlyPushupStats,
+} from '../remote/pushup';
 
 const pushUpSetsByDateQueryOptions = (
   year: number,
@@ -23,7 +27,7 @@ const monthlyPushupStatsQueryOptions = () => {
   return {
     queryKey: ['pushup', 'stats', 'monthly'],
     queryFn: getMonthlyPushupStats,
-    staleTime: 5 * 60 * 1000, // 5분
+    staleTime: 5 * 60 * 1000,
   };
 };
 

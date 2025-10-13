@@ -1,5 +1,5 @@
 import React from 'react';
-import {SafeAreaView, StyleSheet, Text, View, Dimensions} from 'react-native';
+import {SafeAreaView, StyleSheet, Text, View} from 'react-native';
 import CustomButton from '../../common/CustomButton';
 import {colors} from '../../../constants/colors';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
@@ -10,36 +10,6 @@ interface ChallengeResultProps {
   onSaveAndGoHome: () => void;
 }
 
-const generateCircles = () => {
-  const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
-  const circles = [];
-
-  for (let i = 0; i < 30; i++) {
-    const size = Math.random() * 8 + 4; // 4-12px 크기
-    const opacity = Math.random() * 0.3 + 0.1; // 0.1-0.4 투명도
-    const left = Math.random() * screenWidth;
-    const top = Math.random() * screenHeight;
-
-    circles.push(
-      <View
-        key={i}
-        style={[
-          styles.circle,
-          {
-            width: size,
-            height: size,
-            left: left,
-            top: top,
-            opacity: opacity,
-          },
-        ]}
-      />,
-    );
-  }
-  return circles;
-};
-
 function ChallengeResult({
   pushUpCount,
   duration,
@@ -47,16 +17,13 @@ function ChallengeResult({
 }: ChallengeResultProps): React.JSX.Element {
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* 동그라미 패턴 배경 */}
-      <View style={styles.backgroundPattern}>{generateCircles()}</View>
-
       <View style={styles.container}>
         <View style={styles.header}>
           <FontAwesome5
             name="check-circle"
             iconStyle="solid"
             size={60}
-            color={colors.success}
+            color={colors.primary}
           />
           <Text style={styles.title}>훌륭해요!</Text>
           <Text style={styles.subtitle}>세트를 완료했습니다</Text>
@@ -90,26 +57,12 @@ function ChallengeResult({
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.grayLight,
-  },
-  backgroundPattern: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 0,
-  },
-  circle: {
-    position: 'absolute',
-    borderRadius: 50,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.backgroundDark,
   },
   container: {
     flex: 1,
     alignItems: 'center',
     padding: 20,
-    zIndex: 1,
   },
   header: {
     alignItems: 'center',
@@ -119,13 +72,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: colors.gray800,
+    color: colors.textLight,
     marginTop: 20,
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 18,
-    color: colors.gray600,
+    color: colors.gray400,
     textAlign: 'center',
   },
   resultContainer: {
@@ -136,7 +89,7 @@ const styles = StyleSheet.create({
   },
   resultItem: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: colors.overlayMedium,
     padding: 30,
     borderRadius: 20,
     minWidth: 120,
@@ -154,7 +107,7 @@ const styles = StyleSheet.create({
   },
   resultLabel: {
     fontSize: 16,
-    color: colors.gray600,
+    color: colors.gray400,
     fontWeight: '500',
   },
   footer: {

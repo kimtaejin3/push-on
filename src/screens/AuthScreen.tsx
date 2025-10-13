@@ -267,15 +267,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   emailButton: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.overlayMedium,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.gray200,
-    shadowColor: colors.shadow,
+    borderColor: colors.primary,
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -287,7 +286,7 @@ const styles = StyleSheet.create({
   emailButtonText: {
     fontSize: 16,
     fontWeight: '500',
-    color: colors.textPrimary,
+    color: colors.textLight,
   },
   signUpButton: {
     backgroundColor: colors.backgroundLight,

@@ -44,14 +44,12 @@ function HomeScreen(): React.JSX.Element {
         </TouchableOpacity>
 
         {/* 오늘의 순위 섹션 */}
-        <TouchableOpacity
-          style={styles.leaderboardContainer}
-          onPress={() => navigation.navigate('Tabs' as never)}>
+        <View style={styles.leaderboardContainer}>
           <View style={styles.leaderboardInner}>
             <View style={styles.leaderboardHeader}>
               <FontAwesome5
                 name="trophy"
-                size={20}
+                size={18}
                 color={colors.primary}
                 iconStyle="solid"
               />
@@ -62,7 +60,9 @@ function HomeScreen(): React.JSX.Element {
               <Text style={styles.leaderboardDescription}>
                 다른 사용자들과 경쟁하며{'\n'}오늘의 순위를 확인해보세요!
               </Text>
-              <View style={styles.leaderboardButton}>
+              <TouchableOpacity
+                style={styles.leaderboardButton}
+                onPress={() => navigation.navigate('Tabs' as never)}>
                 <Text style={styles.leaderboardButtonText}>순위 확인하기</Text>
                 <FontAwesome5
                   name="chevron-right"
@@ -70,10 +70,10 @@ function HomeScreen(): React.JSX.Element {
                   color={colors.primary}
                   iconStyle="solid"
                 />
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
-        </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   leaderboardTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: colors.textLight,
   },
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   leaderboardDescription: {
-    fontSize: 16,
+    fontSize: 14,
     color: colors.textLight,
     textAlign: 'center',
     lineHeight: 24,

@@ -6,6 +6,7 @@ import HistoryScreen from '../screens/HistoryScreen';
 import StatisticScreen from '../screens/StatisticScreen';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import SettingScreen from '../screens/SettingScreen';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
 export type BottomTabParamList = {
   Home: undefined;
@@ -17,6 +18,14 @@ export type BottomTabParamList = {
 const Tab = createBottomTabNavigator<BottomTabParamList>();
 
 const BottomTabNavigation = () => {
+  const handleTabPress = () => {
+    // 탭 이동 시 가벼운 진동
+    ReactNativeHapticFeedback.trigger('impactLight', {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: false,
+    });
+  };
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -48,6 +57,9 @@ const BottomTabNavigation = () => {
             />
           ),
         }}
+        listeners={{
+          tabPress: handleTabPress,
+        }}
       />
       <Tab.Screen
         name="History"
@@ -61,6 +73,9 @@ const BottomTabNavigation = () => {
               iconStyle="solid"
             />
           ),
+        }}
+        listeners={{
+          tabPress: handleTabPress,
         }}
       />
       <Tab.Screen
@@ -76,6 +91,9 @@ const BottomTabNavigation = () => {
             />
           ),
         }}
+        listeners={{
+          tabPress: handleTabPress,
+        }}
       />
       <Tab.Screen
         name="Setting"
@@ -89,6 +107,9 @@ const BottomTabNavigation = () => {
               iconStyle="solid"
             />
           ),
+        }}
+        listeners={{
+          tabPress: handleTabPress,
         }}
       />
     </Tab.Navigator>

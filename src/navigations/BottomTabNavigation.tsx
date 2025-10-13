@@ -5,11 +5,13 @@ import {colors} from '../constants/colors';
 import HistoryScreen from '../screens/HistoryScreen';
 import StatisticScreen from '../screens/StatisticScreen';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
+import SettingScreen from '../screens/SettingScreen';
 
 export type BottomTabParamList = {
   Home: undefined;
   Statistic: undefined;
   History: undefined;
+  Setting: undefined;
 };
 
 const Tab = createBottomTabNavigator<BottomTabParamList>();
@@ -68,6 +70,20 @@ const BottomTabNavigation = () => {
           tabBarIcon: ({color}) => (
             <FontAwesome6
               name="chart-simple"
+              size={20}
+              color={color}
+              iconStyle="solid"
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Setting"
+        component={SettingScreen}
+        options={{
+          tabBarIcon: ({color}) => (
+            <Fontawesome5
+              name="cog"
               size={20}
               color={color}
               iconStyle="solid"

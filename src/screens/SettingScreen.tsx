@@ -33,7 +33,7 @@ const SettingItem: React.FC<SettingItemProps> = ({
         name={icon as any}
         size={20}
         iconStyle="solid"
-        color={isDestructive ? colors.error : colors.textPrimary}
+        color={isDestructive ? colors.error : colors.textLight}
       />
       <Text
         style={[
@@ -48,7 +48,7 @@ const SettingItem: React.FC<SettingItemProps> = ({
         name="chevron-right"
         size={16}
         iconStyle="solid"
-        color={colors.gray300}
+        color={colors.gray400}
       />
     )}
   </TouchableOpacity>
@@ -112,28 +112,6 @@ function SettingScreen() {
           </View>
         </View>
 
-        {/* 앱 설정 섹션 */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>앱 설정</Text>
-          <View style={styles.sectionContent}>
-            <SettingItem
-              icon="bell"
-              title="알림 설정"
-              onPress={() => Alert.alert('알림 설정', '알림 설정 기능입니다.')}
-            />
-            <SettingItem
-              icon="palette"
-              title="테마 설정"
-              onPress={() => Alert.alert('테마 설정', '테마 설정 기능입니다.')}
-            />
-            <SettingItem
-              icon="language"
-              title="언어 설정"
-              onPress={() => Alert.alert('언어 설정', '언어 설정 기능입니다.')}
-            />
-          </View>
-        </View>
-
         {/* 정보 섹션 */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>정보</Text>
@@ -176,9 +154,9 @@ function SettingScreen() {
 
         {/* 앱 버전 정보 */}
         <View style={styles.footer}>
-          <Text style={styles.versionText}>푸쉬핏 v1.0.0</Text>
+          <Text style={styles.versionText}>PushOn v1.0.0</Text>
           <Text style={styles.copyrightText}>
-            © 2024 푸쉬핏. All rights reserved.
+            © 2025 PushOn. All rights reserved.
           </Text>
         </View>
       </ScrollView>
@@ -191,7 +169,7 @@ export default SettingScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.backgroundLight,
+    backgroundColor: colors.backgroundDark,
   },
   scrollView: {
     flex: 1,
@@ -200,12 +178,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 20,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
+    borderBottomColor: colors.primary,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: colors.textPrimary,
+    color: colors.textLight,
   },
   section: {
     marginTop: 20,
@@ -218,10 +196,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   sectionContent: {
-    backgroundColor: colors.background,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: colors.gray200,
+    backgroundColor: colors.overlayLight,
   },
   settingItem: {
     flexDirection: 'row',
@@ -229,8 +204,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
   },
   settingItemLeft: {
     flexDirection: 'row',
@@ -239,7 +212,7 @@ const styles = StyleSheet.create({
   },
   settingItemText: {
     fontSize: 16,
-    color: colors.textPrimary,
+    color: colors.textLight,
     marginLeft: 12,
   },
   destructiveText: {

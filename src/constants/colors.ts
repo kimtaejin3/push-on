@@ -38,7 +38,7 @@ export const colors = {
   // Additional colors found in the project
   lightBlue: '#58a8f5',
   pastelBlue: '#bacfe3',
-  tabInactive: '#242424',
+  tabInactive: '#474747',
   buttonDisabled: '#9faab5',
 
   // Medal colors

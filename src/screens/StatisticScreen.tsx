@@ -14,7 +14,7 @@ import PushupStatsChart from '../components/features/push-up/PushupStatsChart';
 import {
   weeklyPushupStatsQueryOptions,
   monthlyPushupStatsQueryOptions,
-} from '../queryOptions/pushup';
+} from '../tanstack-query';
 
 type TimePeriod = 'weekly' | 'monthly';
 type MetricType = 'reps' | 'sets' | 'duration';

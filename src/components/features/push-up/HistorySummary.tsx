@@ -2,7 +2,7 @@ import React, {Suspense} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {colors} from '../../../constants/colors';
 import {useSuspenseQuery} from '@tanstack/react-query';
-import {pushUpSetsByDateQueryOptions} from '../../../queryOptions/pushup';
+import {pushUpSetsByDateQueryOptions} from '../../../tanstack-query';
 import {selectedDateAtom} from '../../../atoms/statistics';
 import {useAtom} from 'jotai';
 

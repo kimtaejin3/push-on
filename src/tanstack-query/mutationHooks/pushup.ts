@@ -1,5 +1,6 @@
 import {useMutation, useQueryClient} from '@tanstack/react-query';
-import {savePushupSession} from '../remote/pushup';
+import {savePushupSession} from '../../remote/pushup';
+import {queryKeys} from '../queryKeys';
 
 export const useSavePushupSessionMutation = (
   onSuccess?: () => void,
@@ -10,8 +11,7 @@ export const useSavePushupSessionMutation = (
   return useMutation({
     mutationFn: savePushupSession,
     onSuccess: () => {
-      // 성공 시 관련 쿼리들 무효화하여 최신 데이터로 업데이트
-      queryClient.invalidateQueries({queryKey: ['pushup']});
+      queryClient.invalidateQueries({queryKey: queryKeys.pushup.all});
       onSuccess?.();
     },
     onError: error => {

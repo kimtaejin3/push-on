@@ -1,8 +1,9 @@
-import {getProfile} from '../remote/profile';
+import {getProfile} from '../../remote/profile';
+import {queryKeys} from '../queryKeys';
 
 const profileQueryOptions = (userId: string) => {
   return {
-    queryKey: ['profile'],
+    queryKey: queryKeys.profile.me,
     queryFn: () => getProfile(userId),
   };
 };

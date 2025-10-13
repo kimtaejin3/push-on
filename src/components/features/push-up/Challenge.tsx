@@ -10,7 +10,7 @@ import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import {useTimer} from '../../../hooks/useTimer';
 import Timer from '../../common/Timer';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
-import {useSavePushupSessionMutation} from '../../../mutationOptions/pushup';
+import {useSavePushupSessionMutation} from '../../../tanstack-query/mutationHooks/pushup';
 
 function Challenge(): React.JSX.Element {
   const navigation = useNavigation();
@@ -23,13 +23,11 @@ function Challenge(): React.JSX.Element {
 
   const savePushupMutation = useSavePushupSessionMutation(
     () => {
-      // 성공 시 홈으로 이동
       setShowResult(false);
       navigation.navigate('Tabs' as never);
     },
     error => {
       console.error('푸쉬업 세션 저장 실패:', error);
-      // 에러가 발생해도 홈으로 이동
       setShowResult(false);
       navigation.navigate('Tabs' as never);
     },

@@ -2,7 +2,8 @@ import {
   getTodayPushupSets,
   getWeeklyPushupStats,
   getMonthlyPushupStats,
-} from '../remote/pushup';
+} from '../../remote/pushup';
+import {queryKeys} from '../queryKeys';
 
 const pushUpSetsByDateQueryOptions = (
   year: number,
@@ -10,14 +11,14 @@ const pushUpSetsByDateQueryOptions = (
   day: number,
 ) => {
   return {
-    queryKey: ['pushup', 'sets', year, month, day],
+    queryKey: queryKeys.pushup.sets(year, month, day),
     queryFn: () => getTodayPushupSets({year, month, day}),
   };
 };
 
 const weeklyPushupStatsQueryOptions = () => {
   return {
-    queryKey: ['pushup', 'stats', 'weekly'],
+    queryKey: queryKeys.pushup.stats.weekly,
     queryFn: getWeeklyPushupStats,
     staleTime: 5 * 60 * 1000, // 5분
   };
@@ -25,7 +26,7 @@ const weeklyPushupStatsQueryOptions = () => {
 
 const monthlyPushupStatsQueryOptions = () => {
   return {
-    queryKey: ['pushup', 'stats', 'monthly'],
+    queryKey: queryKeys.pushup.stats.monthly,
     queryFn: getMonthlyPushupStats,
     staleTime: 5 * 60 * 1000,
   };

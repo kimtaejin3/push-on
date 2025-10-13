@@ -15,9 +15,11 @@ import SetCard from '../components/features/push-up/SetCard';
 import HistorySummary from '../components/features/push-up/HistorySummary';
 import {useAuth} from '../hooks/useAuth';
 import {selectedDateAtom, updateSelectedDateAtom} from '../atoms/statistics';
-import {pushUpSetsByDateQueryOptions} from '../queryOptions/pushup';
 import {useSuspenseQuery, useQuery} from '@tanstack/react-query';
-import {profileQueryOptions} from '../queryOptions/profile';
+import {
+  pushUpSetsByDateQueryOptions,
+  profileQueryOptions,
+} from '../tanstack-query';
 
 function getDayOfWeek(date: Date) {
   const days = [

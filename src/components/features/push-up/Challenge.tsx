@@ -10,16 +10,34 @@ import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import {useTimer} from '../../../hooks/useTimer';
 import Timer from '../../common/Timer';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
-import {pushupService} from '../../../services/pushupService';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
+import {savePushupSessionMutationOptions} from '../../../queryOptions/pushup';
 
 function Challenge(): React.JSX.Element {
   const navigation = useNavigation();
+  const queryClient = useQueryClient();
   const {pushUpCount, isTracking, isGoingDown, startTracking, stopTracking} =
     usePushUpManager();
   const {formattedTime, stopTimer, startAndResetTimer, elapsedTime} =
     useTimer();
   const [showResult, setShowResult] = useState(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const savePushupMutation = useMutation({
+    ...savePushupSessionMutationOptions(),
+    onSuccess: () => {
+      // 성공 시 관련 쿼리들 무효화
+      queryClient.invalidateQueries({queryKey: ['pushup']});
+      setShowResult(false);
+      navigation.navigate('Tabs' as never);
+    },
+    onError: error => {
+      console.error('푸쉬업 세션 저장 실패:', error);
+      // 에러가 발생해도 홈으로 이동
+      setShowResult(false);
+      navigation.navigate('Tabs' as never);
+    },
+  });
 
   // 푸쉬업 카운트가 증가할 때 진동
   useEffect(() => {
@@ -53,22 +71,12 @@ function Challenge(): React.JSX.Element {
   };
 
   // 푸쉬업 세션 저장 및 홈으로 이동
-  const handleSaveAndGoHome = async () => {
-    try {
-      await pushupService.savePushupSession({
-        reps: pushUpCount,
-        duration_seconds: elapsedTime,
-        set_number: 1, // TODO: 실제 세트 번호로 변경
-      });
-
-      setShowResult(false);
-      navigation.navigate('Tabs' as never);
-    } catch (error) {
-      console.error('푸쉬업 세션 저장 실패:', error);
-      // 에러가 발생해도 홈으로 이동
-      setShowResult(false);
-      navigation.navigate('Tabs' as never);
-    }
+  const handleSaveAndGoHome = () => {
+    savePushupMutation.mutate({
+      reps: pushUpCount,
+      duration_seconds: elapsedTime,
+      set_number: 1,
+    });
   };
 
   // isGoingDown 상태 변화 감지 및 애니메이션

@@ -1,7 +1,9 @@
+import {queryClient} from '../../App';
 import {
   getTodayPushupSets,
   getWeeklyPushupStats,
   getMonthlyPushupStats,
+  savePushupSession,
 } from '../remote/pushup';
 
 const pushUpSetsByDateQueryOptions = (
@@ -31,8 +33,18 @@ const monthlyPushupStatsQueryOptions = () => {
   };
 };
 
+const savePushupSessionMutationOptions = () => {
+  return {
+    mutationFn: savePushupSession,
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: ['pushup']});
+    },
+  };
+};
+
 export {
   pushUpSetsByDateQueryOptions,
   weeklyPushupStatsQueryOptions,
   monthlyPushupStatsQueryOptions,
+  savePushupSessionMutationOptions,
 };

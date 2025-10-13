@@ -9,6 +9,12 @@ export interface PushupSetData {
   created_at: string;
 }
 
+export interface SavePushupSessionData {
+  reps: number;
+  duration_seconds: number;
+  set_number: number;
+}
+
 export const getTodayPushupSets = async ({
   year,
   month,
@@ -170,6 +176,34 @@ export const getMonthlyPushupStats = async (): Promise<MonthlyStatsData[]> => {
     return weeklyStats.reverse();
   } catch (error) {
     console.error('월간 푸쉬업 통계 조회 실패:', error);
+    throw error;
+  }
+};
+
+export const savePushupSession = async (
+  data: SavePushupSessionData,
+): Promise<void> => {
+  try {
+    const {data: user} = await supabase.auth.getUser();
+    if (!user.user) {
+      throw new Error('사용자가 로그인되지 않았습니다.');
+    }
+
+    const {error} = await supabase.from('pushup_sets').insert({
+      workout_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD 형식
+      set_number: data.set_number,
+      reps: data.reps,
+      duration_seconds: data.duration_seconds,
+      created_at: new Date().toISOString(),
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    console.log('푸쉬업 세션 저장 완료:', data);
+  } catch (error) {
+    console.error('푸쉬업 세션 저장 실패:', error);
     throw error;
   }
 };

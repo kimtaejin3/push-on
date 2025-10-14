@@ -7,17 +7,12 @@ import {
   View,
   ScrollView,
 } from 'react-native';
-import {useAuth} from '../hooks/useAuth';
 import {colors} from '../constants/colors';
 import Logo from '../assets/svgs/logo.svg';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
 
 function HomeScreen(): React.JSX.Element {
   const navigation = useNavigation();
-
-  const {user} = useAuth();
-
-  console.log('user', user);
 
   return (
     <SafeAreaView style={styles.safeArea}>

@@ -25,9 +25,15 @@ export const getTodayPushupSets = async ({
   day: number;
 }): Promise<PushupSetData[]> => {
   try {
+    const {data: user} = await supabase.auth.getUser();
+    if (!user.user) {
+      throw new Error('사용자가 로그인되지 않았습니다.');
+    }
+
     const {data, error} = await supabase
       .from('pushup_sets')
       .select('*')
+      .eq('user_id', user.user.id) // 사용자별 필터링 추가
       .eq(
         'workout_date',
         `${year}-${month.toString().padStart(2, '0')}-${day
@@ -65,6 +71,11 @@ export interface MonthlyStatsData {
 
 export const getWeeklyPushupStats = async (): Promise<WeeklyStatsData[]> => {
   try {
+    const {data: user} = await supabase.auth.getUser();
+    if (!user.user) {
+      throw new Error('사용자가 로그인되지 않았습니다.');
+    }
+
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(endDate.getDate() - 6); // 지난 7일
@@ -72,6 +83,7 @@ export const getWeeklyPushupStats = async (): Promise<WeeklyStatsData[]> => {
     const {data, error} = await supabase
       .from('pushup_sets')
       .select('*')
+      .eq('user_id', user.user.id) // 사용자별 필터링 추가
       .gte('workout_date', startDate.toISOString().split('T')[0])
       .lte('workout_date', endDate.toISOString().split('T')[0])
       .order('workout_date', {ascending: true});
@@ -115,6 +127,11 @@ export const getWeeklyPushupStats = async (): Promise<WeeklyStatsData[]> => {
 
 export const getMonthlyPushupStats = async (): Promise<MonthlyStatsData[]> => {
   try {
+    const {data: user} = await supabase.auth.getUser();
+    if (!user.user) {
+      throw new Error('사용자가 로그인되지 않았습니다.');
+    }
+
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(endDate.getDate() - 29); // 지난 30일
@@ -123,6 +140,7 @@ export const getMonthlyPushupStats = async (): Promise<MonthlyStatsData[]> => {
     const {data, error} = await supabase
       .from('pushup_sets')
       .select('*')
+      .eq('user_id', user.user.id) // 사용자별 필터링 추가
       .gte('workout_date', startDate.toISOString().split('T')[0])
       .lte('workout_date', endDate.toISOString().split('T')[0])
       .order('workout_date', {ascending: true});
@@ -185,11 +203,13 @@ export const savePushupSession = async (
 ): Promise<void> => {
   try {
     const {data: user} = await supabase.auth.getUser();
+
     if (!user.user) {
       throw new Error('사용자가 로그인되지 않았습니다.');
     }
 
     const {error} = await supabase.from('pushup_sets').insert({
+      user_id: user.user.id, // 사용자 ID 추가
       workout_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD 형식
       set_number: data.set_number,
       reps: data.reps,

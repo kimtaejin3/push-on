@@ -1,14 +1,14 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
-  Text,
   View,
   TextInput,
   Alert,
   TouchableWithoutFeedback,
   Keyboard,
   ScrollView,
+  Animated,
 } from 'react-native';
 import {colors} from '../constants/colors';
 import CustomButton from '../components/common/CustomButton';
@@ -19,11 +19,86 @@ import {useIsOnboarded} from '../hooks/useIsOnboarded';
 function OnboardingScreen({onComplete}: {onComplete: () => void}) {
   const {user} = useAuth();
   const {refresh} = useIsOnboarded();
-  const [targetRepsPerSet, setTargetRepsPerSet] = useState('10');
-  const [targetSetsPerDay, setTargetSetsPerDay] = useState('3');
+  const [targetRepsPerSet, setTargetRepsPerSet] = useState('');
+  const [targetSetsPerDay, setTargetSetsPerDay] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const [step, setStep] = useState(0);
+
+  // 애니메이션 값들
+  const titleAnim = useRef(new Animated.Value(0)).current;
+  const descriptionAnim = useRef(new Animated.Value(0)).current;
+  const contentAnim = useRef(new Animated.Value(0)).current;
+  const buttonAnim = useRef(new Animated.Value(0)).current;
+
+  // TODO: 나중에 훅으로 분리
+  useEffect(() => {
+    // 페이지 로드 시 순차적 애니메이션 실행
+    Animated.sequence([
+      // 제목 애니메이션 (첫 번째)
+      Animated.timing(titleAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      // 설명 애니메이션 (두 번째)
+      Animated.timing(descriptionAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      // 콘텐츠 애니메이션 (세 번째)
+      Animated.timing(contentAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      // 버튼 애니메이션 (네 번째)
+      Animated.timing(buttonAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [titleAnim, descriptionAnim, contentAnim, buttonAnim]);
+
+  // 스텝 변경 시 애니메이션 리셋
+  useEffect(() => {
+    // 스텝이 변경될 때마다 애니메이션 재시작
+    titleAnim.setValue(0);
+    descriptionAnim.setValue(0);
+    contentAnim.setValue(0);
+    buttonAnim.setValue(0);
+
+    Animated.sequence([
+      Animated.timing(titleAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(descriptionAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(contentAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(buttonAnim, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [step, titleAnim, descriptionAnim, contentAnim, buttonAnim]);
+
   const handleSave = async () => {
+    if (step === 0) {
+      return;
+    }
+
     const reps = parseInt(targetRepsPerSet, 10);
     const sets = parseInt(targetSetsPerDay, 10);
 
@@ -85,84 +160,314 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
           style={styles.scrollView}
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled">
-          <Text style={styles.onboardingTitle}>목표 설정</Text>
-          <Text style={styles.onboardingDescription}>
+          <Animated.Text
+            style={[
+              styles.onboardingTitle,
+              {
+                opacity: titleAnim,
+                transform: [
+                  {
+                    translateY: titleAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [30, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}>
+            목표 설정
+          </Animated.Text>
+          <Animated.Text
+            style={[
+              styles.onboardingDescription,
+              {
+                opacity: descriptionAnim,
+                transform: [
+                  {
+                    translateY: descriptionAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [20, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}>
             푸쉬핏에 오신 것을 환영합니다!
-          </Text>
-          <Text style={styles.onboardingDescription}>
-            아래 질문에 답해주세요.
-          </Text>
+          </Animated.Text>
 
-          <View style={styles.questionContainer}>
-            <Text style={styles.questionText}>
-              세트당 목표 횟수는 몇 회인가요?
-            </Text>
-            <TextInput
-              style={styles.input}
-              value={targetRepsPerSet}
-              onChangeText={setTargetRepsPerSet}
-              placeholder="예: 10"
-              keyboardType="numeric"
-              maxLength={3}
-              returnKeyType="next"
-              onSubmitEditing={() => {
-                // 다음 입력 필드로 포커스 이동
-                Keyboard.dismiss();
+          <Animated.View
+            style={{
+              opacity: contentAnim,
+              transform: [
+                {
+                  translateY: contentAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [40, 0],
+                  }),
+                },
+              ],
+            }}>
+            {step === 0 && (
+              <InputTargetRepsPerSet
+                targetRepsPerSet={targetRepsPerSet}
+                setTargetRepsPerSet={setTargetRepsPerSet}
+                onChangeNext={() => setStep(1)}
+              />
+            )}
+            {step === 1 && (
+              <InputTargetSetsPerDay
+                targetSetsPerDay={targetSetsPerDay}
+                setTargetSetsPerDay={setTargetSetsPerDay}
+                onSave={handleSave}
+              />
+            )}
+          </Animated.View>
+
+          <Animated.View
+            style={[
+              styles.buttonContainer,
+              {
+                opacity: buttonAnim,
+                transform: [
+                  {
+                    translateY: buttonAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [30, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}>
+            <CustomButton
+              title={(() => {
+                if (isLoading) {
+                  return '저장 중...';
+                }
+                if (step === 0) {
+                  return '다음';
+                }
+                return '목표 설정 완료';
+              })()}
+              style={styles.onboardingButton}
+              onPress={() => {
+                if (step === 0) {
+                  setStep(1);
+                } else {
+                  handleSave();
+                }
               }}
+              disabled={isLoading}
             />
-            <Text style={styles.inputHint}>
-              1-100 사이의 숫자를 입력해주세요
-            </Text>
-          </View>
-
-          <View style={styles.questionContainer}>
-            <Text style={styles.questionText}>
-              하루에 몇 세트를 목표로 하시나요?
-            </Text>
-            <TextInput
-              style={styles.input}
-              value={targetSetsPerDay}
-              onChangeText={setTargetSetsPerDay}
-              placeholder="예: 3"
-              keyboardType="numeric"
-              maxLength={2}
-              returnKeyType="done"
-              onSubmitEditing={() => {
-                Keyboard.dismiss();
-                handleSave();
-              }}
-            />
-            <Text style={styles.inputHint}>
-              1-20 사이의 숫자를 입력해주세요
-            </Text>
-          </View>
-
-          <View style={styles.summaryContainer}>
-            <Text style={styles.summaryTitle}>설정 요약</Text>
-            <Text style={styles.summaryText}>
-              세트당 {targetRepsPerSet}회 × {targetSetsPerDay}세트 = 총{' '}
-              {parseInt(targetRepsPerSet, 10) *
-                parseInt(targetSetsPerDay, 10) || 0}
-              회
-            </Text>
-          </View>
-
-          <CustomButton
-            title={isLoading ? '저장 중...' : '목표 설정 완료'}
-            style={styles.onboardingButton}
-            onPress={handleSave}
-            disabled={isLoading}
-          />
+          </Animated.View>
         </ScrollView>
       </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
 
+function InputTargetRepsPerSet({
+  targetRepsPerSet,
+  setTargetRepsPerSet,
+  onChangeNext,
+}: {
+  targetRepsPerSet: string;
+  setTargetRepsPerSet: (value: string) => void;
+  onChangeNext: () => void;
+}) {
+  const questionAnim = useRef(new Animated.Value(0)).current;
+  const inputAnim = useRef(new Animated.Value(0)).current;
+  const hintAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.sequence([
+      Animated.timing(questionAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(inputAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(hintAnim, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [questionAnim, inputAnim, hintAnim]);
+
+  return (
+    <View style={styles.questionContainer}>
+      <Animated.Text
+        style={[
+          styles.questionText,
+          {
+            opacity: questionAnim,
+            transform: [
+              {
+                translateY: questionAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [20, 0],
+                }),
+              },
+            ],
+          },
+        ]}>
+        세트당 목표 횟수는 몇 회인가요?
+      </Animated.Text>
+      <Animated.View
+        style={{
+          opacity: inputAnim,
+          transform: [
+            {
+              translateY: inputAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [15, 0],
+              }),
+            },
+          ],
+        }}>
+        <TextInput
+          style={styles.input}
+          value={targetRepsPerSet}
+          onChangeText={setTargetRepsPerSet}
+          placeholder="예: 10"
+          keyboardType="numeric"
+          maxLength={3}
+          returnKeyType="next"
+          onSubmitEditing={() => {
+            Keyboard.dismiss();
+            onChangeNext();
+          }}
+        />
+      </Animated.View>
+      <Animated.Text
+        style={[
+          styles.inputHint,
+          {
+            opacity: hintAnim,
+            transform: [
+              {
+                translateY: hintAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [10, 0],
+                }),
+              },
+            ],
+          },
+        ]}>
+        나중에 수정할 수 있어요
+      </Animated.Text>
+    </View>
+  );
+}
+
+function InputTargetSetsPerDay({
+  targetSetsPerDay,
+  setTargetSetsPerDay,
+  onSave,
+}: {
+  targetSetsPerDay: string;
+  setTargetSetsPerDay: (value: string) => void;
+  onSave: () => void;
+}) {
+  const questionAnim = useRef(new Animated.Value(0)).current;
+  const inputAnim = useRef(new Animated.Value(0)).current;
+  const hintAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.sequence([
+      Animated.timing(questionAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(inputAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(hintAnim, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [questionAnim, inputAnim, hintAnim]);
+
+  return (
+    <View style={styles.questionContainer}>
+      <Animated.Text
+        style={[
+          styles.questionText,
+          {
+            opacity: questionAnim,
+            transform: [
+              {
+                translateY: questionAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [20, 0],
+                }),
+              },
+            ],
+          },
+        ]}>
+        하루에 몇 세트를 목표로 하시나요?
+      </Animated.Text>
+      <Animated.View
+        style={{
+          opacity: inputAnim,
+          transform: [
+            {
+              translateY: inputAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [15, 0],
+              }),
+            },
+          ],
+        }}>
+        <TextInput
+          style={styles.input}
+          value={targetSetsPerDay}
+          onChangeText={setTargetSetsPerDay}
+          placeholder="예: 3"
+          keyboardType="numeric"
+          maxLength={2}
+          returnKeyType="done"
+          onSubmitEditing={() => {
+            Keyboard.dismiss();
+            onSave();
+          }}
+          placeholderTextColor={colors.textSecondary}
+        />
+      </Animated.View>
+      <Animated.Text
+        style={[
+          styles.inputHint,
+          {
+            opacity: hintAnim,
+            transform: [
+              {
+                translateY: hintAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [10, 0],
+                }),
+              },
+            ],
+          },
+        ]}>
+        나중에 수정할 수 있어요
+      </Animated.Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.backgroundLight,
+    backgroundColor: colors.backgroundDark,
   },
   scrollView: {
     flex: 1,
@@ -170,12 +475,11 @@ const styles = StyleSheet.create({
   content: {
     flexGrow: 1,
     padding: 20,
-    justifyContent: 'center',
   },
   onboardingTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: colors.textPrimary,
+    color: colors.textLight,
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -187,9 +491,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   questionContainer: {
-    marginVertical: 20,
-    padding: 20,
-    backgroundColor: colors.background,
+    marginVertical: 70,
     borderRadius: 12,
     shadowColor: colors.shadow,
     shadowOffset: {width: 0, height: 2},
@@ -200,45 +502,30 @@ const styles = StyleSheet.create({
   questionText: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.textPrimary,
-    marginBottom: 12,
+    color: colors.textLight,
+    marginBottom: 80,
   },
   input: {
-    borderWidth: 1,
-    borderColor: colors.gray200,
-    borderRadius: 8,
+    borderColor: colors.primary,
+    borderBottomWidth: 2,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: colors.textPrimary,
-    backgroundColor: colors.background,
+    color: colors.textLight,
+    fontWeight: 'bold',
   },
   inputHint: {
     fontSize: 12,
     color: colors.gray400,
-    marginTop: 6,
+    marginTop: 10,
   },
-  summaryContainer: {
-    marginVertical: 20,
-    padding: 16,
-    backgroundColor: colors.backgroundAccent,
-    borderRadius: 12,
+  buttonContainer: {
+    marginTop: 'auto',
+    width: '100%',
     alignItems: 'center',
-  },
-  summaryTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.textPrimary,
-    marginBottom: 8,
-  },
-  summaryText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.primary,
   },
   onboardingButton: {
     backgroundColor: colors.primary,
-    marginTop: 20,
   },
 });
 

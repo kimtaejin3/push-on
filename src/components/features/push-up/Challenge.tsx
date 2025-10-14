@@ -228,7 +228,6 @@ const styles = StyleSheet.create({
     height: 250,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     shadowColor: colors.lightBlue,
     shadowOffset: {width: 0, height: 0},
     shadowOpacity: 0.2,

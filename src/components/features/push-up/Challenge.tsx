@@ -229,18 +229,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: colors.lightBlue,
-    shadowOffset: {width: 0, height: 0},
-    shadowOpacity: 0.2,
-    shadowRadius: 15,
-    elevation: 5,
   },
   countContainerActive: {
     borderColor: colors.primary,
-    shadowColor: colors.primary,
-    shadowOffset: {width: 0, height: 0},
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    elevation: 10,
   },
   timeContainer: {
     flexDirection: 'row',

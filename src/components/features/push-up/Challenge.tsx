@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   },
   countContainer: {
     borderWidth: 10,
-    borderColor: '#a294e3',
+    borderColor: colors.primaryLight,
     borderRadius: 9999,
     width: 250,
     height: 250,

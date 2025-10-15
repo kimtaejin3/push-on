@@ -11,6 +11,8 @@ import {useTimer} from '../../../hooks/useTimer';
 import Timer from '../../common/Timer';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
 import {useSavePushupSessionMutation} from '../../../tanstack-query/mutationHooks/pushup';
+import {useQuery} from '@tanstack/react-query';
+import {pushUpSetsByDateQueryOptions} from '../../../tanstack-query';
 
 function Challenge(): React.JSX.Element {
   const navigation = useNavigation();
@@ -98,7 +100,8 @@ function Challenge(): React.JSX.Element {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <Text style={styles.title}>SET 1</Text>
+        {/* <Text style={styles.title}>SET 1</Text> */}
+        <SetTitle />
 
         <Animated.View
           style={[
@@ -158,6 +161,29 @@ function Challenge(): React.JSX.Element {
   );
 }
 
+function SetTitle() {
+  const today = new Date();
+  const {year, month, day} = {
+    year: today.getFullYear(),
+    month: today.getMonth() + 1,
+    day: today.getDate(),
+  };
+
+  const {data: pushupSets, isLoading} = useQuery(
+    pushUpSetsByDateQueryOptions(year, month, day),
+  );
+
+  if (isLoading || !pushupSets) {
+    return (
+      <View>
+        <Text>SET -</Text>
+      </View>
+    );
+  }
+
+  return <Text style={styles.title}>SET {pushupSets.length + 1}</Text>;
+}
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -173,7 +199,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 40,
-    color: colors.textLight,
+    color: colors.textSecondary,
   },
   countText: {
     fontSize: 70,

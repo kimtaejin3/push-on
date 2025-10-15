@@ -71,6 +71,11 @@ function HistoryScreen() {
     '12월',
   ];
 
+  const isNextButtonDisabled =
+    selectedDate.getDate() === new Date().getDate() &&
+    selectedDate.getMonth() === new Date().getMonth() + 1 &&
+    selectedDate.getFullYear() === new Date().getFullYear();
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.scrollContainer}>
@@ -117,11 +122,10 @@ function HistoryScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            disabled={selectedDate.getDate() === new Date().getDate()}
+            disabled={isNextButtonDisabled}
             style={[
               styles.navButton,
-              selectedDate.getDate() === new Date().getDate() &&
-                styles.disabledButton,
+              isNextButtonDisabled && styles.disabledButton,
             ]}
             onPress={goToNextDay}>
             <Fontawesome5

@@ -206,6 +206,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 40,
     paddingHorizontal: 10,
+    paddingTop: 8,
   },
   navButton: {
     width: 40,

@@ -139,18 +139,7 @@ function HistoryScreen() {
         <DatePickerModal
           isVisible={isCalendarModalVisible}
           onClose={() => setCalendarModalVisible(false)}
-          selectedMonth={selectedDate.getMonth()}
-          selectedYear={selectedDate.getFullYear()}
-          onMonthSelect={month => {
-            const newDate = new Date(selectedDate);
-            newDate.setMonth(month);
-            updateSelectedDate(newDate);
-          }}
-          onYearChange={year => {
-            const newDate = new Date(selectedDate);
-            newDate.setFullYear(year);
-            updateSelectedDate(newDate);
-          }}
+          onChangeSelectedDate={(date: Date) => updateSelectedDate(date)}
         />
       </View>
     </SafeAreaView>

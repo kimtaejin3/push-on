@@ -3,6 +3,7 @@ import {SafeAreaView, StyleSheet, Text, View, Animated} from 'react-native';
 import CustomButton from '../../common/CustomButton';
 import {colors} from '../../../constants/colors';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
+import {useNavigation} from '@react-navigation/native';
 
 interface ChallengeResultProps {
   pushUpCount: number;
@@ -18,7 +19,7 @@ function ChallengeResult({
   const iconAnim = useRef(new Animated.Value(0)).current;
   const titleAnim = useRef(new Animated.Value(0)).current;
   const subtitleAnim = useRef(new Animated.Value(0)).current;
-
+  const navigation = useNavigation();
   useEffect(() => {
     // 순차적으로 애니메이션 실행
     Animated.sequence([
@@ -64,16 +65,26 @@ function ChallengeResult({
               ],
               opacity: iconAnim,
             }}>
-            <FontAwesome5
-              name="check-circle"
-              iconStyle="solid"
-              size={60}
-              color={colors.primary}
-            />
+            {pushUpCount > 0 ? (
+              <FontAwesome5
+                name="check-circle"
+                iconStyle="solid"
+                size={60}
+                color={colors.primary}
+              />
+            ) : (
+              <FontAwesome5
+                name="times-circle"
+                iconStyle="solid"
+                size={60}
+                color={colors.primary}
+              />
+            )}
           </Animated.View>
           <Animated.Text
             style={[
               styles.title,
+              pushUpCount === 0 && styles.titleError,
               {
                 opacity: titleAnim,
                 transform: [
@@ -86,7 +97,7 @@ function ChallengeResult({
                 ],
               },
             ]}>
-            훌륭해요!
+            {pushUpCount > 0 ? '훌륭해요!' : '측정된 푸쉬업 횟수가 없어요!'}
           </Animated.Text>
           <Animated.Text
             style={[
@@ -103,7 +114,7 @@ function ChallengeResult({
                 ],
               },
             ]}>
-            세트를 완료했습니다
+            {pushUpCount > 0 ? '세트를 완료했습니다' : '다시 시도해보세요!'}
           </Animated.Text>
         </View>
 
@@ -122,9 +133,17 @@ function ChallengeResult({
         <View style={styles.footer}>
           <CustomButton
             style={styles.saveButton}
-            title="기록하고 홈으로"
+            title={pushUpCount > 0 ? '기록하고 홈으로 이동' : '홈으로 이동'}
             variant="start"
-            onPress={onSaveAndGoHome}
+            onPress={() => {
+              if (pushUpCount > 0) {
+                onSaveAndGoHome();
+              } else {
+                navigation.navigate('Tabs', {
+                  screen: 'Home',
+                });
+              }
+            }}
           />
         </View>
       </View>
@@ -153,6 +172,9 @@ const styles = StyleSheet.create({
     color: colors.textLight,
     marginTop: 20,
     marginBottom: 10,
+  },
+  titleError: {
+    fontSize: 24,
   },
   subtitle: {
     fontSize: 18,

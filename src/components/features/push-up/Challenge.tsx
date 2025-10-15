@@ -68,6 +68,9 @@ function Challenge(): React.JSX.Element {
 
   // 푸쉬업 세션 저장 및 홈으로 이동
   const handleSaveAndGoHome = () => {
+    if (pushUpCount === 0) {
+      return;
+    }
     savePushupMutation.mutate({
       reps: pushUpCount,
       duration_seconds: elapsedTime,

@@ -39,3 +39,33 @@ export const useUpdateProfileMutation = (
     },
   });
 };
+
+export const useUpsertProfileMutation = (
+  onSuccess?: () => void,
+  onError?: (error: any) => void,
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (profileData: UpdateProfileData & {id: string}) => {
+      const {data, error} = await supabase
+        .from('profiles')
+        .upsert(profileData)
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: queryKeys.profile.me});
+      onSuccess?.();
+    },
+    onError: error => {
+      console.error('프로필 생성/업데이트 실패:', (error as Error).message);
+      onError?.(error);
+    },
+  });
+};

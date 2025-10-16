@@ -12,19 +12,37 @@ import {
 } from 'react-native';
 import {colors} from '../constants/colors';
 import CustomButton from '../components/common/CustomButton';
-import {supabase} from '../lib/supabase';
 import {useAuth} from '../hooks/useAuth';
 import {useIsOnboarded} from '../hooks/useIsOnboarded';
+import {useUpsertProfileMutation} from '../tanstack-query/mutationHooks/profile';
 
 function OnboardingScreen({onComplete}: {onComplete: () => void}) {
   const {user} = useAuth();
   const {refresh} = useIsOnboarded();
   const [targetRepsPerSet, setTargetRepsPerSet] = useState('');
   const [targetSetsPerDay, setTargetSetsPerDay] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   const [step, setStep] = useState(0);
   const [nickname, setNickname] = useState('');
+
+  const upsertProfileMutation = useUpsertProfileMutation(
+    async () => {
+      Alert.alert('성공', '목표가 설정되었습니다!', [
+        {
+          text: '확인',
+          onPress: async () => {
+            // 온보딩 상태 새로고침
+            await refresh();
+            console.log('온보딩 완료');
+            onComplete();
+          },
+        },
+      ]);
+    },
+    () => {
+      Alert.alert('오류', '목표 설정 저장에 실패했습니다.');
+    },
+  );
   // 애니메이션 값들
   const titleAnim = useRef(new Animated.Value(0)).current;
   const descriptionAnim = useRef(new Animated.Value(0)).current;
@@ -123,39 +141,12 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
       return;
     }
 
-    try {
-      setIsLoading(true);
-
-      // 프로필 생성 또는 업데이트
-      const {error} = await supabase.from('profiles').upsert({
-        id: user?.id,
-        target_reps_per_set: reps,
-        target_sets_per_day: sets,
-        nickname: nickname,
-      });
-
-      if (error) {
-        console.error('프로필 저장 오류:', error);
-        Alert.alert('오류', '목표 설정 저장에 실패했습니다.');
-      } else {
-        Alert.alert('성공', '목표가 설정되었습니다!', [
-          {
-            text: '확인',
-            onPress: async () => {
-              // 온보딩 상태 새로고침
-              await refresh();
-              console.log('온보딩 완료');
-              onComplete();
-            },
-          },
-        ]);
-      }
-    } catch (error) {
-      console.error('온보딩 저장 오류:', error);
-      Alert.alert('오류', '목표 설정 중 오류가 발생했습니다.');
-    } finally {
-      setIsLoading(false);
-    }
+    upsertProfileMutation.mutate({
+      id: user?.id || '',
+      target_reps_per_set: reps,
+      target_sets_per_day: sets,
+      nickname: nickname,
+    });
   };
 
   return (
@@ -248,7 +239,7 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
             ]}>
             <CustomButton
               title={(() => {
-                if (isLoading) {
+                if (upsertProfileMutation.isPending) {
                   return '저장 중...';
                 }
                 if (step === 0) {
@@ -269,7 +260,7 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
                   handleSave();
                 }
               }}
-              disabled={isLoading}
+              disabled={upsertProfileMutation.isPending}
             />
           </Animated.View>
         </ScrollView>

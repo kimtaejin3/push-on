@@ -30,21 +30,25 @@ function createMonthNames({
   signedUpYear: number;
   signedUpMonth: number;
 }) {
-  if (selectedYear === signedUpYear && CURRENT_YEAR === signedUpYear) {
-    return Array.from(
-      {length: CURRENT_MONTH - signedUpMonth + 1},
-      (_, index) => signedUpMonth + index,
-    );
-  }
+  if (selectedYear === signedUpYear) {
+    if (CURRENT_YEAR === selectedYear) {
+      return Array.from(
+        {length: CURRENT_MONTH - signedUpMonth + 1},
+        (_, index) => signedUpMonth + index,
+      );
+    }
 
-  if (selectedYear === signedUpYear && CURRENT_YEAR !== signedUpYear) {
     return Array.from(
       {length: 12 - signedUpMonth + 1},
       (_, index) => signedUpMonth + index,
     );
   }
 
-  return Array.from({length: CURRENT_MONTH}, (_, index) => index + 1);
+  if (CURRENT_YEAR === selectedYear) {
+    return Array.from({length: CURRENT_MONTH}, (_, index) => index + 1);
+  }
+
+  return Array.from({length: 12}, (_, index) => index + 1);
 }
 
 function createDateNames({
@@ -61,8 +65,18 @@ function createDateNames({
   signedUpMonth: number;
 }) {
   if (signedUpYear === selectedYear && signedUpMonth === selectedMonth) {
+    if (CURRENT_YEAR === selectedYear && CURRENT_MONTH === selectedMonth) {
+      return Array.from(
+        {length: CURRENT_DATE - signedUpDate + 1},
+        (_, index) => index + signedUpDate,
+      );
+    }
+
     return Array.from(
-      {length: CURRENT_DATE - signedUpDate + 1},
+      {
+        length:
+          new Date(selectedYear, selectedMonth, 0).getDate() - signedUpDate + 1,
+      },
       (_, index) => index + signedUpDate,
     );
   }
@@ -79,9 +93,13 @@ function createDateNames({
   );
 }
 
-const CURRENT_YEAR = new Date().getFullYear();
-const CURRENT_MONTH = new Date().getMonth() + 1;
-const CURRENT_DATE = new Date().getDate();
+const CURRENT_YEAR = new Date('2027-11-16T15:12:32.490646+00:00').getFullYear();
+const CURRENT_MONTH =
+  new Date('2027-11-16T15:12:32.490646+00:00').getMonth() + 1;
+const CURRENT_DATE = new Date('2027-11-16T15:12:32.490646+00:00').getDate();
+// const CURRENT_YEAR = new Date().getFullYear();
+// const CURRENT_MONTH = new Date().getMonth() + 1;
+// const CURRENT_DATE = new Date().getDate();
 
 const DatePickerModal: React.FC<MonthPickerModalProps> = ({
   isVisible,

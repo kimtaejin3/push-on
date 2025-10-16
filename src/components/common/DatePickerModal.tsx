@@ -93,13 +93,9 @@ function createDateNames({
   );
 }
 
-const CURRENT_YEAR = new Date('2027-11-16T15:12:32.490646+00:00').getFullYear();
-const CURRENT_MONTH =
-  new Date('2027-11-16T15:12:32.490646+00:00').getMonth() + 1;
-const CURRENT_DATE = new Date('2027-11-16T15:12:32.490646+00:00').getDate();
-// const CURRENT_YEAR = new Date().getFullYear();
-// const CURRENT_MONTH = new Date().getMonth() + 1;
-// const CURRENT_DATE = new Date().getDate();
+const CURRENT_YEAR = new Date().getFullYear();
+const CURRENT_MONTH = new Date().getMonth() + 1;
+const CURRENT_DATE = new Date().getDate();
 
 const DatePickerModal: React.FC<MonthPickerModalProps> = ({
   isVisible,
@@ -211,6 +207,7 @@ const DatePickerModal: React.FC<MonthPickerModalProps> = ({
                 }).map(item => (
                   <DateItem
                     item={item}
+                    key={item}
                     isSelected={selectedDate === item}
                     onPress={() => setSelectedDate(item)}
                   />

@@ -87,6 +87,10 @@ function SettingScreen({navigation}: SettingScreenProps) {
     navigation.navigate('AppInfo');
   };
 
+  const handleAccountSettings = () => {
+    navigation.navigate('AccountSettings');
+  };
+
   const handleContactUs = () => {
     Alert.alert(
       '문의하기',
@@ -127,7 +131,7 @@ function SettingScreen({navigation}: SettingScreenProps) {
             <SettingItem
               icon="cog"
               title="계정 설정"
-              onPress={() => Alert.alert('계정 설정', '계정 설정 기능입니다.')}
+              onPress={handleAccountSettings}
             />
           </View>
         </View>

@@ -14,7 +14,13 @@ import {colors} from '../constants/colors';
 import SetCard from '../components/features/push-up/SetCard';
 import HistorySummary from '../components/features/push-up/HistorySummary';
 import {useAuth} from '../hooks/useAuth';
-import {selectedDateAtom, updateSelectedDateAtom} from '../atoms/statistics';
+import {
+  CURRENT_DATE,
+  CURRENT_MONTH,
+  CURRENT_YEAR,
+  selectedDateAtom,
+  updateSelectedDateAtom,
+} from '../atoms/statistics';
 import {useSuspenseQuery, useQuery} from '@tanstack/react-query';
 import {
   pushUpSetsByDateQueryOptions,
@@ -72,9 +78,9 @@ function HistoryScreen() {
   ];
 
   const isNextButtonDisabled =
-    selectedDate.getDate() === new Date().getDate() &&
-    selectedDate.getMonth() === new Date().getMonth() &&
-    selectedDate.getFullYear() === new Date().getFullYear();
+    selectedDate.getDate() === CURRENT_DATE &&
+    selectedDate.getMonth() + 1 === CURRENT_MONTH &&
+    selectedDate.getFullYear() === CURRENT_YEAR;
 
   return (
     <SafeAreaView style={styles.safeArea}>

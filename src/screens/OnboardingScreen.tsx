@@ -24,7 +24,7 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
   const [isLoading, setIsLoading] = useState(false);
 
   const [step, setStep] = useState(0);
-
+  const [nickname, setNickname] = useState('');
   // 애니메이션 값들
   const titleAnim = useRef(new Animated.Value(0)).current;
   const descriptionAnim = useRef(new Animated.Value(0)).current;
@@ -95,12 +95,16 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
   }, [step, titleAnim, descriptionAnim, contentAnim, buttonAnim]);
 
   const handleSave = async () => {
-    if (step === 0) {
+    if (step === 0 || step === 1) {
       return;
     }
 
     const reps = parseInt(targetRepsPerSet, 10);
+    console.log('targetSetsPerDay', targetSetsPerDay);
+
     const sets = parseInt(targetSetsPerDay, 10);
+
+    console.log('sets', sets);
 
     // 입력값 검증
     if (isNaN(reps) || reps < 1 || reps > 100) {
@@ -127,6 +131,7 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
         id: user?.id,
         target_reps_per_set: reps,
         target_sets_per_day: sets,
+        nickname: nickname,
       });
 
       if (error) {
@@ -175,7 +180,7 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
                 ],
               },
             ]}>
-            목표 설정
+            온보딩
           </Animated.Text>
           <Animated.Text
             style={[
@@ -208,13 +213,16 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
               ],
             }}>
             {step === 0 && (
+              <InputNickname nickname={nickname} setNickname={setNickname} />
+            )}
+            {step === 1 && (
               <InputTargetRepsPerSet
                 targetRepsPerSet={targetRepsPerSet}
                 setTargetRepsPerSet={setTargetRepsPerSet}
-                onChangeNext={() => setStep(1)}
               />
             )}
-            {step === 1 && (
+
+            {step === 2 && (
               <InputTargetSetsPerDay
                 targetSetsPerDay={targetSetsPerDay}
                 setTargetSetsPerDay={setTargetSetsPerDay}
@@ -246,12 +254,17 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
                 if (step === 0) {
                   return '다음';
                 }
-                return '목표 설정 완료';
+                if (step === 1) {
+                  return '다음';
+                }
+                return '온보딩 완료';
               })()}
               style={styles.onboardingButton}
               onPress={() => {
                 if (step === 0) {
                   setStep(1);
+                } else if (step === 1) {
+                  setStep(2);
                 } else {
                   handleSave();
                 }
@@ -265,14 +278,108 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
   );
 }
 
+function InputNickname({
+  nickname,
+  setNickname,
+}: {
+  nickname: string;
+  setNickname: (value: string) => void;
+}) {
+  const questionAnim = useRef(new Animated.Value(0)).current;
+  const inputAnim = useRef(new Animated.Value(0)).current;
+  const hintAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.sequence([
+      Animated.timing(questionAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(inputAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(hintAnim, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [questionAnim, inputAnim, hintAnim]);
+
+  return (
+    <View style={styles.questionContainer}>
+      <Animated.Text
+        style={[
+          styles.questionText,
+          {
+            opacity: questionAnim,
+            transform: [
+              {
+                translateY: questionAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [20, 0],
+                }),
+              },
+            ],
+          },
+        ]}>
+        사용할 닉네임을 입력해주세요
+      </Animated.Text>
+      <Animated.View
+        style={{
+          opacity: inputAnim,
+          transform: [
+            {
+              translateY: inputAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [15, 0],
+              }),
+            },
+          ],
+        }}>
+        <TextInput
+          style={styles.input}
+          value={nickname}
+          onChangeText={setNickname}
+          placeholder="예: 푸쉬업 사랑"
+          keyboardType="default"
+          maxLength={10}
+          returnKeyType="next"
+          onSubmitEditing={() => {
+            Keyboard.dismiss();
+          }}
+        />
+      </Animated.View>
+      <Animated.Text
+        style={[
+          styles.inputHint,
+          {
+            opacity: hintAnim,
+            transform: [
+              {
+                translateY: hintAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [10, 0],
+                }),
+              },
+            ],
+          },
+        ]}>
+        나중에 수정할 수 있어요
+      </Animated.Text>
+    </View>
+  );
+}
+
 function InputTargetRepsPerSet({
   targetRepsPerSet,
   setTargetRepsPerSet,
-  onChangeNext,
 }: {
   targetRepsPerSet: string;
   setTargetRepsPerSet: (value: string) => void;
-  onChangeNext: () => void;
 }) {
   const questionAnim = useRef(new Animated.Value(0)).current;
   const inputAnim = useRef(new Animated.Value(0)).current;
@@ -339,7 +446,6 @@ function InputTargetRepsPerSet({
           returnKeyType="next"
           onSubmitEditing={() => {
             Keyboard.dismiss();
-            onChangeNext();
           }}
         />
       </Animated.View>
@@ -367,7 +473,6 @@ function InputTargetRepsPerSet({
 function InputTargetSetsPerDay({
   targetSetsPerDay,
   setTargetSetsPerDay,
-  onSave,
 }: {
   targetSetsPerDay: string;
   setTargetSetsPerDay: (value: string) => void;
@@ -438,7 +543,6 @@ function InputTargetSetsPerDay({
           returnKeyType="done"
           onSubmitEditing={() => {
             Keyboard.dismiss();
-            onSave();
           }}
           placeholderTextColor={colors.textSecondary}
         />

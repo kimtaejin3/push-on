@@ -59,7 +59,7 @@ const ConditionalNavigation = () => {
   }
 
   if (isOnboarded === false) {
-    return <OnboardingScreen onComplete={() => setRerender(true)} />;
+    return <OnboardingScreen onComplete={() => setRerender(prev => !prev)} />;
   }
 
   return <AppNavigation />;

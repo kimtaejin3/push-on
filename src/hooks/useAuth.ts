@@ -1,5 +1,6 @@
 import {useState, useEffect} from 'react';
 import {supabase} from '../lib/supabase';
+import {AppState} from 'react-native';
 
 export const useAuth = () => {
   const [session, setSession] = useState<any>(null);
@@ -47,11 +48,41 @@ export const useAuth = () => {
     return {error};
   };
 
+  // useAuth.ts에 추가할 로직
+  const checkAndRefreshSession = async () => {
+    const {
+      data: {session: sessionData},
+    } = await supabase.auth.getSession();
+
+    if (sessionData) {
+      // 세션이 만료되기 전에 미리 갱신
+      const expiresAt = new Date(sessionData.expires_at! * 1000);
+      const now = new Date();
+      const timeUntilExpiry = expiresAt.getTime() - now.getTime();
+
+      // 5분 전에 갱신
+      if (timeUntilExpiry < 5 * 60 * 1000) {
+        await supabase.auth.refreshSession();
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === 'active') {
+        checkAndRefreshSession();
+      }
+    };
+
+    AppState.addEventListener('change', handleAppStateChange);
+  }, []);
+
   return {
     session,
     loading,
     user: session?.user || null,
     isLoggedIn: !!session,
     signOut,
+    checkAndRefreshSession,
   };
 };

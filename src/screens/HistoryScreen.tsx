@@ -73,7 +73,7 @@ function HistoryScreen() {
 
   const isNextButtonDisabled =
     selectedDate.getDate() === new Date().getDate() &&
-    selectedDate.getMonth() === new Date().getMonth() + 1 &&
+    selectedDate.getMonth() === new Date().getMonth() &&
     selectedDate.getFullYear() === new Date().getFullYear();
 
   return (

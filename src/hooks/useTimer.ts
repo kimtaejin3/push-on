@@ -26,6 +26,10 @@ export const useTimer = () => {
     setIsRunning(false);
   }, []);
 
+  const resumeTimer = useCallback(() => {
+    setIsRunning(true);
+  }, []);
+
   // 타이머 리셋
   const resetTimer = useCallback(() => {
     setElapsedTime(0);
@@ -44,6 +48,7 @@ export const useTimer = () => {
     formattedTime: formatTime(elapsedTime),
     startTimer,
     stopTimer,
+    resumeTimer,
     resetTimer,
     startAndResetTimer,
   };

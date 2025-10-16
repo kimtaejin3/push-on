@@ -18,8 +18,14 @@ function Challenge(): React.JSX.Element {
   const navigation = useNavigation();
   const {pushUpCount, isTracking, isGoingDown, startTracking, stopTracking} =
     usePushUpManager();
-  const {formattedTime, stopTimer, startAndResetTimer, elapsedTime} =
-    useTimer();
+  const {
+    formattedTime,
+    isRunning,
+    stopTimer,
+    startAndResetTimer,
+    elapsedTime,
+    resumeTimer,
+  } = useTimer();
   const [showResult, setShowResult] = useState(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -66,6 +72,10 @@ function Challenge(): React.JSX.Element {
     stopTimer();
   };
 
+  const handleResumeTimer = () => {
+    resumeTimer();
+  };
+
   // 푸쉬업 세션 저장 및 홈으로 이동
   const handleSaveAndGoHome = () => {
     if (pushUpCount === 0) {
@@ -103,7 +113,6 @@ function Challenge(): React.JSX.Element {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* <Text style={styles.title}>SET 1</Text> */}
         <SetTitle />
 
         <Animated.View
@@ -138,9 +147,9 @@ function Challenge(): React.JSX.Element {
               <>
                 <CustomButton
                   style={[styles.button, styles.pauseButton]}
-                  title="일시정지"
+                  title={isRunning ? '일시정지' : '재개하기'}
                   variant="default"
-                  onPress={handlePauseTimer}
+                  onPress={isRunning ? handlePauseTimer : handleResumeTimer}
                 />
                 <CustomButton
                   style={[styles.button, styles.stopButton]}
@@ -244,7 +253,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pauseButton: {
-    backgroundColor: colors.gray400,
+    backgroundColor: colors.gray300,
   },
   stopButton: {
     backgroundColor: colors.primary,

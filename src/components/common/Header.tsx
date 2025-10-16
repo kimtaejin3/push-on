@@ -1,70 +1,56 @@
 import React from 'react';
-import {View, StyleSheet, Text} from 'react-native';
+import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import {colors} from '../../constants/colors';
-import {useNavigation} from '@react-navigation/native';
 
 interface HeaderProps {
-  left: React.ReactNode;
-  right?: React.ReactNode;
+  title: string;
+  onBackPress: () => void;
+  showBackButton?: boolean;
 }
 
-function Header({left, right}: HeaderProps) {
+function Header({title, onBackPress, showBackButton = true}: HeaderProps) {
   return (
     <View style={styles.header}>
-      {left}
-      <View style={styles.headerIcons}>{right}</View>
+      {showBackButton ? (
+        <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
+          <Fontawesome5
+            name="arrow-left"
+            size={20}
+            iconStyle="solid"
+            color={colors.textLight}
+          />
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.placeholder} />
+      )}
+      <Text style={styles.headerTitle}>{title}</Text>
+      <View style={styles.placeholder} />
     </View>
-  );
-}
-
-function HeaderTitle({title, icon}: {title: string; icon: React.ReactNode}) {
-  return (
-    <View style={styles.NavigationTitle}>
-      {icon}
-      <Text>{title}</Text>
-    </View>
-  );
-}
-
-//TODO: 이 Setting은 굳이 Header.tsx에 포함되지 않아도 될 것 같아.
-function Setting() {
-  const navigation = useNavigation();
-  const handleSetting = () => {
-    navigation.navigate('Setting');
-  };
-  return (
-    <Fontawesome5
-      name="cog"
-      size={20}
-      iconStyle="solid"
-      color="#242424"
-      onPress={handleSetting}
-    />
   );
 }
 
 const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.primary,
   },
-  NavigationTitle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.background,
-    padding: 15,
-    gap: 10,
-    borderRadius: 9999,
+  backButton: {
+    padding: 8,
   },
-  headerIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 25,
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.textLight,
+  },
+  placeholder: {
+    width: 36,
   },
 });
 
-export {Header, HeaderTitle, Setting};
+export default Header;

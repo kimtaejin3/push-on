@@ -1,37 +1,16 @@
 import React from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import {SafeAreaView, StyleSheet, Text, View, ScrollView} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import {colors} from '../constants/colors';
+import Header from '../components/common/Header';
 
-interface AppInfoScreenProps {
-  navigation: any;
-}
-
-function AppInfoScreen({navigation}: AppInfoScreenProps) {
+function AppInfoScreen() {
+  const navigation = useNavigation();
   return (
     <SafeAreaView style={styles.container}>
       {/* 헤더 */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}>
-          <Fontawesome5
-            name="arrow-left"
-            size={20}
-            iconStyle="solid"
-            color={colors.textLight}
-          />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>앱 정보</Text>
-        <View style={styles.placeholder} />
-      </View>
+      <Header title="앱 정보" onBackPress={() => navigation.goBack()} />
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.content}>
@@ -63,7 +42,9 @@ function AppInfoScreen({navigation}: AppInfoScreenProps) {
                   iconStyle="solid"
                   color={colors.primary}
                 />
-                <Text style={styles.featureText}>얼굴인식 기반 자동 카운팅</Text>
+                <Text style={styles.featureText}>
+                  얼굴인식 기반 자동 카운팅
+                </Text>
               </View>
               <View style={styles.featureItem}>
                 <Fontawesome5
@@ -138,7 +119,7 @@ function AppInfoScreen({navigation}: AppInfoScreenProps) {
                 버그 신고나 기능 제안이 있으시면 언제든지 문의해주세요.
               </Text>
               <Text style={styles.contactText}>
-                설정 > 문의하기를 통해 연락하실 수 있습니다.
+                설정 → 문의하기를 통해 연락하실 수 있습니다.
               </Text>
             </View>
           </View>
@@ -162,26 +143,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.backgroundDark,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.primary,
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.textLight,
-  },
-  placeholder: {
-    width: 36,
   },
   scrollView: {
     flex: 1,

@@ -4,19 +4,17 @@ import {
   StyleSheet,
   Text,
   View,
-  TouchableOpacity,
   ScrollView,
   Image,
 } from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import {colors} from '../constants/colors';
 import {useAuth} from '../hooks/useAuth';
+import Header from '../components/common/Header';
 
-interface AccountSettingsScreenProps {
-  navigation: any;
-}
-
-function AccountSettingsScreen({navigation}: AccountSettingsScreenProps) {
+function AccountSettingsScreen() {
+  const navigation = useNavigation();
   const {user} = useAuth();
   const [imageError, setImageError] = useState(false);
 
@@ -85,20 +83,7 @@ function AccountSettingsScreen({navigation}: AccountSettingsScreenProps) {
   return (
     <SafeAreaView style={styles.container}>
       {/* 헤더 */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}>
-          <Fontawesome5
-            name="arrow-left"
-            size={20}
-            iconStyle="solid"
-            color={colors.textLight}
-          />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>계정 설정</Text>
-        <View style={styles.placeholder} />
-      </View>
+      <Header title="계정 설정" onBackPress={() => navigation.goBack()} />
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.content}>
@@ -204,26 +189,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.backgroundDark,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.primary,
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.textLight,
-  },
-  placeholder: {
-    width: 36,
   },
   scrollView: {
     flex: 1,

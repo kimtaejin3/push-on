@@ -31,9 +31,9 @@ export const useAuth = () => {
     // 세션 변경 감지
     const {
       data: {subscription},
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('인증 상태 변경:', event, session?.user?.email);
-      setSession(session);
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
+      console.log('인증 상태 변경:', event, newSession?.user?.email);
+      setSession(newSession);
       setLoading(false);
     });
 
@@ -48,22 +48,40 @@ export const useAuth = () => {
     return {error};
   };
 
-  // useAuth.ts에 추가할 로직
+  // 세션 확인 및 갱신 로직
   const checkAndRefreshSession = async () => {
-    const {
-      data: {session: sessionData},
-    } = await supabase.auth.getSession();
+    try {
+      const {
+        data: {session: sessionData},
+        error,
+      } = await supabase.auth.getSession();
 
-    if (sessionData) {
-      // 세션이 만료되기 전에 미리 갱신
-      const expiresAt = new Date(sessionData.expires_at! * 1000);
-      const now = new Date();
-      const timeUntilExpiry = expiresAt.getTime() - now.getTime();
-
-      // 5분 전에 갱신
-      if (timeUntilExpiry < 5 * 60 * 1000) {
-        await supabase.auth.refreshSession();
+      if (error) {
+        console.error('세션 확인 오류:', error);
+        return;
       }
+
+      if (sessionData) {
+        // 세션이 만료되기 전에 미리 갱신
+        const expiresAt = new Date(sessionData.expires_at! * 1000);
+        const now = new Date();
+        const timeUntilExpiry = expiresAt.getTime() - now.getTime();
+
+        // 5분 전에 갱신
+        if (timeUntilExpiry < 5 * 60 * 1000) {
+          console.log('세션 갱신 시도...');
+          const {error: refreshError} = await supabase.auth.refreshSession();
+          if (refreshError) {
+            console.error('세션 갱신 실패:', refreshError);
+          } else {
+            console.log('세션 갱신 성공');
+          }
+        }
+      } else {
+        console.log('저장된 세션이 없음');
+      }
+    } catch (error) {
+      console.error('세션 확인 중 오류:', error);
     }
   };
 
@@ -74,7 +92,14 @@ export const useAuth = () => {
       }
     };
 
-    AppState.addEventListener('change', handleAppStateChange);
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
+
+    return () => {
+      subscription?.remove();
+    };
   }, []);
 
   return {

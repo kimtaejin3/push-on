@@ -14,6 +14,7 @@ import AppInfoScreen from '../screens/AppInfoScreen';
 import TermsOfServiceScreen from '../screens/TermsOfServiceScreen';
 import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
 import AccountSettingsScreen from '../screens/AccountSettingsScreen';
+import ProfileEditScreen from '../screens/ProfileEditScreen';
 import {useAuth} from '../hooks/useAuth';
 import {useIsOnboarded} from '../hooks/useIsOnboarded';
 
@@ -38,6 +39,7 @@ const AppStack = createNativeStackNavigator({
     TermsOfService: TermsOfServiceScreen,
     PrivacyPolicy: PrivacyPolicyScreen,
     AccountSettings: AccountSettingsScreen,
+    ProfileEdit: ProfileEditScreen,
   },
 });
 
@@ -74,6 +76,7 @@ export type AppStackParamList = {
   TermsOfService: undefined;
   PrivacyPolicy: undefined;
   AccountSettings: undefined;
+  ProfileEdit: undefined;
 };
 
 declare global {

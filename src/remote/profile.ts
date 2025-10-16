@@ -4,6 +4,7 @@ export interface ProfileData {
   id: string;
   target_reps_per_set: number;
   target_sets_per_day: number;
+  nickname: string;
   created_at: string;
   updated_at: string;
 }

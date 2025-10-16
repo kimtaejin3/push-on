@@ -124,9 +124,7 @@ function SettingScreen({navigation}: SettingScreenProps) {
             <SettingItem
               icon="user"
               title="프로필 수정"
-              onPress={() =>
-                Alert.alert('프로필 수정', '프로필 수정 기능입니다.')
-              }
+              onPress={() => navigation.navigate('ProfileEdit')}
             />
             <SettingItem
               icon="cog"

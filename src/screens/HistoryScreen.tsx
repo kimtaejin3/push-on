@@ -170,6 +170,15 @@ function SetCardList() {
     enabled: user !== null,
   });
 
+  if (pushupSets.length === 0) {
+    return (
+      <View style={styles.noDataContainer}>
+        <Fontawesome5 name="frown" size={24} color={colors.gray600} />
+        <Text style={styles.noDataText}>푸쉬업 기록이 없어요</Text>
+      </View>
+    );
+  }
+
   return (
     <View>
       {pushupSets.map((set, index) => (
@@ -266,6 +275,19 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.4,
+  },
+  noDataContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 30,
+    backgroundColor: colors.overlayLight,
+    borderRadius: 15,
+  },
+  noDataText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: colors.gray600,
+    marginTop: 20,
   },
 });
 

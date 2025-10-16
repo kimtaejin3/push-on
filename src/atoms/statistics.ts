@@ -7,3 +7,7 @@ export const selectedDateAtom = atom<Date>(new Date());
 export const updateSelectedDateAtom = atom(null, (get, set, newDate: Date) => {
   set(selectedDateAtom, newDate);
 });
+
+export const CURRENT_YEAR = new Date().getFullYear();
+export const CURRENT_MONTH = new Date().getMonth() + 1;
+export const CURRENT_DATE = new Date().getDate();

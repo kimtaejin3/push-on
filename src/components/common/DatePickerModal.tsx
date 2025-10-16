@@ -14,6 +14,11 @@ import {useQuery} from '@tanstack/react-query';
 import {profileQueryOptions} from '../../tanstack-query';
 import {useAuth} from '../../hooks/useAuth';
 import CustomButton from './CustomButton';
+import {
+  CURRENT_YEAR,
+  CURRENT_MONTH,
+  CURRENT_DATE,
+} from '../../atoms/statistics';
 
 type MonthPickerModalProps = {
   isVisible: boolean;
@@ -92,10 +97,6 @@ function createDateNames({
     (_, index) => index + 1,
   );
 }
-
-const CURRENT_YEAR = new Date().getFullYear();
-const CURRENT_MONTH = new Date().getMonth() + 1;
-const CURRENT_DATE = new Date().getDate();
 
 const DatePickerModal: React.FC<MonthPickerModalProps> = ({
   isVisible,

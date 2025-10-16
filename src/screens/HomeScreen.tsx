@@ -10,9 +10,15 @@ import {
 import {colors} from '../constants/colors';
 import Logo from '../assets/svgs/logo.svg';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
+import {pushUpSetsByDateQueryOptions} from '../tanstack-query';
+import {useQuery} from '@tanstack/react-query';
+import {CURRENT_DATE, CURRENT_MONTH, CURRENT_YEAR} from '../atoms/statistics';
 
 function HomeScreen(): React.JSX.Element {
   const navigation = useNavigation();
+  useQuery(
+    pushUpSetsByDateQueryOptions(CURRENT_YEAR, CURRENT_MONTH, CURRENT_DATE),
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>

@@ -7,10 +7,15 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Linking,
 } from 'react-native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import {colors} from '../constants/colors';
 import {useAuth} from '../hooks/useAuth';
+
+interface SettingScreenProps {
+  navigation: any;
+}
 
 interface SettingItemProps {
   icon: string;
@@ -54,7 +59,7 @@ const SettingItem: React.FC<SettingItemProps> = ({
   </TouchableOpacity>
 );
 
-function SettingScreen() {
+function SettingScreen({navigation}: SettingScreenProps) {
   const {signOut} = useAuth();
 
   const handleLogout = () => {
@@ -71,18 +76,33 @@ function SettingScreen() {
   };
 
   const handlePrivacyPolicy = () => {
-    // TODO: 개인정보처리방침 링크
-    Alert.alert('개인정보처리방침', '개인정보처리방침 페이지로 이동합니다.');
+    navigation.navigate('PrivacyPolicy');
   };
 
   const handleTermsOfService = () => {
-    // TODO: 이용약관 링크
-    Alert.alert('이용약관', '이용약관 페이지로 이동합니다.');
+    navigation.navigate('TermsOfService');
+  };
+
+  const handleAppInfo = () => {
+    navigation.navigate('AppInfo');
   };
 
   const handleContactUs = () => {
-    // TODO: 문의하기
-    Alert.alert('문의하기', '고객센터로 문의하시겠습니까?');
+    Alert.alert(
+      '문의하기',
+      '버그 신고나 기능 제안이 있으시면 아래 이메일로 문의해주세요.\n\nrlaxowls1316@naver.com',
+      [
+        {text: '닫기', style: 'cancel'},
+        {
+          text: '이메일 보내기',
+          onPress: () => {
+            Linking.openURL(
+              'mailto:rlaxowls1316@naver.com?subject=PushOn 문의',
+            );
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -119,7 +139,7 @@ function SettingScreen() {
             <SettingItem
               icon="info-circle"
               title="앱 정보"
-              onPress={() => Alert.alert('앱 정보', '푸쉬핏 v1.0.0')}
+              onPress={handleAppInfo}
             />
             <SettingItem
               icon="file-contract"

@@ -244,8 +244,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 30,
     paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.primary,
   },
   policyTitle: {
     fontSize: 20,

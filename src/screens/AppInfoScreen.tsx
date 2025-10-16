@@ -90,7 +90,7 @@ function AppInfoScreen() {
               </View>
               <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>최종 업데이트</Text>
-                <Text style={styles.infoValue}>2025년 1월 16일</Text>
+                <Text style={styles.infoValue}>2025년 10월 24일</Text>
               </View>
               <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>플랫폼</Text>

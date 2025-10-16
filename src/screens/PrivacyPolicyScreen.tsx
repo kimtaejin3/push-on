@@ -19,7 +19,7 @@ function PrivacyPolicyScreen() {
           {/* 개인정보처리방침 헤더 */}
           <View style={styles.policyHeader}>
             <Text style={styles.policyTitle}>PushOn 개인정보처리방침</Text>
-            <Text style={styles.effectiveDate}>시행일: 2025년 1월 16일</Text>
+            <Text style={styles.effectiveDate}>시행일: 2025년 10월 24일</Text>
           </View>
 
           {/* 개요 */}
@@ -210,7 +210,7 @@ function PrivacyPolicyScreen() {
           <View style={styles.article}>
             <Text style={styles.articleTitle}>부칙</Text>
             <Text style={styles.articleContent}>
-              본 개인정보처리방침은 2025년 1월 16일부터 시행합니다.
+              본 개인정보처리방침은 2025년 10월 24일부터 시행합니다.
             </Text>
           </View>
 

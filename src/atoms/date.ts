@@ -1,6 +1,6 @@
 import {atom} from 'jotai';
 
-// 선택된 날짜를 관리하는 atom
+// 선택된 날짜를 관리하는 atom (테스트용: 올해 11월 6일로 고정)
 export const selectedDateAtom = atom<Date>(new Date());
 
 // 선택된 날짜를 업데이트하는 atom

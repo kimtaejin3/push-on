@@ -18,7 +18,7 @@ import {
   CURRENT_YEAR,
   CURRENT_MONTH,
   CURRENT_DATE,
-} from '../../atoms/statistics';
+} from '../../atoms/date';
 
 type MonthPickerModalProps = {
   isVisible: boolean;

@@ -4,27 +4,18 @@ import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
 import {colors} from '../../../constants/colors';
 import {CalendarDay as CalendarDayType} from '../../../hooks/useCalendarData';
 import {PushupDayData} from '../../../hooks/usePushupCalendarData';
+import {useAtom} from 'jotai';
+import {updateSelectedDateAtom} from '../../../atoms/statistics';
 
 interface CalendarDayProps {
   day: CalendarDayType;
   pushupData?: PushupDayData;
-  onPress: (date: Date) => void;
 }
 
-const CalendarDay: React.FC<CalendarDayProps> = ({
-  day,
-  pushupData,
-  onPress,
-}) => {
+const CalendarDay: React.FC<CalendarDayProps> = ({day, pushupData}) => {
   const {date, isCurrentMonth, isToday, isSelected, dayOfMonth} = day;
   const hasWorkout = pushupData?.hasWorkout || false;
-
-  console.log(
-    'date-dayOfMonth',
-    new Date(date).getDate(),
-    dayOfMonth,
-    date.toISOString().split('T')[0],
-  );
+  const [, updateSelectedDate] = useAtom(updateSelectedDateAtom);
 
   const getDayStyle = () => {
     if (!isCurrentMonth) {
@@ -55,7 +46,7 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
   return (
     <TouchableOpacity
       style={[styles.dayContainer, getDayStyle()]}
-      onPress={() => onPress(date)}
+      onPress={() => updateSelectedDate(date)}
       disabled={!isCurrentMonth}>
       <Text style={[styles.dayText, getTextStyle()]}>{dayOfMonth}</Text>
 

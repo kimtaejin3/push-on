@@ -14,34 +14,36 @@ import {
   PushupDayData,
 } from '../../../hooks/usePushupCalendarData';
 import CalendarDay from './CalendarDay';
+import {updateSelectedDateAtom} from '../../../atoms/statistics';
+import {useAtom} from 'jotai';
 
 interface CalendarProps {
   selectedDate: Date;
-  onDateSelect: (date: Date) => void;
-  onMonthChange: (year: number, month: number) => void;
 }
 
-const Calendar: React.FC<CalendarProps> = ({
-  selectedDate,
-  onDateSelect,
-  onMonthChange,
-}) => {
+const Calendar: React.FC<CalendarProps> = ({selectedDate}) => {
   const calendarData = useCalendarData({selectedDate});
   const {data: pushupData, isLoading} = usePushupCalendarData({
     year: calendarData.year,
     month: calendarData.month + 1,
   });
+  const [, updateSelectedDate] = useAtom(updateSelectedDateAtom);
+
+  const handleMonthChange = (year: number, month: number) => {
+    const newDate = new Date(year, month, 1);
+    updateSelectedDate(newDate);
+  };
 
   const handlePreviousMonth = () => {
     const newDate = new Date(selectedDate);
     newDate.setMonth(newDate.getMonth() - 1);
-    onMonthChange(newDate.getFullYear(), newDate.getMonth());
+    handleMonthChange(newDate.getFullYear(), newDate.getMonth());
   };
 
   const handleNextMonth = () => {
     const newDate = new Date(selectedDate);
     newDate.setMonth(newDate.getMonth() + 1);
-    onMonthChange(newDate.getFullYear(), newDate.getMonth());
+    handleMonthChange(newDate.getFullYear(), newDate.getMonth());
   };
 
   const getPushupDataForDate = (date: Date): PushupDayData | undefined => {
@@ -124,7 +126,6 @@ const Calendar: React.FC<CalendarProps> = ({
               key={index}
               day={day}
               pushupData={getPushupDataForDate(day.date)}
-              onPress={onDateSelect}
             />
           );
         })}

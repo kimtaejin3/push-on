@@ -8,7 +8,7 @@ import {colors} from '../constants/colors';
 import SetCard from '../components/features/push-up/SetCard';
 import HistorySummary from '../components/features/push-up/HistorySummary';
 import {useAuth} from '../hooks/useAuth';
-import {selectedDateAtom, updateSelectedDateAtom} from '../atoms/statistics';
+import {selectedDateAtom} from '../atoms/statistics';
 import {useSuspenseQuery, useQuery} from '@tanstack/react-query';
 import {
   pushUpSetsByDateQueryOptions,
@@ -17,16 +17,6 @@ import {
 
 function HistoryScreen() {
   const [selectedDate] = useAtom(selectedDateAtom);
-  const [, updateSelectedDate] = useAtom(updateSelectedDateAtom);
-
-  const handleDateSelect = (date: Date) => {
-    updateSelectedDate(date);
-  };
-
-  const handleMonthChange = (year: number, month: number) => {
-    const newDate = new Date(year, month, 1);
-    updateSelectedDate(newDate);
-  };
 
   const monthNames = [
     '1월',
@@ -47,11 +37,7 @@ function HistoryScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.scrollContainer}>
         {/* 달력 */}
-        <Calendar
-          selectedDate={selectedDate}
-          onDateSelect={handleDateSelect}
-          onMonthChange={handleMonthChange}
-        />
+        <Calendar selectedDate={selectedDate} />
         <ScrollView style={styles.scrollView}>
           <View style={styles.historyContainer}>
             <View>

@@ -131,7 +131,6 @@ const Calendar: React.FC<CalendarProps> = ({selectedDate}) => {
         })}
       </View>
 
-      {/* 범례 */}
       <View style={styles.legend}>
         <View style={styles.legendItem}>
           <FontAwesome5
@@ -142,6 +141,17 @@ const Calendar: React.FC<CalendarProps> = ({selectedDate}) => {
           />
           <Text style={styles.legendText}>운동 완료</Text>
         </View>
+      </View>
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.footerButton}>
+          <Text style={styles.footerButtonText}>달력 접기</Text>
+          <FontAwesome5
+            name="chevron-up"
+            size={16}
+            color={colors.primary}
+            iconStyle="solid"
+          />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -223,6 +233,29 @@ const styles = StyleSheet.create({
   legendText: {
     fontSize: 12,
     color: colors.textSecondary,
+  },
+  footer: {
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: colors.overlayMedium,
+    paddingTop: 12,
+  },
+  footerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: colors.overlayLight,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.primaryBorder,
+  },
+  footerButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary,
   },
 });
 

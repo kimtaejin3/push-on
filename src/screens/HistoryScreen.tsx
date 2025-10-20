@@ -36,9 +36,10 @@ function HistoryScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.scrollContainer}>
-        {/* 달력 */}
-        <Calendar selectedDate={selectedDate} />
-        <ScrollView style={styles.scrollView}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}>
+          <Calendar selectedDate={selectedDate} />
           <View style={styles.historyContainer}>
             <View>
               <View style={styles.sectionHeader}>
@@ -113,8 +114,14 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: colors.backgroundDark,
   },
+  scrollContainer: {
+    flex: 1,
+  },
   scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 50,
   },
   historyContainer: {
     borderRadius: 15,
@@ -167,9 +174,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
   },
-  scrollContainer: {
-    flex: 1,
-  },
+
   setDetailsTitle: {
     fontSize: 14,
     fontWeight: 'bold',

@@ -1,67 +1,36 @@
-import React, {Suspense, useState} from 'react';
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ScrollView,
-} from 'react-native';
+import React, {Suspense} from 'react';
+import {StyleSheet, Text, View, ScrollView} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useAtom} from 'jotai';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
-import DatePickerModal from '../components/common/DatePickerModal';
+import Calendar from '../components/features/calendar/Calendar';
 import {colors} from '../constants/colors';
 import SetCard from '../components/features/push-up/SetCard';
 import HistorySummary from '../components/features/push-up/HistorySummary';
 import {useAuth} from '../hooks/useAuth';
-import {
-  CURRENT_DATE,
-  CURRENT_MONTH,
-  CURRENT_YEAR,
-  selectedDateAtom,
-  updateSelectedDateAtom,
-} from '../atoms/statistics';
+import {selectedDateAtom, updateSelectedDateAtom} from '../atoms/statistics';
 import {useSuspenseQuery, useQuery} from '@tanstack/react-query';
 import {
   pushUpSetsByDateQueryOptions,
   profileQueryOptions,
 } from '../tanstack-query';
 
-function getDayOfWeek(date: Date) {
-  const days = [
-    '일요일',
-    '월요일',
-    '화요일',
-    '수요일',
-    '목요일',
-    '금요일',
-    '토요일',
-  ];
-  return days[date.getDay()];
-}
-
 function HistoryScreen() {
   const [selectedDate] = useAtom(selectedDateAtom);
   const [, updateSelectedDate] = useAtom(updateSelectedDateAtom);
 
-  const [isCalendarModalVisible, setCalendarModalVisible] =
-    useState<boolean>(false);
+  // 달력에서 날짜 선택 핸들러
+  const handleDateSelect = (date: Date) => {
+    updateSelectedDate(date);
+  };
 
-  // 날짜 변경 함수들
-  const goToPreviousDay = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() - 1);
+  // 달력에서 월 변경 핸들러
+  const handleMonthChange = (year: number, month: number) => {
+    const newDate = new Date(year, month, 1);
     updateSelectedDate(newDate);
   };
 
-  const goToNextDay = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() + 1);
-    updateSelectedDate(newDate);
-  };
-
-  // 스와이프 제스처 처리
-  // 월 이름 배열
+  // 월 이름 배열 (기존 코드에서 사용)
   const monthNames = [
     '1월',
     '2월',
@@ -77,14 +46,15 @@ function HistoryScreen() {
     '12월',
   ];
 
-  const isNextButtonDisabled =
-    selectedDate.getDate() === CURRENT_DATE &&
-    selectedDate.getMonth() + 1 === CURRENT_MONTH &&
-    selectedDate.getFullYear() === CURRENT_YEAR;
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.scrollContainer}>
+        {/* 달력 */}
+        <Calendar
+          selectedDate={selectedDate}
+          onDateSelect={handleDateSelect}
+          onMonthChange={handleMonthChange}
+        />
         <ScrollView style={styles.scrollView}>
           <View style={styles.historyContainer}>
             <View>
@@ -105,48 +75,6 @@ function HistoryScreen() {
             </View>
           </View>
         </ScrollView>
-        <View style={styles.dateNavigationContainer}>
-          <TouchableOpacity style={styles.navButton} onPress={goToPreviousDay}>
-            <Fontawesome5
-              name="chevron-left"
-              iconStyle="solid"
-              size={16}
-              color={colors.primary}
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.dateDisplay}
-            onPress={() => setCalendarModalVisible(true)}>
-            <Text style={styles.dateText}>
-              {selectedDate.getFullYear()}년{' '}
-              {monthNames[selectedDate.getMonth()]} {selectedDate.getDate()}일
-            </Text>
-            <Text style={styles.dayOfWeekText}>
-              {getDayOfWeek(selectedDate)}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            disabled={isNextButtonDisabled}
-            style={[
-              styles.navButton,
-              isNextButtonDisabled && styles.disabledButton,
-            ]}
-            onPress={goToNextDay}>
-            <Fontawesome5
-              name="chevron-right"
-              iconStyle="solid"
-              size={16}
-              color={colors.primary}
-            />
-          </TouchableOpacity>
-        </View>
-        <DatePickerModal
-          isVisible={isCalendarModalVisible}
-          onClose={() => setCalendarModalVisible(false)}
-          onChangeSelectedDate={(date: Date) => updateSelectedDate(date)}
-        />
       </View>
     </SafeAreaView>
   );

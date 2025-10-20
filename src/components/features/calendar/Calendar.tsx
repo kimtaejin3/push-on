@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -28,6 +28,7 @@ const Calendar: React.FC<CalendarProps> = ({selectedDate}) => {
     month: calendarData.month + 1,
   });
   const [, updateSelectedDate] = useAtom(updateSelectedDateAtom);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const handleMonthChange = (year: number, month: number) => {
     const newDate = new Date(year, month, 1);
@@ -100,53 +101,50 @@ const Calendar: React.FC<CalendarProps> = ({selectedDate}) => {
         </TouchableOpacity>
       </View>
 
-      {/* 요일 헤더 */}
-      <View style={styles.weekDaysContainer}>
-        {weekDays.map((day, index) => (
-          <Text key={index} style={styles.weekDayText}>
-            {day}
-          </Text>
-        ))}
-      </View>
+      {isExpanded && (
+        <>
+          <View style={styles.weekDaysContainer}>
+            {weekDays.map((day, index) => (
+              <Text key={index} style={styles.weekDayText}>
+                {day}
+              </Text>
+            ))}
+          </View>
 
-      {/* 달력 그리드 */}
-      <View style={styles.calendarGrid}>
-        {calendarData.days.map((day, index) => {
-          const checkPushupData = getPushupDataForDate(day.date);
-          console.log(
-            'checkPushupData',
-            checkPushupData,
-            'day',
-            day.date.toISOString().split('T')[0],
-            'dayOfMonth',
-            day.dayOfMonth,
-          );
-          return (
-            <CalendarDay
-              key={index}
-              day={day}
-              pushupData={getPushupDataForDate(day.date)}
-            />
-          );
-        })}
-      </View>
+          <View style={styles.calendarGrid}>
+            {calendarData.days.map((day, index) => {
+              return (
+                <CalendarDay
+                  key={index}
+                  day={day}
+                  pushupData={getPushupDataForDate(day.date)}
+                />
+              );
+            })}
+            <View style={styles.legend}>
+              <View style={styles.legendItem}>
+                <FontAwesome5
+                  name="check-circle"
+                  size={12}
+                  color={colors.primary}
+                  iconStyle="solid"
+                />
+                <Text style={styles.legendText}>운동 완료</Text>
+              </View>
+            </View>
+          </View>
+        </>
+      )}
 
-      <View style={styles.legend}>
-        <View style={styles.legendItem}>
-          <FontAwesome5
-            name="check-circle"
-            size={12}
-            color={colors.primary}
-            iconStyle="solid"
-          />
-          <Text style={styles.legendText}>운동 완료</Text>
-        </View>
-      </View>
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.footerButton}>
-          <Text style={styles.footerButtonText}>달력 접기</Text>
+        <TouchableOpacity
+          style={styles.footerButton}
+          onPress={() => setIsExpanded(!isExpanded)}>
+          <Text style={styles.footerButtonText}>
+            {isExpanded ? '달력 접기' : '달력 펴기'}
+          </Text>
           <FontAwesome5
-            name="chevron-up"
+            name={isExpanded ? 'chevron-up' : 'chevron-down'}
             size={16}
             color={colors.primary}
             iconStyle="solid"
@@ -235,10 +233,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   footer: {
-    marginTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: colors.overlayMedium,
-    paddingTop: 12,
+    marginTop: 10,
   },
   footerButton: {
     flexDirection: 'row',

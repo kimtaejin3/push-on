@@ -46,7 +46,7 @@ function HistoryScreen() {
                 <Text style={styles.setDetailsTitle}>
                   {selectedDate.getFullYear()}년{' '}
                   {monthNames[selectedDate.getMonth()]} {selectedDate.getDate()}
-                  일 푸쉬업 요약
+                  일
                 </Text>
               </View>
               <HistorySummary />

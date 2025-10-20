@@ -63,7 +63,7 @@ function HomeScreen(): React.JSX.Element {
               </Text>
               <TouchableOpacity
                 style={styles.leaderboardButton}
-                onPress={() => navigation.navigate('Tabs' as never)}>
+                onPress={() => navigation.navigate('Leaderboard' as never)}>
                 <Text style={styles.leaderboardButtonText}>순위 확인하기</Text>
                 <FontAwesome5
                   name="chevron-right"

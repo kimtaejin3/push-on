@@ -200,6 +200,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.overlayLight,
     borderRadius: 16,
     marginBottom: 20,
+    height: 400,
   },
   loadingText: {
     marginLeft: 8,

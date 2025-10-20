@@ -1,37 +1,61 @@
-import React from 'react';
-import {FlatList, Image, StyleSheet, Text, View} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {FlatList, StyleSheet, Text, View, RefreshControl} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {colors} from '../constants/colors';
 import Header from '../components/common/Header';
 import {useNavigation} from '@react-navigation/native';
+import {supabase} from '../lib/supabase';
+import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
 
 type LeaderItem = {
   rank: number;
   username: string;
   reps: number;
-  avatarUrl?: string;
 };
 
-const MOCK_DATA: LeaderItem[] = [
-  {rank: 1, username: '@ronmccallum', reps: 5813},
-  {rank: 2, username: '@v27', reps: 4000},
-  {rank: 3, username: '@kjtalford', reps: 2633},
-  {rank: 4, username: '@andrewolsen', reps: 2517},
-  {rank: 5, username: '@swen76', reps: 1420},
-  {rank: 6, username: '@eldar', reps: 1242},
-  {rank: 7, username: '@strmz', reps: 1204},
-  {rank: 8, username: '@makikidd', reps: 1146},
-  {rank: 9, username: '@grantmurray', reps: 1056},
-  {rank: 9, username: '@grantmurray', reps: 1056},
-  {rank: 9, username: '@grantmurray', reps: 1056},
-  {rank: 9, username: '@grantmurray', reps: 1056},
-  {rank: 9, username: '@grantmurray', reps: 1056},
-];
+const MOCK_DATA: LeaderItem[] = [];
 
 // 국가 표시는 제거됨
 
 export default function LeaderboardScreen() {
   const navigation = useNavigation();
+  const [items, setItems] = useState<LeaderItem[]>(MOCK_DATA);
+  const [refreshing, setRefreshing] = useState(false);
+
+  async function fetchTodayLeaderboard() {
+    const todayKst = new Date().toLocaleDateString('en-CA', {
+      timeZone: 'Asia/Seoul',
+    }); // YYYY-MM-DD
+
+    const {data, error} = await supabase
+      .from('pushup_daily_totals')
+      .select('user_id,total_reps,profiles(nickname)')
+      .eq('date', todayKst)
+      .order('total_reps', {ascending: false})
+      .limit(100);
+
+    if (error) {
+      console.warn('리더보드 조회 실패:', error.message);
+      return;
+    }
+
+    const mapped: LeaderItem[] = (data || []).map((row: any, idx: number) => ({
+      rank: idx + 1,
+      username: row.profiles?.nickname ? `${row.profiles.nickname}` : '익명',
+      reps: row.total_reps ?? 0,
+    }));
+    setItems(mapped);
+  }
+
+  useEffect(() => {
+    fetchTodayLeaderboard();
+  }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchTodayLeaderboard();
+    setRefreshing(false);
+  };
   return (
     <SafeAreaView style={styles.safeArea}>
       <Header title="오늘의 순위" onBackPress={() => navigation.goBack()} />
@@ -43,21 +67,23 @@ export default function LeaderboardScreen() {
       </View>
 
       <FlatList
-        data={MOCK_DATA}
+        data={items}
         keyExtractor={item => String(item.rank)}
         contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         renderItem={({item}) => (
           <View style={styles.row}>
             <Text style={[styles.cell, styles.cellRank]}>{item.rank}</Text>
             <View style={styles.cellUser}>
-              <Image
-                source={{
-                  uri:
-                    item.avatarUrl ||
-                    'https://i.pravatar.cc/64?img=' + (item.rank + 10),
-                }}
-                style={styles.avatar}
-              />
+              <View style={styles.avatar}>
+                <FontAwesome5
+                  name="user"
+                  size={16}
+                  color={colors.overlayMedium}
+                />
+              </View>
               <Text style={styles.username}>{item.username}</Text>
             </View>
             <Text style={[styles.cell, styles.cellReps]}>
@@ -111,10 +137,12 @@ const styles = StyleSheet.create({
   cellUser: {flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10},
   cellReps: {width: 110, textAlign: 'right', fontWeight: '700'},
   avatar: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: colors.overlayDark,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: colors.overlayMedium,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   username: {color: colors.textLight, fontSize: 14, fontWeight: '600'},
   // 국가 관련 스타일 제거됨

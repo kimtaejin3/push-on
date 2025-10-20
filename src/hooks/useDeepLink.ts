@@ -41,6 +41,8 @@ export const useDeepLink = ({onLoginSuccess}: UseDeepLinkProps) => {
         } catch (error) {
           console.error('딥링크 처리 중 오류:', error);
           Alert.alert('오류', '로그인 처리 중 오류가 발생했습니다.');
+        } finally {
+          onLoginSuccess?.();
         }
       }
     },

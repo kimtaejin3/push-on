@@ -221,6 +221,14 @@ export const savePushupSession = async (
       throw error;
     }
 
+    // 일일 누적 집계 업데이트 (KST 기준)
+    const {error: rpcError} = await supabase.rpc('add_daily_pushups', {
+      p_reps: data.reps,
+    });
+    if (rpcError) {
+      console.warn('add_daily_pushups RPC 실패:', rpcError.message);
+    }
+
     console.log('푸쉬업 세션 저장 완료:', data);
   } catch (error) {
     console.error('푸쉬업 세션 저장 실패:', error);

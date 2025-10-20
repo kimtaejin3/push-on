@@ -19,18 +19,15 @@ function HistoryScreen() {
   const [selectedDate] = useAtom(selectedDateAtom);
   const [, updateSelectedDate] = useAtom(updateSelectedDateAtom);
 
-  // 달력에서 날짜 선택 핸들러
   const handleDateSelect = (date: Date) => {
     updateSelectedDate(date);
   };
 
-  // 달력에서 월 변경 핸들러
   const handleMonthChange = (year: number, month: number) => {
     const newDate = new Date(year, month, 1);
     updateSelectedDate(newDate);
   };
 
-  // 월 이름 배열 (기존 코드에서 사용)
   const monthNames = [
     '1월',
     '2월',

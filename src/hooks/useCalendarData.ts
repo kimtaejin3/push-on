@@ -65,24 +65,40 @@ export const useCalendarData = ({
     const selectedDateStr = selectedDate.toDateString();
 
     // 달력의 모든 날짜 생성
-    for (
-      let date = new Date(firstDayOfCalendar);
-      date <= lastDayOfCalendar;
-      date.setDate(date.getDate() + 1)
-    ) {
-      const dayOfMonth = date.getDate();
-      const isCurrentMonth = date.getMonth() === month;
-      const isToday = date.toDateString() === currentDateStr;
-      const isSelected = date.toDateString() === selectedDateStr;
+    const startDate = new Date(firstDayOfCalendar);
+    const endDate = new Date(lastDayOfCalendar);
+
+    while (startDate <= endDate) {
+      // 현재 날짜의 정보를 먼저 저장
+      const currentDate = new Date(startDate);
+      const dayOfMonth = currentDate.getDate();
+      const isCurrentMonth = currentDate.getMonth() === month;
+      const isToday = currentDate.toDateString() === currentDateStr;
+      const isSelected = currentDate.toDateString() === selectedDateStr;
 
       days.push({
-        date: new Date(date),
+        date: currentDate,
         isCurrentMonth,
         isToday,
         isSelected,
         dayOfMonth,
       });
+
+      // 다음 날로 이동
+      startDate.setDate(startDate.getDate() + 1);
     }
+
+    console.log(
+      'days',
+      days.map(day => {
+        return {
+          ...day,
+          date: `${day.date.getFullYear()}-${String(
+            day.date.getMonth() + 1,
+          ).padStart(2, '0')}-${String(day.date.getDate()).padStart(2, '0')}`,
+        };
+      }),
+    );
 
     return {
       year,

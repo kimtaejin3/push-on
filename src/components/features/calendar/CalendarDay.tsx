@@ -19,6 +19,13 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
   const {date, isCurrentMonth, isToday, isSelected, dayOfMonth} = day;
   const hasWorkout = pushupData?.hasWorkout || false;
 
+  console.log(
+    'date-dayOfMonth',
+    new Date(date).getDate(),
+    dayOfMonth,
+    date.toISOString().split('T')[0],
+  );
+
   const getDayStyle = () => {
     if (!isCurrentMonth) {
       return styles.otherMonthDay;

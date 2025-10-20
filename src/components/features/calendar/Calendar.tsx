@@ -49,7 +49,10 @@ const Calendar: React.FC<CalendarProps> = ({
       return undefined;
     }
 
-    const dateStr = date.toISOString().split('T')[0];
+    // 로컬 날짜를 사용하여 시간대 문제 방지
+    const dateStr = `${date.getFullYear()}-${String(
+      date.getMonth() + 1,
+    ).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     console.log('dateStr', dateStr);
     console.log('pushupData', pushupData);
     return pushupData.find(data => data.date === dateStr);

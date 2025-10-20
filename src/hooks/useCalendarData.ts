@@ -70,14 +70,14 @@ export const useCalendarData = ({
 
     while (startDate <= endDate) {
       // 현재 날짜의 정보를 먼저 저장
-      const currentDate = new Date(startDate);
-      const dayOfMonth = currentDate.getDate();
-      const isCurrentMonth = currentDate.getMonth() === month;
-      const isToday = currentDate.toDateString() === currentDateStr;
-      const isSelected = currentDate.toDateString() === selectedDateStr;
+      const curDate = new Date(startDate);
+      const dayOfMonth = curDate.getDate();
+      const isCurrentMonth = curDate.getMonth() === month;
+      const isToday = curDate.toDateString() === currentDateStr;
+      const isSelected = curDate.toDateString() === selectedDateStr;
 
       days.push({
-        date: currentDate,
+        date: curDate,
         isCurrentMonth,
         isToday,
         isSelected,
@@ -87,18 +87,6 @@ export const useCalendarData = ({
       // 다음 날로 이동
       startDate.setDate(startDate.getDate() + 1);
     }
-
-    console.log(
-      'days',
-      days.map(day => {
-        return {
-          ...day,
-          date: `${day.date.getFullYear()}-${String(
-            day.date.getMonth() + 1,
-          ).padStart(2, '0')}-${String(day.date.getDate()).padStart(2, '0')}`,
-        };
-      }),
-    );
 
     return {
       year,

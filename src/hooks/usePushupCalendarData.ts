@@ -21,6 +21,7 @@ export const usePushupCalendarData = ({
 }: UsePushupCalendarDataProps) => {
   const {user} = useAuth();
 
+  //TODO: remote 함수, queryOptions 분리
   return useQuery({
     queryKey: ['pushup', 'calendar', year, month],
     queryFn: async (): Promise<PushupDayData[]> => {
@@ -85,6 +86,6 @@ export const usePushupCalendarData = ({
       }
     },
     enabled: !!user?.id,
-    staleTime: 5 * 60 * 1000, // 5분간 캐시 유지
+    staleTime: 5 * 60 * 1000,
   });
 };

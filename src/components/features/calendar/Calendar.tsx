@@ -134,10 +134,6 @@ const Calendar: React.FC<CalendarProps> = ({selectedDate}) => {
       {/* 범례 */}
       <View style={styles.legend}>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, {backgroundColor: colors.primary}]} />
-          <Text style={styles.legendText}>오늘</Text>
-        </View>
-        <View style={styles.legendItem}>
           <FontAwesome5
             name="check-circle"
             size={12}

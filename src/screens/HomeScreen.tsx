@@ -12,7 +12,7 @@ import Logo from '../assets/svgs/logo.svg';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
 import {pushUpSetsByDateQueryOptions} from '../tanstack-query';
 import {useQuery} from '@tanstack/react-query';
-import {CURRENT_DATE, CURRENT_MONTH, CURRENT_YEAR} from '../atoms/statistics';
+import {CURRENT_DATE, CURRENT_MONTH, CURRENT_YEAR} from '../atoms/date';
 
 function HomeScreen(): React.JSX.Element {
   const navigation = useNavigation();

@@ -5,7 +5,7 @@ import {colors} from '../../../constants/colors';
 import {CalendarDay as CalendarDayType} from '../../../hooks/useCalendarData';
 import {PushupDayData} from '../../../hooks/usePushupCalendarData';
 import {useAtom} from 'jotai';
-import {updateSelectedDateAtom} from '../../../atoms/statistics';
+import {updateSelectedDateAtom} from '../../../atoms/date';
 
 interface CalendarDayProps {
   day: CalendarDayType;

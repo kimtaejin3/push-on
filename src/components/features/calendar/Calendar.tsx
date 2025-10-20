@@ -14,8 +14,13 @@ import {
   PushupDayData,
 } from '../../../hooks/usePushupCalendarData';
 import CalendarDay from './CalendarDay';
-import {updateSelectedDateAtom} from '../../../atoms/statistics';
+import {
+  CURRENT_MONTH,
+  CURRENT_YEAR,
+  updateSelectedDateAtom,
+} from '../../../atoms/date';
 import {useAtom} from 'jotai';
+import {useAuth} from '../../../hooks/useAuth';
 
 interface CalendarProps {
   selectedDate: Date;
@@ -27,6 +32,7 @@ const Calendar: React.FC<CalendarProps> = ({selectedDate}) => {
     year: calendarData.year,
     month: calendarData.month + 1,
   });
+  const {user} = useAuth();
   const [, updateSelectedDate] = useAtom(updateSelectedDateAtom);
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -56,12 +62,32 @@ const Calendar: React.FC<CalendarProps> = ({selectedDate}) => {
     const dateStr = `${date.getFullYear()}-${String(
       date.getMonth() + 1,
     ).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-    console.log('dateStr', dateStr);
-    console.log('pushupData', pushupData);
     return pushupData.find(data => data.date === dateStr);
   };
 
   const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
+
+  const nextMonthDisabled =
+    CURRENT_YEAR === selectedDate.getFullYear() &&
+    CURRENT_MONTH === selectedDate.getMonth() + 1;
+
+  const previousMonthDisabled = (() => {
+    if (!user) {
+      return true;
+    }
+
+    const signedUpYear = new Date(user.created_at).getFullYear();
+    const signedUpMonth = new Date(user.created_at).getMonth() + 1;
+
+    if (
+      signedUpYear === selectedDate.getFullYear() &&
+      signedUpMonth === selectedDate.getMonth() + 1
+    ) {
+      return true;
+    }
+
+    return false;
+  })();
 
   if (isLoading) {
     return (
@@ -78,11 +104,12 @@ const Calendar: React.FC<CalendarProps> = ({selectedDate}) => {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.navButton}
+          disabled={previousMonthDisabled}
           onPress={handlePreviousMonth}>
           <FontAwesome5
             name="chevron-left"
             size={16}
-            color={colors.primary}
+            color={previousMonthDisabled ? colors.gray400 : colors.primary}
             iconStyle="solid"
           />
         </TouchableOpacity>
@@ -91,11 +118,14 @@ const Calendar: React.FC<CalendarProps> = ({selectedDate}) => {
           {calendarData.year}년 {calendarData.monthName}
         </Text>
 
-        <TouchableOpacity style={styles.navButton} onPress={handleNextMonth}>
+        <TouchableOpacity
+          disabled={nextMonthDisabled}
+          style={styles.navButton}
+          onPress={handleNextMonth}>
           <FontAwesome5
             name="chevron-right"
             size={16}
-            color={colors.primary}
+            color={nextMonthDisabled ? colors.gray400 : colors.primary}
             iconStyle="solid"
           />
         </TouchableOpacity>

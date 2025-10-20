@@ -8,7 +8,7 @@ import {colors} from '../constants/colors';
 import SetCard from '../components/features/push-up/SetCard';
 import HistorySummary from '../components/features/push-up/HistorySummary';
 import {useAuth} from '../hooks/useAuth';
-import {selectedDateAtom} from '../atoms/statistics';
+import {selectedDateAtom} from '../atoms/date';
 import {useSuspenseQuery, useQuery} from '@tanstack/react-query';
 import {
   pushUpSetsByDateQueryOptions,

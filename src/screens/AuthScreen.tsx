@@ -5,7 +5,6 @@ import {
   View,
   TouchableOpacity,
   SafeAreaView,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
@@ -34,36 +33,6 @@ function AuthScreen() {
   // useDeepLink({
   //   onLoginSuccess: closeWebView,
   // });
-
-  const handleEmailLogin = () => {
-    // 간단한 이메일 로그인 (임시)
-    Alert.prompt(
-      '이메일 로그인',
-      '이메일 주소를 입력하세요:',
-      [
-        {text: '취소', style: 'cancel'},
-        {
-          text: '로그인',
-          onPress: async email => {
-            if (email && email.includes('@')) {
-              try {
-                // 임시로 간단한 로그인 처리
-                console.log('이메일 로그인:', email);
-                Alert.alert('로그인 성공', `${email}으로 로그인되었습니다.`);
-              } catch (error) {
-                Alert.alert('오류', '로그인 중 오류가 발생했습니다.');
-              }
-            } else {
-              Alert.alert('오류', '올바른 이메일 주소를 입력해주세요.');
-            }
-          },
-        },
-      ],
-      'plain-text',
-      '',
-      'email-address',
-    );
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -155,19 +124,6 @@ function AuthScreen() {
             <Text style={styles.googleButtonText}>
               {isGoogleLoading ? '로그인 중...' : 'Google로 시작하기'}
             </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.emailButton}
-            onPress={handleEmailLogin}>
-            <Fontawesome5
-              name="envelope"
-              size={20}
-              iconStyle="solid"
-              color={colors.primary}
-              style={styles.emailIcon}
-            />
-            <Text style={styles.emailButtonText}>이메일로 로그인</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -322,41 +278,6 @@ const styles = StyleSheet.create({
     color: colors.textLight,
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  emailButton: {
-    backgroundColor: colors.overlayMedium,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    shadowOffset: {width: 0, height: 1},
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  emailIcon: {
-    marginRight: 12,
-  },
-  emailButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.textLight,
-  },
-  signUpButton: {
-    backgroundColor: colors.backgroundLight,
-    paddingVertical: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.gray200,
-    alignItems: 'center',
-  },
-  signUpButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.primary,
   },
   footer: {
     paddingHorizontal: 30,

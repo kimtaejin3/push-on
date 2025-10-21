@@ -17,13 +17,14 @@ export const useGoogleLogin = () => {
       await GoogleSignin.hasPlayServices();
 
       // Google 로그인 실행
-      const userInfo = await GoogleSignin.signIn();
+      const {data: userInfo} = await GoogleSignin.signIn();
 
-      if (userInfo.data?.idToken) {
+      if (userInfo?.idToken) {
+        console.log('Google ID 토큰으로 로그인 시도');
         // Supabase에 Google ID 토큰으로 로그인
         const {data, error} = await supabase.auth.signInWithIdToken({
           provider: 'google',
-          token: userInfo.data.idToken,
+          token: userInfo.idToken,
         });
 
         if (error) {

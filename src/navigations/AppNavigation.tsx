@@ -1,5 +1,4 @@
-import React, {useState} from 'react';
-// import React, {useState} from 'react';
+import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {
   createStaticNavigation,
@@ -50,9 +49,11 @@ const AppNavigation = createStaticNavigation(AppStack);
 // 조건부 네비게이션 컴포넌트
 const ConditionalNavigation = () => {
   const {isLoggedIn, loading: authLoading} = useAuth();
-  const {isOnboarded, loading: onboardingLoading} = useIsOnboarded();
-
-  const [_, setRerender] = useState(false);
+  const {
+    isOnboarded,
+    loading: onboardingLoading,
+    refresh: refreshOnboarding,
+  } = useIsOnboarded();
 
   if (authLoading || onboardingLoading) {
     return null;
@@ -63,7 +64,7 @@ const ConditionalNavigation = () => {
   }
 
   if (isOnboarded === false) {
-    return <OnboardingScreen onComplete={() => setRerender(prev => !prev)} />;
+    return <OnboardingScreen onComplete={refreshOnboarding} />;
   }
 
   return <AppNavigation />;

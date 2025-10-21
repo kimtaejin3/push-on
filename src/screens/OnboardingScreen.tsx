@@ -13,12 +13,10 @@ import {
 import {colors} from '../constants/colors';
 import CustomButton from '../components/common/CustomButton';
 import {useAuth} from '../hooks/useAuth';
-import {useIsOnboarded} from '../hooks/useIsOnboarded';
 import {useUpsertProfileMutation} from '../tanstack-query/mutationHooks/profile';
 
 function OnboardingScreen({onComplete}: {onComplete: () => void}) {
   const {user} = useAuth();
-  const {refresh} = useIsOnboarded();
   const [targetRepsPerSet, setTargetRepsPerSet] = useState('');
   const [targetSetsPerDay, setTargetSetsPerDay] = useState('');
 
@@ -30,10 +28,7 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
       Alert.alert('성공', '목표가 설정되었습니다!', [
         {
           text: '확인',
-          onPress: async () => {
-            // 온보딩 상태 새로고침
-            await refresh();
-            console.log('온보딩 완료');
+          onPress: () => {
             onComplete();
           },
         },

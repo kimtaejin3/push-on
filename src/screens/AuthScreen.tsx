@@ -9,30 +9,17 @@ import {
 } from 'react-native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import {colors} from '../constants/colors';
-// 나중에 삭제 예정
-// import {useDeepLink} from '../hooks/useDeepLink';
-// import KakaoWebView from '../components/features/webview/KakaoWebView';
-// import {useKakaoLoginWithWebView} from '../hooks/useKakaoLogin';
 import {useKakaoLoginNative} from '../hooks/useKakaoLoginNative';
 import {useGoogleLogin} from '../hooks/useGoogleLogin';
 import Logo from '../assets/svgs/logo.svg';
 
 function AuthScreen() {
-  // 카카오 로그인 훅 사용 (기존 웹뷰 방식) - 나중에 삭제 예정
-  // const {isLoading, showWebView, webViewUrl, handleKakaoLogin, closeWebView} =
-  //   useKakaoLoginWithWebView();
-
   // 카카오 로그인 훅 사용 (새로운 네이티브 방식)
   const {signInWithKakao, isLoading: isKakaoNativeLoading} =
     useKakaoLoginNative();
 
   // 구글 로그인 훅 사용
   const {signInWithGoogle, isLoading: isGoogleLoading} = useGoogleLogin();
-
-  // 딥링크 처리 훅 사용 - 나중에 삭제 예정
-  // useDeepLink({
-  //   onLoginSuccess: closeWebView,
-  // });
 
   return (
     <SafeAreaView style={styles.container}>
@@ -139,13 +126,6 @@ function AuthScreen() {
           © 2025 PushOn. All rights reserved.
         </Text>
       </View>
-
-      {/* 카카오 로그인 웹뷰 모달 - 나중에 삭제 예정 */}
-      {/* <KakaoWebView
-        visible={showWebView}
-        url={webViewUrl}
-        onClose={closeWebView}
-      /> */}
     </SafeAreaView>
   );
 }

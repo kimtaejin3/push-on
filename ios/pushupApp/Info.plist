@@ -86,6 +86,14 @@
 		<string>FontAwesome6_Regular.ttf</string>
 		<string>FontAwesome6_Solid.ttf</string>
 	</array>
+	<key>KAKAO_APP_KEY</key>
+	<string>6857d8aa2f0467a3366f37ea36f7260f</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>kakaokompassauth</string>
+		<string>storykompassauth</string>
+		<string>kakaolink</string>
+	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<!-- 카카오 로그인 URL Scheme -->
@@ -94,7 +102,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>6857d8aa2f0467a3366f37ea36f7260f</string>
+				<string>kakao6857d8aa2f0467a3366f37ea36f7260f</string>
 			</array>
 		</dict>
 		<!-- 구글 로그인 URL Scheme -->

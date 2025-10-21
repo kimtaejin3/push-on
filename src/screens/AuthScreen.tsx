@@ -10,24 +10,30 @@ import {
 } from 'react-native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import {colors} from '../constants/colors';
-import {useDeepLink} from '../hooks/useDeepLink';
-import KakaoWebView from '../components/features/webview/KakaoWebView';
-import {useKakaoLoginWithWebView} from '../hooks/useKakaoLogin';
+// 나중에 삭제 예정
+// import {useDeepLink} from '../hooks/useDeepLink';
+// import KakaoWebView from '../components/features/webview/KakaoWebView';
+// import {useKakaoLoginWithWebView} from '../hooks/useKakaoLogin';
+import {useKakaoLoginNative} from '../hooks/useKakaoLoginNative';
 import {useGoogleLogin} from '../hooks/useGoogleLogin';
 import Logo from '../assets/svgs/logo.svg';
 
 function AuthScreen() {
-  // 카카오 로그인 훅 사용
-  const {isLoading, showWebView, webViewUrl, handleKakaoLogin, closeWebView} =
-    useKakaoLoginWithWebView();
+  // 카카오 로그인 훅 사용 (기존 웹뷰 방식) - 나중에 삭제 예정
+  // const {isLoading, showWebView, webViewUrl, handleKakaoLogin, closeWebView} =
+  //   useKakaoLoginWithWebView();
+
+  // 카카오 로그인 훅 사용 (새로운 네이티브 방식)
+  const {signInWithKakao, isLoading: isKakaoNativeLoading} =
+    useKakaoLoginNative();
 
   // 구글 로그인 훅 사용
   const {signInWithGoogle, isLoading: isGoogleLoading} = useGoogleLogin();
 
-  // 딥링크 처리 훅 사용
-  useDeepLink({
-    onLoginSuccess: closeWebView,
-  });
+  // 딥링크 처리 훅 사용 - 나중에 삭제 예정
+  // useDeepLink({
+  //   onLoginSuccess: closeWebView,
+  // });
 
   const handleEmailLogin = () => {
     // 간단한 이메일 로그인 (임시)
@@ -106,10 +112,13 @@ function AuthScreen() {
         {/* 로그인 버튼들 */}
         <View style={styles.loginContainer}>
           <TouchableOpacity
-            style={[styles.kakaoButton, isLoading && styles.disabledButton]}
-            onPress={handleKakaoLogin}
-            disabled={isLoading}>
-            {isLoading ? (
+            style={[
+              styles.kakaoButton,
+              isKakaoNativeLoading && styles.disabledButton,
+            ]}
+            onPress={signInWithKakao}
+            disabled={isKakaoNativeLoading}>
+            {isKakaoNativeLoading ? (
               <ActivityIndicator size="small" color={colors.textBlack} />
             ) : (
               <Fontawesome5
@@ -121,7 +130,7 @@ function AuthScreen() {
               />
             )}
             <Text style={styles.kakaoButtonText}>
-              {isLoading ? '로그인 중...' : '카카오로 시작하기'}
+              {isKakaoNativeLoading ? '로그인 중...' : '카카오로 시작하기'}
             </Text>
           </TouchableOpacity>
 
@@ -175,12 +184,12 @@ function AuthScreen() {
         </Text>
       </View>
 
-      {/* 카카오 로그인 웹뷰 모달 */}
-      <KakaoWebView
+      {/* 카카오 로그인 웹뷰 모달 - 나중에 삭제 예정 */}
+      {/* <KakaoWebView
         visible={showWebView}
         url={webViewUrl}
         onClose={closeWebView}
-      />
+      /> */}
     </SafeAreaView>
   );
 }

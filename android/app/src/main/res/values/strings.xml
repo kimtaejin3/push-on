@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">푸쉬핏</string>
+    <string name="kakao_app_key">6857d8aa2f0467a3366f37ea36f7260f</string>
 </resources>

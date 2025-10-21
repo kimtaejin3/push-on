@@ -32,5 +32,16 @@
             <data android:scheme="pushupapp" />
         </intent-filter>
       </activity>
+      <activity
+        android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:host="oauth"
+                android:scheme="kakao{6857d8aa2f0467a3366f37ea36f7260f}" />
+        </intent-filter>
+      </activity>
     </application>
 </manifest>

@@ -27,12 +27,12 @@ export default function LeaderboardScreen() {
       timeZone: 'Asia/Seoul',
     }); // YYYY-MM-DD
 
-    const {data, error} = await supabase
-      .from('pushup_daily_totals')
-      .select('user_id,total_reps,profiles(nickname)')
-      .eq('date', todayKst)
-      .order('total_reps', {ascending: false})
-      .limit(100);
+    // RLS 우회를 위해 RPC 함수 사용
+    const {data, error} = await supabase.rpc('get_leaderboard', {
+      target_date: todayKst,
+    });
+
+    console.log('리더보드 조회 결과:', data);
 
     if (error) {
       console.warn('리더보드 조회 실패:', error.message);
@@ -41,7 +41,7 @@ export default function LeaderboardScreen() {
 
     const mapped: LeaderItem[] = (data || []).map((row: any, idx: number) => ({
       rank: idx + 1,
-      username: row.profiles?.nickname ? `${row.profiles.nickname}` : '익명',
+      username: row.nickname ? `${row.nickname}` : '익명',
       reps: row.total_reps ?? 0,
     }));
     setItems(mapped);

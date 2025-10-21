@@ -6,17 +6,21 @@ import {
   View,
   ScrollView,
   Image,
+  TouchableOpacity,
+  Alert,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import {colors} from '../constants/colors';
 import {useAuth} from '../hooks/useAuth';
 import Header from '../components/common/Header';
+import {useDeleteAccountMutation} from '../tanstack-query/mutationHooks/auth';
 
 function AccountSettingsScreen() {
   const navigation = useNavigation();
-  const {user} = useAuth();
+  const {user, signOut} = useAuth();
   const [imageError, setImageError] = useState(false);
+  const deleteAccountMutation = useDeleteAccountMutation();
 
   // 사용자 정보 추출
   const userName =
@@ -61,8 +65,8 @@ function AccountSettingsScreen() {
       case 'google':
         return {
           name: '구글',
-          icon: 'google',
-          color: '#4285F4',
+          icon: 'search',
+          color: colors.primary,
         };
       default:
         return {
@@ -75,10 +79,71 @@ function AccountSettingsScreen() {
 
   const providerInfo = getProviderInfo(provider);
 
+  const handleLogout = async () => {
+    Alert.alert('로그아웃', '정말 로그아웃하시겠습니까?', [
+      {
+        text: '취소',
+        style: 'cancel',
+      },
+      {
+        text: '로그아웃',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await signOut();
+            // 로그아웃 후 AuthScreen으로 이동
+            navigation.reset({
+              index: 0,
+              routes: [{name: 'Auth' as never}],
+            });
+          } catch (error) {
+            console.error('로그아웃 오류:', error);
+            Alert.alert('오류', '로그아웃 중 오류가 발생했습니다.');
+          }
+        },
+      },
+    ]);
+  };
+
   // 디버깅용 로그
   console.log('Raw Profile Image URL:', rawProfileImage);
   console.log('Processed Profile Image URL:', profileImage);
   console.log('User metadata:', user?.user_metadata);
+
+  const handleWithdrawal = () => {
+    Alert.alert(
+      '회원 탈퇴',
+      '정말 회원 탈퇴하시겠습니까?\n\n탈퇴 시 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.',
+      [
+        {text: '취소', style: 'cancel'},
+        {
+          text: '회원 탈퇴',
+          style: 'destructive',
+          onPress: () => {
+            // 이중 확인
+            Alert.alert(
+              '최종 확인',
+              '정말로 탈퇴하시겠습니까?\n이 작업은 되돌릴 수 없습니다.',
+              [
+                {text: '취소', style: 'cancel'},
+                {
+                  text: '탈퇴하기',
+                  style: 'destructive',
+                  onPress: () => {
+                    deleteAccountMutation.mutate();
+                    navigation.reset({
+                      index: 0,
+                      routes: [{name: 'Auth' as never}],
+                    });
+                  },
+                },
+              ],
+            );
+          },
+        },
+      ],
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -177,6 +242,43 @@ function AccountSettingsScreen() {
                 />
                 <Text style={styles.statusText}>계정 활성화</Text>
               </View>
+            </View>
+          </View>
+
+          {/* 계정 관리 섹션 */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>계정 관리</Text>
+            <View style={styles.actionSection}>
+              <TouchableOpacity
+                style={styles.logoutButton}
+                onPress={handleLogout}>
+                <Fontawesome5
+                  name="sign-out-alt"
+                  size={20}
+                  iconStyle="solid"
+                  color={colors.textLight}
+                />
+                <Text style={styles.logoutButtonText}>로그아웃</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.logoutButton,
+                  deleteAccountMutation.isPending && styles.disabledButton,
+                ]}
+                onPress={handleWithdrawal}
+                disabled={deleteAccountMutation.isPending}>
+                <Fontawesome5
+                  name="trash-alt"
+                  size={20}
+                  iconStyle="solid"
+                  color={colors.textLight}
+                />
+                <Text style={styles.logoutButtonText}>
+                  {deleteAccountMutation.isPending
+                    ? '탈퇴 처리 중...'
+                    : '회원 탈퇴'}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -309,6 +411,24 @@ const styles = StyleSheet.create({
   },
   noBorder: {
     borderBottomWidth: 0,
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.overlayLight,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+  },
+  logoutButtonText: {
+    fontSize: 16,
+    marginLeft: 8,
+    fontWeight: '500',
+    color: colors.textLight,
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
 });
 

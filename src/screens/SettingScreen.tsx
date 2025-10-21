@@ -9,9 +9,8 @@ import {
   Alert,
   Linking,
 } from 'react-native';
-import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import {colors} from '../constants/colors';
-import {useAuth} from '../hooks/useAuth';
+import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
 
 interface SettingScreenProps {
   navigation: any;
@@ -34,7 +33,7 @@ const SettingItem: React.FC<SettingItemProps> = ({
 }) => (
   <TouchableOpacity style={styles.settingItem} onPress={onPress}>
     <View style={styles.settingItemLeft}>
-      <Fontawesome5
+      <FontAwesome5
         name={icon as any}
         size={20}
         iconStyle="solid"
@@ -49,7 +48,7 @@ const SettingItem: React.FC<SettingItemProps> = ({
       </Text>
     </View>
     {showArrow && (
-      <Fontawesome5
+      <FontAwesome5
         name="chevron-right"
         size={16}
         iconStyle="solid"
@@ -60,21 +59,6 @@ const SettingItem: React.FC<SettingItemProps> = ({
 );
 
 function SettingScreen({navigation}: SettingScreenProps) {
-  const {signOut} = useAuth();
-
-  const handleLogout = () => {
-    Alert.alert('로그아웃', '정말 로그아웃하시겠습니까?', [
-      {text: '취소', style: 'cancel'},
-      {
-        text: '로그아웃',
-        style: 'destructive',
-        onPress: () => {
-          signOut();
-        },
-      },
-    ]);
-  };
-
   const handlePrivacyPolicy = () => {
     navigation.navigate('PrivacyPolicy');
   };
@@ -127,7 +111,7 @@ function SettingScreen({navigation}: SettingScreenProps) {
               onPress={() => navigation.navigate('ProfileEdit')}
             />
             <SettingItem
-              icon="cog"
+              icon="user-cog"
               title="계정 설정"
               onPress={handleAccountSettings}
             />
@@ -157,19 +141,6 @@ function SettingScreen({navigation}: SettingScreenProps) {
               icon="question-circle"
               title="문의하기"
               onPress={handleContactUs}
-            />
-          </View>
-        </View>
-
-        {/* 로그아웃 섹션 */}
-        <View style={styles.section}>
-          <View style={styles.sectionContent}>
-            <SettingItem
-              icon="sign-out-alt"
-              title="로그아웃"
-              onPress={handleLogout}
-              showArrow={false}
-              isDestructive={true}
             />
           </View>
         </View>

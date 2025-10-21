@@ -193,6 +193,7 @@ const styles = StyleSheet.create({
   kakaoButton: {
     backgroundColor: colors.warning,
     flexDirection: 'row',
+    gap: 8,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
@@ -217,6 +218,7 @@ const styles = StyleSheet.create({
   googleButton: {
     backgroundColor: '#4285F4',
     flexDirection: 'row',
+    gap: 8,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,

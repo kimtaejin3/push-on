@@ -16,7 +16,6 @@ export const useKakaoLoginNative = () => {
       console.log('카카오 SDK 초기화 확인 중...');
 
       const token = await login();
-      Alert.alert('카카오 로그인 성공:', token.idToken);
 
       if (token.idToken) {
         // Supabase에 카카오 ID 토큰으로 로그인

@@ -2,6 +2,8 @@ import UIKit
 import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
+import KakaoSDKCommon   // Kakao SDK 초기화용
+import KakaoSDKAuth     // Kakao 로그인 처리용
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -14,6 +16,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
+
+    // ✅ 1. Kakao SDK 초기화 (반드시 가장 먼저)
+    KakaoSDK.initSDK(appKey: "6857d8aa2f0467a3366f37ea36f7260f") // 네이티브 앱 키
+
+    // 2. React Native Delegate/Factory 초기화
     let delegate = ReactNativeDelegate()
     let factory = RCTReactNativeFactory(delegate: delegate)
     delegate.dependencyProvider = RCTAppDependencyProvider()
@@ -21,8 +28,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     reactNativeDelegate = delegate
     reactNativeFactory = factory
 
+    // 3. UIWindow 생성 및 React Native 시작
     window = UIWindow(frame: UIScreen.main.bounds)
-
     factory.startReactNative(
       withModuleName: "pushupApp",
       in: window,
@@ -32,24 +39,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     return true
   }
 
-  // 딥링크 처리
+  // ✅ 4. 카카오 로그인 딥링크 처리
   func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-    return RCTLinkingManager.application(app, open: url, options: options)
-  }
-
-  // Universal Links 처리
-  func application(
-    _ application: UIApplication,
-    continue userActivity: NSUserActivity,
-    restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
-      return RCTLinkingManager.application(
-        application,
-        continue: userActivity,
-        restorationHandler: restorationHandler
-      )
+    if AuthApi.isKakaoTalkLoginUrl(url) {
+      return AuthController.handleOpenUrl(url: url)
     }
+    // 필요한 경우 다른 URL 처리 로직 추가 가능
+    return false
+  }
 }
 
+// ==============================
+// React Native Delegate (기존 구조 그대로)
+// ==============================
 class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
   override func sourceURL(for bridge: RCTBridge) -> URL? {
     self.bundleURL()

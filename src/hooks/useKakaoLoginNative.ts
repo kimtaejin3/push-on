@@ -9,10 +9,14 @@ export const useKakaoLoginNative = () => {
   const signInWithKakao = async () => {
     try {
       setIsLoading(true);
+      console.log('카카오 로그인 시작');
+      console.log('현재 시간:', new Date().toISOString());
 
-      // 카카오 네이티브 로그인
+      // 카카오 SDK 초기화 상태 확인
+      console.log('카카오 SDK 초기화 확인 중...');
+
       const token = await login();
-      console.log('카카오 로그인 성공:', token);
+      Alert.alert('카카오 로그인 성공:', token.idToken);
 
       if (token.idToken) {
         // Supabase에 카카오 ID 토큰으로 로그인
@@ -35,9 +39,13 @@ export const useKakaoLoginNative = () => {
       }
     } catch (error: any) {
       console.error('카카오 로그인 에러:', error);
+      console.error('에러 상세:', JSON.stringify(error, null, 2));
 
       if (error.code === 'CANCELLED') {
         console.log('사용자가 카카오 로그인을 취소했습니다.');
+      } else if (error.message) {
+        console.error('에러 메시지:', error.message);
+        Alert.alert('로그인 실패', `카카오 로그인 오류: ${error.message}`);
       } else {
         Alert.alert('로그인 실패', '카카오 로그인 중 오류가 발생했습니다.');
       }

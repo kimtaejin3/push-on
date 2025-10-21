@@ -17,7 +17,7 @@ function App(): React.JSX.Element {
         scopes: ['profile', 'email'],
       });
     } catch (error) {
-      console.error('[App.tsx] Google Sign-In configuration error:', error);
+      console.error('[App.tsx] SDK 초기화 에러:', error);
     }
   }, []);
 

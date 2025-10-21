@@ -13,12 +13,16 @@ import {colors} from '../constants/colors';
 import {useDeepLink} from '../hooks/useDeepLink';
 import KakaoWebView from '../components/features/webview/KakaoWebView';
 import {useKakaoLoginWithWebView} from '../hooks/useKakaoLogin';
+import {useGoogleLogin} from '../hooks/useGoogleLogin';
 import Logo from '../assets/svgs/logo.svg';
 
 function AuthScreen() {
   // 카카오 로그인 훅 사용
   const {isLoading, showWebView, webViewUrl, handleKakaoLogin, closeWebView} =
     useKakaoLoginWithWebView();
+
+  // 구글 로그인 훅 사용
+  const {signInWithGoogle, isLoading: isGoogleLoading} = useGoogleLogin();
 
   // 딥링크 처리 훅 사용
   useDeepLink({
@@ -118,6 +122,29 @@ function AuthScreen() {
             )}
             <Text style={styles.kakaoButtonText}>
               {isLoading ? '로그인 중...' : '카카오로 시작하기'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.googleButton,
+              isGoogleLoading && styles.disabledButton,
+            ]}
+            onPress={signInWithGoogle}
+            disabled={isGoogleLoading}>
+            {isGoogleLoading ? (
+              <ActivityIndicator size="small" color={colors.textLight} />
+            ) : (
+              <Fontawesome5
+                name="google"
+                size={20}
+                iconStyle="brand"
+                color={colors.textLight}
+                style={styles.googleIcon}
+              />
+            )}
+            <Text style={styles.googleButtonText}>
+              {isGoogleLoading ? '로그인 중...' : 'Google로 시작하기'}
             </Text>
           </TouchableOpacity>
 
@@ -241,6 +268,27 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.6,
+  },
+  googleButton: {
+    backgroundColor: '#4285F4',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    shadowColor: colors.shadow,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  googleIcon: {
+    marginRight: 12,
+  },
+  googleButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.textLight,
   },
   loggedInContainer: {
     flex: 1,

@@ -193,11 +193,6 @@ const styles = StyleSheet.create({
     padding: 30,
     borderRadius: 20,
     minWidth: 120,
-    shadowColor: colors.gray900,
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
   },
   resultNumber: {
     fontSize: 36,

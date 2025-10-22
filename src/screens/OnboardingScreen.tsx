@@ -75,13 +75,8 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
     ]).start();
   }, [titleAnim, descriptionAnim, contentAnim, buttonAnim]);
 
-  // 스텝 변경 시 애니메이션 리셋
   useEffect(() => {
-    // 스텝이 변경될 때마다 애니메이션 재시작
-    titleAnim.setValue(0);
-    descriptionAnim.setValue(0);
-    contentAnim.setValue(0);
-    buttonAnim.setValue(0);
+    console.log('step call 됨');
 
     Animated.sequence([
       Animated.timing(titleAnim, {
@@ -186,18 +181,7 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
             푸쉬핏에 오신 것을 환영합니다!
           </Animated.Text>
 
-          <Animated.View
-            style={{
-              opacity: contentAnim,
-              transform: [
-                {
-                  translateY: contentAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [40, 0],
-                  }),
-                },
-              ],
-            }}>
+          <View>
             {step === 0 && (
               <InputNickname nickname={nickname} setNickname={setNickname} />
             )}
@@ -215,7 +199,7 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
                 onSave={handleSave}
               />
             )}
-          </Animated.View>
+          </View>
 
           <Animated.View
             style={[
@@ -334,6 +318,7 @@ function InputNickname({
           keyboardType="default"
           maxLength={10}
           returnKeyType="next"
+          placeholderTextColor={colors.textSecondary}
           onSubmitEditing={() => {
             Keyboard.dismiss();
           }}

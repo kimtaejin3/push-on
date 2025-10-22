@@ -75,33 +75,6 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
     ]).start();
   }, [titleAnim, descriptionAnim, contentAnim, buttonAnim]);
 
-  useEffect(() => {
-    console.log('step call 됨');
-
-    Animated.sequence([
-      Animated.timing(titleAnim, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-      Animated.timing(descriptionAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(contentAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(buttonAnim, {
-        toValue: 1,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [step, titleAnim, descriptionAnim, contentAnim, buttonAnim]);
-
   const handleSave = async () => {
     if (step === 0 || step === 1) {
       return;
@@ -232,10 +205,22 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
               style={styles.onboardingButton}
               onPress={() => {
                 if (step === 0) {
+                  if (nickname.length === 0) {
+                    Alert.alert('오류', '닉네임을 입력해주세요');
+                    return;
+                  }
                   setStep(1);
                 } else if (step === 1) {
+                  if (targetRepsPerSet.length === 0) {
+                    Alert.alert('오류', '세트당 목표 횟수를 입력해주세요');
+                    return;
+                  }
                   setStep(2);
                 } else {
+                  if (targetSetsPerDay.length === 0) {
+                    Alert.alert('오류', '하루 목표 세트 수를 입력해주세요');
+                    return;
+                  }
                   handleSave();
                 }
               }}
@@ -415,6 +400,7 @@ function InputTargetRepsPerSet({
           keyboardType="numeric"
           maxLength={3}
           returnKeyType="next"
+          placeholderTextColor={colors.textSecondary}
           onSubmitEditing={() => {
             Keyboard.dismiss();
           }}
@@ -512,10 +498,10 @@ function InputTargetSetsPerDay({
           keyboardType="numeric"
           maxLength={2}
           returnKeyType="done"
+          placeholderTextColor={colors.textSecondary}
           onSubmitEditing={() => {
             Keyboard.dismiss();
           }}
-          placeholderTextColor={colors.textSecondary}
         />
       </Animated.View>
       <Animated.Text

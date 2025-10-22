@@ -48,29 +48,27 @@ const AppNavigation = createStaticNavigation(AppStack);
 
 // 조건부 네비게이션 컴포넌트
 const ConditionalNavigation = () => {
-  // const {isLoggedIn, loading: authLoading} = useAuth();
+  const {isLoggedIn, loading: authLoading} = useAuth();
 
-  // const {
-  //   isOnboarded,
-  //   loading: onboardingLoading,
-  //   refresh: refreshOnboarding,
-  // } = useIsOnboarded();
+  const {
+    isOnboarded,
+    loading: onboardingLoading,
+    refresh: refreshOnboarding,
+  } = useIsOnboarded();
 
-  // if (authLoading || onboardingLoading) {
-  //   return null;
-  // }
+  if (authLoading || onboardingLoading) {
+    return null;
+  }
 
-  // if (!isLoggedIn) {
-  //   return <AuthScreen />;
-  // }
+  if (!isLoggedIn) {
+    return <AuthScreen />;
+  }
 
-  // if (isOnboarded === false) {
-  //   return <OnboardingScreen onComplete={refreshOnboarding} />;
-  // }
+  if (isOnboarded === false) {
+    return <OnboardingScreen onComplete={refreshOnboarding} />;
+  }
 
-  // return <AppNavigation />;
-
-  return <OnboardingScreen onComplete={() => {}} />;
+  return <AppNavigation />;
 };
 
 export type AppStackParamList = {

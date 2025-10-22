@@ -30,19 +30,17 @@ public class AugmentedFacesActivity implements GLSurfaceView.Renderer {
     private int pushUpCount = 0;
     private boolean isGoingDown = false;
 
-    private final float CLOSE_THRESHOLD = 0.35f;
-    private final float FAR_THRESHOLD = 0.40f;
+    private final float CLOSE_THRESHOLD = 0.30f;
+    private final float FAR_THRESHOLD = 0.35f;
 
     private ReactApplicationContext reactContext;
 
     public AugmentedFacesActivity(ReactApplicationContext reactContext) {
         this.reactContext = reactContext;
         this.installRequested = false;
-        Log.d(TAG, "🚀 AugmentedFacesActivity 생성됨");
     }
 
     public void startSession() {
-        Log.d(TAG, "🚀 startSession() 호출됨");
         
         try {
             // XML 레이아웃에서 GLSurfaceView 참조 (원본 방식)
@@ -50,7 +48,6 @@ public class AugmentedFacesActivity implements GLSurfaceView.Renderer {
             
             // ARCore 설치 확인
             if (session == null) {
-                Log.d(TAG, "📱 ARCore 세션 생성 시작");
                 switch (ArCoreApk.getInstance().requestInstall(reactContext.getCurrentActivity(), !installRequested)) {
                     case INSTALL_REQUESTED:
                         installRequested = true;
@@ -68,7 +65,6 @@ public class AugmentedFacesActivity implements GLSurfaceView.Renderer {
                 List<CameraConfig> configs = session.getSupportedCameraConfigs(filter);
                 if (!configs.isEmpty()) {
                     session.setCameraConfig(configs.get(0));
-                    Log.d(TAG, "✅ 전면 카메라 설정됨");
                 } else {
                     throw new UnavailableDeviceNotCompatibleException("전면 카메라 없음");
                 }
@@ -77,16 +73,13 @@ public class AugmentedFacesActivity implements GLSurfaceView.Renderer {
                 Config config = new Config(session);
                 config.setAugmentedFaceMode(Config.AugmentedFaceMode.MESH3D);
                 session.configure(config);
-                Log.d(TAG, "✅ ARCore config set");
             }
 
             session.resume();
             
             if (surfaceView != null) {
                 surfaceView.onResume();
-                Log.d(TAG, "✅ ARCore session started");
             } else {
-                Log.e(TAG, "❌ surfaceView가 null입니다. GLSurfaceView 설정을 확인하세요.");
                 return;
             }
 

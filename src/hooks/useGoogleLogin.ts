@@ -29,6 +29,7 @@ export const useGoogleLogin = () => {
 
         if (error) {
           console.error('Google 로그인 에러:', error);
+          console.error(error.message);
           Alert.alert('로그인 실패', error.message);
         } else {
           console.log('Google 로그인 성공:', data);

@@ -1,7 +1,7 @@
-import React, {Suspense} from 'react';
+import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {colors} from '../../../constants/colors';
-import {useSuspenseQuery} from '@tanstack/react-query';
+import {useQuery} from '@tanstack/react-query';
 import {pushUpSetsByDateQueryOptions} from '../../../tanstack-query';
 import {selectedDateAtom} from '../../../atoms/date';
 import {useAtom} from 'jotai';
@@ -20,21 +20,20 @@ const historySummaryItems = [
   {
     type: 'duration',
     label: '총 시간',
-    //TODO: 시간에 따라 분/초 표시
     prefix: '초',
   },
 ];
 
 function HistorySummary() {
+  const [selectedDate] = useAtom(selectedDateAtom);
+
   return (
     <View style={styles.historySummary}>
       {historySummaryItems.map((item, index) => (
         <View style={styles.historySummaryItem} key={index}>
           <Text style={styles.historySummaryTitle}>{item.label}</Text>
           <Text style={styles.historySummaryText}>
-            <Suspense fallback={<Text>-</Text>}>
-              <HistoryValue type={item.type} />
-            </Suspense>
+            <HistoryValue type={item.type} selectedDate={selectedDate} />
             {item.prefix}
           </Text>
         </View>
@@ -45,17 +44,22 @@ function HistorySummary() {
 
 function HistoryValue({
   type,
+  selectedDate,
 }: {
   type: (typeof historySummaryItems)[number]['type'];
+  selectedDate: Date;
 }) {
-  const [selectedDate] = useAtom(selectedDateAtom);
-  const {data} = useSuspenseQuery(
+  const {data, isLoading} = useQuery(
     pushUpSetsByDateQueryOptions(
       selectedDate.getFullYear(),
       selectedDate.getMonth() + 1,
       selectedDate.getDate(),
     ),
   );
+
+  if (isLoading || !data) {
+    return <Text>-</Text>;
+  }
 
   const totalReps = data.reduce((acc, item) => acc + item.reps, 0);
   const totalSets = data.length;

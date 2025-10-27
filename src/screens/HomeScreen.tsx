@@ -20,6 +20,18 @@ function HomeScreen(): React.JSX.Element {
     pushUpSetsByDateQueryOptions(CURRENT_YEAR, CURRENT_MONTH, CURRENT_DATE),
   );
 
+  console.log(new Date().toISOString().split('T')[0]);
+  console.log(
+    new Date()
+      .toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      })
+      .replace(/\. /g, '-')
+      .replace('.', ''),
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView

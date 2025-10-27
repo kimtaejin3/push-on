@@ -210,7 +210,7 @@ export const savePushupSession = async (
 
     const {error} = await supabase.from('pushup_sets').insert({
       user_id: user.user.id, // 사용자 ID 추가
-      workout_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD 형식
+      workout_date: new Date().toISOString().split('T')[0],
       set_number: data.set_number,
       reps: data.reps,
       duration_seconds: data.duration_seconds,

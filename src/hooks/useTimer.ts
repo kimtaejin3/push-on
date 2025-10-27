@@ -1,6 +1,5 @@
 import {useState, useCallback} from 'react';
 import useInterval from './useInterval';
-import {formatTime} from '../utils/time';
 
 export const useTimer = () => {
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -44,8 +43,7 @@ export const useTimer = () => {
 
   return {
     elapsedTime,
-    isRunning,
-    formattedTime: formatTime(elapsedTime),
+    isTimerRunning: isRunning,
     startTimer,
     stopTimer,
     resumeTimer,

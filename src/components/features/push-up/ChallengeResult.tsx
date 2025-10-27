@@ -4,22 +4,43 @@ import CustomButton from '../../common/CustomButton';
 import {colors} from '../../../constants/colors';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
 import {useNavigation} from '@react-navigation/native';
+import {useSavePushupSessionMutation} from '../../../tanstack-query';
 
 interface ChallengeResultProps {
   pushUpCount: number;
-  duration: string;
-  onSaveAndGoHome: () => void;
+  duration: number;
 }
 
 function ChallengeResult({
   pushUpCount,
   duration,
-  onSaveAndGoHome,
 }: ChallengeResultProps): React.JSX.Element {
   const iconAnim = useRef(new Animated.Value(0)).current;
   const titleAnim = useRef(new Animated.Value(0)).current;
   const subtitleAnim = useRef(new Animated.Value(0)).current;
   const navigation = useNavigation();
+
+  const savePushupMutation = useSavePushupSessionMutation(
+    () => {
+      navigation.navigate('Tabs' as never);
+    },
+    error => {
+      console.error('푸쉬업 세션 저장 실패:', error);
+      navigation.navigate('Tabs' as never);
+    },
+  );
+
+  const handleSaveAndGoHome = () => {
+    if (pushUpCount === 0) {
+      return;
+    }
+    savePushupMutation.mutate({
+      reps: pushUpCount,
+      duration_seconds: duration,
+      set_number: 1,
+    });
+  };
+
   useEffect(() => {
     // 순차적으로 애니메이션 실행
     Animated.sequence([
@@ -137,7 +158,7 @@ function ChallengeResult({
             variant="start"
             onPress={() => {
               if (pushUpCount > 0) {
-                onSaveAndGoHome();
+                handleSaveAndGoHome();
               } else {
                 navigation.navigate('Tabs', {
                   screen: 'Home',

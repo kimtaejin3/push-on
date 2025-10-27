@@ -1,4 +1,5 @@
 import {supabase} from '../lib/supabase';
+import {formatKSTDate} from '../utils/time';
 
 export interface PushupSetData {
   id: string;
@@ -209,8 +210,8 @@ export const savePushupSession = async (
     }
 
     const {error} = await supabase.from('pushup_sets').insert({
-      user_id: user.user.id, // 사용자 ID 추가
-      workout_date: new Date().toISOString().split('T')[0],
+      user_id: user.user.id,
+      workout_date: formatKSTDate(new Date()),
       set_number: data.set_number,
       reps: data.reps,
       duration_seconds: data.duration_seconds,

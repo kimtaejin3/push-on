@@ -21,6 +21,7 @@ import {
 } from '../../../atoms/date';
 import {useAtom} from 'jotai';
 import {useAuth} from '../../../hooks/useAuth';
+import {formatKSTDate} from '../../../utils/time';
 
 interface CalendarProps {
   selectedDate: Date;
@@ -58,10 +59,7 @@ const Calendar: React.FC<CalendarProps> = ({selectedDate}) => {
       return undefined;
     }
 
-    // 로컬 날짜를 사용하여 시간대 문제 방지
-    const dateStr = `${date.getFullYear()}-${String(
-      date.getMonth() + 1,
-    ).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const dateStr = formatKSTDate(date);
     return pushupData.find(data => data.date === dateStr);
   };
 

@@ -13,8 +13,6 @@ const pushUpSetsByDateQueryOptions = (
   return {
     queryKey: queryKeys.pushup.sets(year, month, day),
     queryFn: () => getTodayPushupSets({year, month, day}),
-    staleTime: 0,
-    gcTime: 0,
   };
 };
 

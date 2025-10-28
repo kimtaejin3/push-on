@@ -6,72 +6,20 @@ import {
   Keyboard,
   Animated,
   View,
-  Alert,
 } from 'react-native';
 import {colors} from '../constants/colors';
 import InputNickname from '../components/features/onboarding/InputNickName';
 import InputTargetSetsPerDay from '../components/features/onboarding/InputTargetSetsPerDay';
 import InputTargetRepsPerSet from '../components/features/onboarding/InputTargetRepsPerSet';
 import OnboardingResult from '../components/features/onboarding/OnboardingResult';
-import {useAuth} from '../hooks/useAuth';
-import {useUpsertProfileMutation} from '../tanstack-query/mutationHooks/profile';
 
 function OnboardingScreen({onComplete}: {onComplete: () => void}) {
-  const [targetRepsPerSet, setTargetRepsPerSet] = useState('');
-  const [targetSetsPerDay, setTargetSetsPerDay] = useState('');
-  const [nickname, setNickname] = useState('');
-
+  const [onboardingData, setOnboardingData] = useState({
+    nickname: '',
+    targetRepsPerSet: '',
+    targetSetsPerDay: '',
+  });
   const [step, setStep] = useState(0);
-
-  const {user} = useAuth();
-
-  const upsertProfileMutation = useUpsertProfileMutation(
-    async () => {
-      Alert.alert('성공', '목표가 설정되었습니다!', [
-        {
-          text: '확인',
-          onPress: () => {
-            onComplete();
-          },
-        },
-      ]);
-    },
-    () => {
-      Alert.alert('오류', '목표 설정 저장에 실패했습니다.');
-    },
-  );
-
-  const handleSave = async (data: {
-    nickname: string;
-    targetRepsPerSet: string;
-    targetSetsPerDay: string;
-  }) => {
-    const reps = parseInt(data.targetRepsPerSet, 10);
-    const sets = parseInt(data.targetSetsPerDay, 10);
-
-    if (isNaN(reps) || reps < 1 || reps > 100) {
-      Alert.alert(
-        '오류',
-        '세트당 목표 횟수는 1-100 사이의 숫자를 입력해주세요.',
-      );
-      return;
-    }
-
-    if (isNaN(sets) || sets < 1 || sets > 20) {
-      Alert.alert(
-        '오류',
-        '하루 목표 세트 수는 1-20 사이의 숫자를 입력해주세요.',
-      );
-      return;
-    }
-
-    upsertProfileMutation.mutate({
-      id: user?.id || '',
-      target_reps_per_set: reps,
-      target_sets_per_day: sets,
-      nickname: data.nickname,
-    });
-  };
 
   // 애니메이션 값들
   const titleAnim = useRef(new Animated.Value(0)).current;
@@ -114,47 +62,14 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
     <SafeAreaView style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.content}>
-          <Animated.Text
-            style={[
-              styles.onboardingTitle,
-              {
-                opacity: titleAnim,
-                transform: [
-                  {
-                    translateY: titleAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [30, 0],
-                    }),
-                  },
-                ],
-              },
-            ]}>
-            온보딩
-          </Animated.Text>
-          <Animated.Text
-            style={[
-              styles.onboardingDescription,
-              {
-                opacity: descriptionAnim,
-                transform: [
-                  {
-                    translateY: descriptionAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [20, 0],
-                    }),
-                  },
-                ],
-              },
-            ]}>
-            푸쉬핏에 오신 것을 환영합니다!
-          </Animated.Text>
-
           {(() => {
             if (step === 0) {
               return (
                 <InputNickname
-                  nickname={nickname}
-                  setNickname={setNickname}
+                  nickname={onboardingData.nickname}
+                  setNickname={nickname =>
+                    setOnboardingData(prev => ({...prev, nickname}))
+                  }
                   onNext={() => setStep(1)}
                 />
               );
@@ -162,8 +77,10 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
             if (step === 1) {
               return (
                 <InputTargetRepsPerSet
-                  targetRepsPerSet={targetRepsPerSet}
-                  setTargetRepsPerSet={setTargetRepsPerSet}
+                  targetRepsPerSet={onboardingData.targetRepsPerSet}
+                  setTargetRepsPerSet={targetRepsPerSet =>
+                    setOnboardingData(prev => ({...prev, targetRepsPerSet}))
+                  }
                   onNext={() => setStep(2)}
                 />
               );
@@ -171,8 +88,10 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
             if (step === 2) {
               return (
                 <InputTargetSetsPerDay
-                  targetSetsPerDay={targetSetsPerDay}
-                  setTargetSetsPerDay={setTargetSetsPerDay}
+                  targetSetsPerDay={onboardingData.targetSetsPerDay}
+                  setTargetSetsPerDay={targetSetsPerDay =>
+                    setOnboardingData(prev => ({...prev, targetSetsPerDay}))
+                  }
                   onNext={() => {
                     setStep(3);
                   }}
@@ -182,16 +101,10 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
             if (step === 3) {
               return (
                 <OnboardingResult
-                  nickname={nickname}
-                  targetRepsPerSet={targetRepsPerSet}
-                  targetSetsPerDay={targetSetsPerDay}
-                  onComplete={() => {
-                    handleSave({
-                      nickname,
-                      targetRepsPerSet,
-                      targetSetsPerDay,
-                    });
-                  }}
+                  nickname={onboardingData.nickname}
+                  targetRepsPerSet={onboardingData.targetRepsPerSet}
+                  targetSetsPerDay={onboardingData.targetSetsPerDay}
+                  onComplete={onComplete}
                 />
               );
             }

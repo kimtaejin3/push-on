@@ -1,7 +1,9 @@
 import {useEffect, useRef} from 'react';
-import {Animated, StyleSheet, View, Text} from 'react-native';
+import {Animated, StyleSheet, View, Text, Alert} from 'react-native';
 import {colors} from '../../../constants/colors';
 import CustomButton from '../../common/CustomButton';
+import {useAuth} from '../../../hooks/useAuth';
+import {useUpsertProfileMutation} from '../../../tanstack-query/mutationHooks/profile';
 
 interface OnboardingResultProps {
   nickname: string;
@@ -19,6 +21,52 @@ function OnboardingResult({
   const titleAnim = useRef(new Animated.Value(0)).current;
   const contentAnim = useRef(new Animated.Value(0)).current;
   const buttonAnim = useRef(new Animated.Value(0)).current;
+
+  const {user} = useAuth();
+
+  const upsertProfileMutation = useUpsertProfileMutation(
+    async () => {
+      Alert.alert('성공', '목표가 설정되었습니다!', [
+        {
+          text: '확인',
+          onPress: () => {
+            onComplete();
+          },
+        },
+      ]);
+    },
+    () => {
+      Alert.alert('오류', '목표 설정 저장에 실패했습니다.');
+    },
+  );
+
+  const handleSave = async () => {
+    const reps = parseInt(targetRepsPerSet, 10);
+    const sets = parseInt(targetSetsPerDay, 10);
+
+    if (isNaN(reps) || reps < 1 || reps > 100) {
+      Alert.alert(
+        '오류',
+        '세트당 목표 횟수는 1-100 사이의 숫자를 입력해주세요.',
+      );
+      return;
+    }
+
+    if (isNaN(sets) || sets < 1 || sets > 20) {
+      Alert.alert(
+        '오류',
+        '하루 목표 세트 수는 1-20 사이의 숫자를 입력해주세요.',
+      );
+      return;
+    }
+
+    upsertProfileMutation.mutate({
+      id: user?.id || '',
+      target_reps_per_set: reps,
+      target_sets_per_day: sets,
+      nickname: nickname,
+    });
+  };
 
   useEffect(() => {
     Animated.sequence([
@@ -57,7 +105,7 @@ function OnboardingResult({
             ],
           },
         ]}>
-        목표 설정 완료! 🎉
+        프로필 설정 완료! 🎉
       </Animated.Text>
 
       <Animated.View
@@ -76,8 +124,6 @@ function OnboardingResult({
           },
         ]}>
         <View style={styles.resultCard}>
-          <Text style={styles.cardTitle}>설정된 목표</Text>
-
           <View style={styles.resultItem}>
             <Text style={styles.resultLabel}>닉네임</Text>
             <Text style={styles.resultValue}>{nickname}</Text>
@@ -94,9 +140,7 @@ function OnboardingResult({
           </View>
         </View>
 
-        <Text style={styles.noteText}>
-          * 수정은 할 수 없습니다. 나중에 설정 탭에서 수정할 수 있어요.
-        </Text>
+        <Text style={styles.noteText}>* 설정 탭에서 수정할 수 있어요.</Text>
       </Animated.View>
 
       <Animated.View
@@ -114,7 +158,11 @@ function OnboardingResult({
             ],
           },
         ]}>
-        <CustomButton title="온보딩 완료하기" onPress={onComplete} />
+        <CustomButton
+          title="온보딩 완료하기"
+          onPress={handleSave}
+          disabled={upsertProfileMutation.isPending}
+        />
       </Animated.View>
     </View>
   );
@@ -123,7 +171,6 @@ function OnboardingResult({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
     paddingVertical: 40,
     justifyContent: 'space-between',
   },
@@ -139,15 +186,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   resultCard: {
-    backgroundColor: colors.background || '#FFFFFF',
+    backgroundColor: colors.overlayLight,
     borderRadius: 16,
     padding: 24,
     marginBottom: 20,
-    shadowColor: colors.shadow,
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
   },
   cardTitle: {
     fontSize: 18,
@@ -161,8 +203,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray400 || '#E5E5E5',
   },
   resultLabel: {
     fontSize: 16,

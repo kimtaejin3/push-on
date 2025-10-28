@@ -1,9 +1,15 @@
-import {useEffect, useRef, useState} from 'react';
+import {useState} from 'react';
 import {Animated, Keyboard, StyleSheet, View, Text} from 'react-native';
 import {colors} from '../../../constants/colors';
 import {CustomTextInput} from '../../common/CustomTextInput';
 import CustomButton from '../../common/CustomButton';
 import {checkNicknameAvailability} from '../../../remote/profile';
+import {
+  useSequentialAnimation,
+  createFadeInStyle,
+  createSlideUpStyle,
+  createSlideDownStyle,
+} from '../../../hooks/useSequentialAnimation';
 
 function InputNickname({
   nickname,
@@ -14,13 +20,13 @@ function InputNickname({
   setNickname: (value: string) => void;
   onNext: () => void;
 }) {
-  const questionAnim = useRef(new Animated.Value(0)).current;
-  const inputAnim = useRef(new Animated.Value(0)).current;
-  const hintAnim = useRef(new Animated.Value(0)).current;
-  const buttonAnim = useRef(new Animated.Value(0)).current;
-
   const [nicknameError, setNicknameError] = useState<string | null>(null);
   const [isCheckingNickname, setIsCheckingNickname] = useState(false);
+
+  const [questionAnim, inputAnim, hintAnim, buttonAnim] =
+    useSequentialAnimation(4, {
+      durations: [400, 300, 250, 100],
+    });
 
   const handleNicknameCheck = async () => {
     if (nickname.length === 0) {
@@ -50,62 +56,13 @@ function InputNickname({
     }
   };
 
-  useEffect(() => {
-    Animated.sequence([
-      Animated.timing(questionAnim, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-      Animated.timing(inputAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(hintAnim, {
-        toValue: 1,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.timing(buttonAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [questionAnim, inputAnim, hintAnim, buttonAnim]);
-
   return (
     <View style={styles.questionContainer}>
       <Animated.Text
-        style={[
-          styles.questionText,
-          {
-            opacity: questionAnim,
-            transform: [
-              {
-                translateY: questionAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [20, 0],
-                }),
-              },
-            ],
-          },
-        ]}>
+        style={[styles.questionText, createFadeInStyle(questionAnim, 20)]}>
         사용할 닉네임을 입력해주세요
       </Animated.Text>
-      <Animated.View
-        style={{
-          opacity: inputAnim,
-          transform: [
-            {
-              translateY: inputAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [15, 0],
-              }),
-            },
-          ],
-        }}>
+      <Animated.View style={createSlideUpStyle(inputAnim, 15)}>
         <CustomTextInput
           value={nickname}
           onChangeText={text => {
@@ -124,20 +81,7 @@ function InputNickname({
 
       {!nicknameError && (
         <Animated.Text
-          style={[
-            styles.inputHint,
-            {
-              opacity: hintAnim,
-              transform: [
-                {
-                  translateY: hintAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [10, 0],
-                  }),
-                },
-              ],
-            },
-          ]}>
+          style={[styles.inputHint, createSlideDownStyle(hintAnim, 10)]}>
           나중에 수정할 수 있어요
         </Animated.Text>
       )}
@@ -145,20 +89,7 @@ function InputNickname({
       {nicknameError && <Text style={styles.errorText}>{nicknameError}</Text>}
 
       <Animated.View
-        style={[
-          styles.buttonContainer,
-          {
-            opacity: buttonAnim,
-            transform: [
-              {
-                translateY: buttonAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [30, 0],
-                }),
-              },
-            ],
-          },
-        ]}>
+        style={[styles.buttonContainer, createFadeInStyle(buttonAnim, 30)]}>
         <CustomButton
           title={isCheckingNickname ? '확인 중...' : '다음'}
           onPress={handleNicknameCheck}

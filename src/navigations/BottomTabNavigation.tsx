@@ -17,6 +17,34 @@ export type BottomTabParamList = {
 
 const Tab = createBottomTabNavigator<BottomTabParamList>();
 
+// 아이콘 컴포넌트들을 외부로 분리
+const HomeIcon = ({color}: {color: string}) => (
+  <Fontawesome5 name="home" size={20} color={color} iconStyle="solid" />
+);
+
+const HistoryIcon = ({color}: {color: string}) => (
+  <Fontawesome5 name="history" size={20} color={color} iconStyle="solid" />
+);
+
+const StatisticIcon = ({color}: {color: string}) => (
+  <FontAwesome6 name="chart-simple" size={20} color={color} iconStyle="solid" />
+);
+
+const SettingIcon = ({color}: {color: string}) => (
+  <Fontawesome5 name="cog" size={20} color={color} iconStyle="solid" />
+);
+
+const homeTabBarIcon = ({color}: {color: string}) => <HomeIcon color={color} />;
+const historyTabBarIcon = ({color}: {color: string}) => (
+  <HistoryIcon color={color} />
+);
+const statisticTabBarIcon = ({color}: {color: string}) => (
+  <StatisticIcon color={color} />
+);
+const settingTabBarIcon = ({color}: {color: string}) => (
+  <SettingIcon color={color} />
+);
+
 const BottomTabNavigation = () => {
   const handleTabPress = () => {
     // 탭 이동 시 가벼운 진동
@@ -48,14 +76,7 @@ const BottomTabNavigation = () => {
         name="Home"
         component={HomeScreen}
         options={{
-          tabBarIcon: ({color}) => (
-            <Fontawesome5
-              name="home"
-              size={20}
-              color={color}
-              iconStyle="solid"
-            />
-          ),
+          tabBarIcon: homeTabBarIcon,
         }}
         listeners={{
           tabPress: handleTabPress,
@@ -65,14 +86,7 @@ const BottomTabNavigation = () => {
         name="History"
         component={HistoryScreen}
         options={{
-          tabBarIcon: ({color}) => (
-            <Fontawesome5
-              name="history"
-              size={20}
-              color={color}
-              iconStyle="solid"
-            />
-          ),
+          tabBarIcon: historyTabBarIcon,
         }}
         listeners={{
           tabPress: handleTabPress,
@@ -82,14 +96,7 @@ const BottomTabNavigation = () => {
         name="Statistic"
         component={StatisticScreen}
         options={{
-          tabBarIcon: ({color}) => (
-            <FontAwesome6
-              name="chart-simple"
-              size={20}
-              color={color}
-              iconStyle="solid"
-            />
-          ),
+          tabBarIcon: statisticTabBarIcon,
         }}
         listeners={{
           tabPress: handleTabPress,
@@ -99,14 +106,7 @@ const BottomTabNavigation = () => {
         name="Setting"
         component={SettingScreen}
         options={{
-          tabBarIcon: ({color}) => (
-            <Fontawesome5
-              name="cog"
-              size={20}
-              color={color}
-              iconStyle="solid"
-            />
-          ),
+          tabBarIcon: settingTabBarIcon,
         }}
         listeners={{
           tabPress: handleTabPress,

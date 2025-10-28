@@ -1,10 +1,9 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
   TouchableWithoutFeedback,
   Keyboard,
-  Animated,
   View,
 } from 'react-native';
 import {colors} from '../constants/colors';
@@ -20,43 +19,6 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
     targetSetsPerDay: '',
   });
   const [step, setStep] = useState(0);
-
-  // 애니메이션 값들
-  const titleAnim = useRef(new Animated.Value(0)).current;
-  const descriptionAnim = useRef(new Animated.Value(0)).current;
-  const contentAnim = useRef(new Animated.Value(0)).current;
-  const buttonAnim = useRef(new Animated.Value(0)).current;
-
-  // TODO: 나중에 훅으로 분리
-  useEffect(() => {
-    // 페이지 로드 시 순차적 애니메이션 실행
-    Animated.sequence([
-      // 제목 애니메이션 (첫 번째)
-      Animated.timing(titleAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-      // 설명 애니메이션 (두 번째)
-      Animated.timing(descriptionAnim, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-      // 콘텐츠 애니메이션 (세 번째)
-      Animated.timing(contentAnim, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-      // 버튼 애니메이션 (네 번째)
-      Animated.timing(buttonAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [titleAnim, descriptionAnim, contentAnim, buttonAnim]);
 
   return (
     <SafeAreaView style={styles.container}>

@@ -1,4 +1,4 @@
-import {Animated, Keyboard, StyleSheet, View} from 'react-native';
+import {Alert, Animated, Keyboard, StyleSheet, View} from 'react-native';
 import {colors} from '../../../constants/colors';
 import {useRef} from 'react';
 import {useEffect} from 'react';
@@ -8,10 +8,11 @@ import CustomButton from '../../common/CustomButton';
 function InputTargetSetsPerDay({
   targetSetsPerDay,
   setTargetSetsPerDay,
+  onNext,
 }: {
   targetSetsPerDay: string;
   setTargetSetsPerDay: (value: string) => void;
-  onSave: () => void;
+  onNext: () => void;
 }) {
   const questionAnim = useRef(new Animated.Value(0)).current;
   const inputAnim = useRef(new Animated.Value(0)).current;
@@ -119,7 +120,16 @@ function InputTargetSetsPerDay({
             ],
           },
         ]}>
-        <CustomButton title="완료" onPress={() => {}} />
+        <CustomButton
+          title="완료"
+          onPress={() => {
+            if (targetSetsPerDay.length === 0) {
+              Alert.alert('하루에 목표 세트 수를 입력해주세요.');
+              return;
+            }
+            onNext();
+          }}
+        />
       </Animated.View>
     </View>
   );

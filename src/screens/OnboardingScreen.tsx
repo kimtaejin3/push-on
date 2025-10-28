@@ -2,26 +2,28 @@ import React, {useState, useEffect, useRef} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
-  Alert,
   TouchableWithoutFeedback,
   Keyboard,
   Animated,
   View,
+  Alert,
 } from 'react-native';
 import {colors} from '../constants/colors';
-import {useAuth} from '../hooks/useAuth';
-import {useUpsertProfileMutation} from '../tanstack-query/mutationHooks/profile';
 import InputNickname from '../components/features/onboarding/InputNickName';
 import InputTargetSetsPerDay from '../components/features/onboarding/InputTargetSetsPerDay';
 import InputTargetRepsPerSet from '../components/features/onboarding/InputTargetRepsPerSet';
+import OnboardingResult from '../components/features/onboarding/OnboardingResult';
+import {useAuth} from '../hooks/useAuth';
+import {useUpsertProfileMutation} from '../tanstack-query/mutationHooks/profile';
 
 function OnboardingScreen({onComplete}: {onComplete: () => void}) {
-  const {user} = useAuth();
   const [targetRepsPerSet, setTargetRepsPerSet] = useState('');
   const [targetSetsPerDay, setTargetSetsPerDay] = useState('');
+  const [nickname, setNickname] = useState('');
 
   const [step, setStep] = useState(0);
-  const [nickname, setNickname] = useState('');
+
+  const {user} = useAuth();
 
   const upsertProfileMutation = useUpsertProfileMutation(
     async () => {
@@ -38,6 +40,39 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
       Alert.alert('오류', '목표 설정 저장에 실패했습니다.');
     },
   );
+
+  const handleSave = async (data: {
+    nickname: string;
+    targetRepsPerSet: string;
+    targetSetsPerDay: string;
+  }) => {
+    const reps = parseInt(data.targetRepsPerSet, 10);
+    const sets = parseInt(data.targetSetsPerDay, 10);
+
+    if (isNaN(reps) || reps < 1 || reps > 100) {
+      Alert.alert(
+        '오류',
+        '세트당 목표 횟수는 1-100 사이의 숫자를 입력해주세요.',
+      );
+      return;
+    }
+
+    if (isNaN(sets) || sets < 1 || sets > 20) {
+      Alert.alert(
+        '오류',
+        '하루 목표 세트 수는 1-20 사이의 숫자를 입력해주세요.',
+      );
+      return;
+    }
+
+    upsertProfileMutation.mutate({
+      id: user?.id || '',
+      target_reps_per_set: reps,
+      target_sets_per_day: sets,
+      nickname: data.nickname,
+    });
+  };
+
   // 애니메이션 값들
   const titleAnim = useRef(new Animated.Value(0)).current;
   const descriptionAnim = useRef(new Animated.Value(0)).current;
@@ -74,38 +109,6 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
       }),
     ]).start();
   }, [titleAnim, descriptionAnim, contentAnim, buttonAnim]);
-
-  const handleSave = async () => {
-    if (step === 0 || step === 1) {
-      return;
-    }
-
-    const reps = parseInt(targetRepsPerSet, 10);
-    const sets = parseInt(targetSetsPerDay, 10);
-
-    if (isNaN(reps) || reps < 1 || reps > 100) {
-      Alert.alert(
-        '오류',
-        '세트당 목표 횟수는 1-100 사이의 숫자를 입력해주세요.',
-      );
-      return;
-    }
-
-    if (isNaN(sets) || sets < 1 || sets > 20) {
-      Alert.alert(
-        '오류',
-        '하루 목표 세트 수는 1-20 사이의 숫자를 입력해주세요.',
-      );
-      return;
-    }
-
-    upsertProfileMutation.mutate({
-      id: user?.id || '',
-      target_reps_per_set: reps,
-      target_sets_per_day: sets,
-      nickname: nickname,
-    });
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -170,7 +173,25 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
                 <InputTargetSetsPerDay
                   targetSetsPerDay={targetSetsPerDay}
                   setTargetSetsPerDay={setTargetSetsPerDay}
-                  onSave={handleSave}
+                  onNext={() => {
+                    setStep(3);
+                  }}
+                />
+              );
+            }
+            if (step === 3) {
+              return (
+                <OnboardingResult
+                  nickname={nickname}
+                  targetRepsPerSet={targetRepsPerSet}
+                  targetSetsPerDay={targetSetsPerDay}
+                  onComplete={() => {
+                    handleSave({
+                      nickname,
+                      targetRepsPerSet,
+                      targetSetsPerDay,
+                    });
+                  }}
                 />
               );
             }

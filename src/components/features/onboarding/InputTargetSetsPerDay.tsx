@@ -1,9 +1,13 @@
 import {Alert, Animated, Keyboard, StyleSheet, View} from 'react-native';
 import {colors} from '../../../constants/colors';
-import {useRef} from 'react';
-import {useEffect} from 'react';
 import {CustomTextInput} from '../../common/CustomTextInput';
 import CustomButton from '../../common/CustomButton';
+import {
+  useSequentialAnimation,
+  createFadeInStyle,
+  createSlideUpStyle,
+  createSlideDownStyle,
+} from '../../../hooks/useSequentialAnimation';
 
 function InputTargetSetsPerDay({
   targetSetsPerDay,
@@ -14,67 +18,19 @@ function InputTargetSetsPerDay({
   setTargetSetsPerDay: (value: string) => void;
   onNext: () => void;
 }) {
-  const questionAnim = useRef(new Animated.Value(0)).current;
-  const inputAnim = useRef(new Animated.Value(0)).current;
-  const hintAnim = useRef(new Animated.Value(0)).current;
-  const buttonAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.sequence([
-      Animated.timing(questionAnim, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-      Animated.timing(inputAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(hintAnim, {
-        toValue: 1,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.timing(buttonAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [questionAnim, inputAnim, hintAnim, buttonAnim]);
+  // 애니메이션 훅 사용
+  const [questionAnim, inputAnim, hintAnim, buttonAnim] =
+    useSequentialAnimation(4, {
+      durations: [400, 300, 250, 100],
+    });
 
   return (
     <View style={styles.questionContainer}>
       <Animated.Text
-        style={[
-          styles.questionText,
-          {
-            opacity: questionAnim,
-            transform: [
-              {
-                translateY: questionAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [20, 0],
-                }),
-              },
-            ],
-          },
-        ]}>
+        style={[styles.questionText, createFadeInStyle(questionAnim, 20)]}>
         하루에 몇 세트를 목표로 하시나요?
       </Animated.Text>
-      <Animated.View
-        style={{
-          opacity: inputAnim,
-          transform: [
-            {
-              translateY: inputAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [15, 0],
-              }),
-            },
-          ],
-        }}>
+      <Animated.View style={createSlideUpStyle(inputAnim, 15)}>
         <CustomTextInput
           value={targetSetsPerDay}
           onChangeText={setTargetSetsPerDay}
@@ -88,38 +44,12 @@ function InputTargetSetsPerDay({
         />
       </Animated.View>
       <Animated.Text
-        style={[
-          styles.inputHint,
-          {
-            opacity: hintAnim,
-            transform: [
-              {
-                translateY: hintAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [10, 0],
-                }),
-              },
-            ],
-          },
-        ]}>
+        style={[styles.inputHint, createSlideDownStyle(hintAnim, 10)]}>
         나중에 수정할 수 있어요
       </Animated.Text>
 
       <Animated.View
-        style={[
-          styles.buttonContainer,
-          {
-            opacity: buttonAnim,
-            transform: [
-              {
-                translateY: buttonAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [30, 0],
-                }),
-              },
-            ],
-          },
-        ]}>
+        style={[styles.buttonContainer, createFadeInStyle(buttonAnim, 30)]}>
         <CustomButton
           title="완료"
           onPress={() => {

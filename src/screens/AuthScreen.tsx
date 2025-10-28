@@ -12,6 +12,7 @@ import {colors} from '../constants/colors';
 import {useKakaoLoginNative} from '../hooks/useKakaoLoginNative';
 import {useGoogleLogin} from '../hooks/useGoogleLogin';
 import Logo from '../assets/svgs/logo.svg';
+import Google from '../assets/svgs/google.svg';
 
 function AuthScreen() {
   // 카카오 로그인 훅 사용 (새로운 네이티브 방식)
@@ -100,13 +101,7 @@ function AuthScreen() {
             {isGoogleLoading ? (
               <ActivityIndicator size="small" color={colors.textLight} />
             ) : (
-              <Fontawesome5
-                name="google"
-                size={20}
-                iconStyle="brand"
-                color={colors.textLight}
-                style={styles.googleIcon}
-              />
+              <Google width={20} height={20} />
             )}
             <Text style={styles.googleButtonText}>
               {isGoogleLoading ? '로그인 중...' : 'Google로 시작하기'}
@@ -198,11 +193,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 16,
     borderRadius: 12,
-    shadowColor: colors.shadow,
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   kakaoIcon: {
     marginRight: 12,
@@ -216,18 +206,13 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   googleButton: {
-    backgroundColor: '#4285F4',
+    backgroundColor: colors.background,
     flexDirection: 'row',
-    gap: 8,
+    gap: 15,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
     borderRadius: 12,
-    shadowColor: colors.shadow,
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   googleIcon: {
     marginRight: 12,
@@ -235,7 +220,7 @@ const styles = StyleSheet.create({
   googleButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: colors.textLight,
+    color: colors.textPrimary,
   },
   loggedInContainer: {
     flex: 1,

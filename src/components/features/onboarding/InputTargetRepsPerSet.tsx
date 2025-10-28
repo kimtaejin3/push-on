@@ -1,4 +1,4 @@
-import {Animated, Keyboard, StyleSheet, View} from 'react-native';
+import {Alert, Animated, Keyboard, StyleSheet, View} from 'react-native';
 import {colors} from '../../../constants/colors';
 import {useEffect, useRef} from 'react';
 import {CustomTextInput} from '../../common/CustomTextInput';
@@ -7,9 +7,11 @@ import CustomButton from '../../common/CustomButton';
 function InputTargetRepsPerSet({
   targetRepsPerSet,
   setTargetRepsPerSet,
+  onNext,
 }: {
   targetRepsPerSet: string;
   setTargetRepsPerSet: (value: string) => void;
+  onNext: () => void;
 }) {
   const questionAnim = useRef(new Animated.Value(0)).current;
   const inputAnim = useRef(new Animated.Value(0)).current;
@@ -120,7 +122,13 @@ function InputTargetRepsPerSet({
         <CustomButton
           title="다음"
           style={styles.onboardingButton}
-          onPress={() => {}}
+          onPress={() => {
+            if (targetRepsPerSet.length === 0) {
+              Alert.alert('세트당 목표 횟수를 입력해주세요.');
+              return;
+            }
+            onNext();
+          }}
         />
       </Animated.View>
     </View>

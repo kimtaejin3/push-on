@@ -110,7 +110,7 @@ function InputNickname({
           value={nickname}
           onChangeText={text => {
             setNickname(text);
-            setNicknameError(null); // 입력할 때마다 에러 메시지 초기화
+            setNicknameError(null);
           }}
           placeholder="예: 푸쉬업 사랑"
           keyboardType="default"

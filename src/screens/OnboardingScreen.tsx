@@ -5,7 +5,6 @@ import {
   Alert,
   TouchableWithoutFeedback,
   Keyboard,
-  ScrollView,
   Animated,
   View,
 } from 'react-native';
@@ -150,7 +149,11 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
           {(() => {
             if (step === 0) {
               return (
-                <InputNickname nickname={nickname} setNickname={setNickname} />
+                <InputNickname
+                  nickname={nickname}
+                  setNickname={setNickname}
+                  onNext={() => setStep(1)}
+                />
               );
             }
             if (step === 1) {
@@ -158,6 +161,7 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
                 <InputTargetRepsPerSet
                   targetRepsPerSet={targetRepsPerSet}
                   setTargetRepsPerSet={setTargetRepsPerSet}
+                  onNext={() => setStep(2)}
                 />
               );
             }

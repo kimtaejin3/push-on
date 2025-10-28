@@ -2,15 +2,14 @@ import React, {useState, useEffect, useRef} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
-  View,
   Alert,
   TouchableWithoutFeedback,
   Keyboard,
   ScrollView,
   Animated,
+  View,
 } from 'react-native';
 import {colors} from '../constants/colors';
-import CustomButton from '../components/common/CustomButton';
 import {useAuth} from '../hooks/useAuth';
 import {useUpsertProfileMutation} from '../tanstack-query/mutationHooks/profile';
 import InputNickname from '../components/features/onboarding/InputNickName';
@@ -83,13 +82,8 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
     }
 
     const reps = parseInt(targetRepsPerSet, 10);
-    console.log('targetSetsPerDay', targetSetsPerDay);
-
     const sets = parseInt(targetSetsPerDay, 10);
 
-    console.log('sets', sets);
-
-    // 입력값 검증
     if (isNaN(reps) || reps < 1 || reps > 100) {
       Alert.alert(
         '오류',
@@ -117,10 +111,7 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
   return (
     <SafeAreaView style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.content}
-          keyboardShouldPersistTaps="handled">
+        <View style={styles.content}>
           <Animated.Text
             style={[
               styles.onboardingTitle,
@@ -156,86 +147,35 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
             푸쉬핏에 오신 것을 환영합니다!
           </Animated.Text>
 
-          <View>
-            {step === 0 && (
-              <InputNickname nickname={nickname} setNickname={setNickname} />
-            )}
-            {step === 1 && (
-              <InputTargetRepsPerSet
-                targetRepsPerSet={targetRepsPerSet}
-                setTargetRepsPerSet={setTargetRepsPerSet}
-              />
-            )}
-
-            {step === 2 && (
-              <InputTargetSetsPerDay
-                targetSetsPerDay={targetSetsPerDay}
-                setTargetSetsPerDay={setTargetSetsPerDay}
-                onSave={handleSave}
-              />
-            )}
-          </View>
-
-          <Animated.View
-            style={[
-              styles.buttonContainer,
-              {
-                opacity: buttonAnim,
-                transform: [
-                  {
-                    translateY: buttonAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [30, 0],
-                    }),
-                  },
-                ],
-              },
-            ]}>
-            <CustomButton
-              title={(() => {
-                if (upsertProfileMutation.isPending) {
-                  return '저장 중...';
-                }
-                if (step === 0) {
-                  return '다음';
-                }
-                if (step === 1) {
-                  return '다음';
-                }
-                return '온보딩 완료';
-              })()}
-              style={styles.onboardingButton}
-              onPress={() => {
-                if (step === 0) {
-                  if (nickname.length === 0) {
-                    Alert.alert('오류', '닉네임을 입력해주세요');
-                    return;
-                  }
-                  setStep(1);
-                } else if (step === 1) {
-                  if (targetRepsPerSet.length === 0) {
-                    Alert.alert('오류', '세트당 목표 횟수를 입력해주세요');
-                    return;
-                  }
-                  setStep(2);
-                } else {
-                  if (targetSetsPerDay.length === 0) {
-                    Alert.alert('오류', '하루 목표 세트 수를 입력해주세요');
-                    return;
-                  }
-                  handleSave();
-                }
-              }}
-              disabled={upsertProfileMutation.isPending}
-            />
-          </Animated.View>
-        </ScrollView>
+          {(() => {
+            if (step === 0) {
+              return (
+                <InputNickname nickname={nickname} setNickname={setNickname} />
+              );
+            }
+            if (step === 1) {
+              return (
+                <InputTargetRepsPerSet
+                  targetRepsPerSet={targetRepsPerSet}
+                  setTargetRepsPerSet={setTargetRepsPerSet}
+                />
+              );
+            }
+            if (step === 2) {
+              return (
+                <InputTargetSetsPerDay
+                  targetSetsPerDay={targetSetsPerDay}
+                  setTargetSetsPerDay={setTargetSetsPerDay}
+                  onSave={handleSave}
+                />
+              );
+            }
+          })()}
+        </View>
       </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
-
-
 
 const styles = StyleSheet.create({
   container: {
@@ -246,8 +186,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    flexGrow: 1,
-    padding: 20,
+    flex: 1,
+    paddingTop: 20,
+    paddingHorizontal: 20,
   },
   onboardingTitle: {
     fontSize: 28,
@@ -262,14 +203,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 8,
     lineHeight: 24,
-  },
-  buttonContainer: {
-    marginTop: 'auto',
-    width: '100%',
-    alignItems: 'center',
-  },
-  onboardingButton: {
-    backgroundColor: colors.primary,
   },
 });
 

@@ -119,11 +119,7 @@ function InputTargetSetsPerDay({
             ],
           },
         ]}>
-        <CustomButton
-          title="완료"
-          style={styles.onboardingButton}
-          onPress={() => {}}
-        />
+        <CustomButton title="완료" onPress={() => {}} />
       </Animated.View>
     </View>
   );
@@ -145,9 +141,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.gray400,
     marginTop: 10,
-  },
-  onboardingButton: {
-    backgroundColor: colors.primary,
   },
   buttonContainer: {
     marginTop: 'auto',

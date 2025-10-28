@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   defaultButton: {
-    backgroundColor: colors.buttonDisabled,
+    backgroundColor: colors.primary,
   },
   startButton: {
     backgroundColor: colors.tabInactive,

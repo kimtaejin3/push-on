@@ -161,7 +161,6 @@ function InputNickname({
         ]}>
         <CustomButton
           title={isCheckingNickname ? '확인 중...' : '다음'}
-          style={styles.onboardingButton}
           onPress={handleNicknameCheck}
           disabled={isCheckingNickname}
         />

@@ -121,7 +121,6 @@ function InputTargetRepsPerSet({
         ]}>
         <CustomButton
           title="다음"
-          style={styles.onboardingButton}
           onPress={() => {
             if (targetRepsPerSet.length === 0) {
               Alert.alert('세트당 목표 횟수를 입력해주세요.');
@@ -151,9 +150,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.gray400,
     marginTop: 10,
-  },
-  onboardingButton: {
-    backgroundColor: colors.primary,
   },
   buttonContainer: {
     marginTop: 'auto',

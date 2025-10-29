@@ -83,3 +83,26 @@ export const createSlideDownStyle = (
     },
   ],
 });
+
+/**
+ * 스케일과 회전 효과를 포함한 아이콘 애니메이션 스타일 생성
+ * @param animValue 애니메이션 값
+ * @returns scale과 rotate를 포함한 transform 스타일
+ */
+export const createScaleRotateStyle = (animValue: Animated.Value) => ({
+  opacity: animValue,
+  transform: [
+    {
+      scale: animValue.interpolate({
+        inputRange: [0, 0.5, 1],
+        outputRange: [0, 1.2, 1],
+      }),
+    },
+    {
+      rotate: animValue.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', '360deg'],
+      }),
+    },
+  ],
+});

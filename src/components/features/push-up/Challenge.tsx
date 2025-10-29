@@ -2,7 +2,6 @@ import React, {useEffect, useState, useRef} from 'react';
 import {SafeAreaView, StyleSheet, Text, View, Animated} from 'react-native';
 import usePushUpManager from '../../../hooks/usePushUpManager';
 import CustomButton from '../../common/CustomButton';
-import {useNavigation} from '@react-navigation/native';
 import Engagement from '../../features/push-up/Engagement';
 import ChallengeResult from './ChallengeResult';
 import {colors} from '../../../constants/colors';
@@ -10,44 +9,27 @@ import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import {useTimer} from '../../../hooks/useTimer';
 import Timer from '../../common/Timer';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
-import {useSavePushupSessionMutation} from '../../../tanstack-query/mutationHooks/pushup';
 import {useQuery} from '@tanstack/react-query';
 import {pushUpSetsByDateQueryOptions} from '../../../tanstack-query';
+import {formatTime} from '../../../utils/time';
 
 function Challenge(): React.JSX.Element {
-  const navigation = useNavigation();
   const {pushUpCount, isTracking, isGoingDown, startTracking, stopTracking} =
     usePushUpManager();
   const {
-    formattedTime,
-    isRunning,
+    elapsedTime,
+    isTimerRunning,
     stopTimer,
     startAndResetTimer,
-    elapsedTime,
     resumeTimer,
   } = useTimer();
   const [showResult, setShowResult] = useState(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
-  const savePushupMutation = useSavePushupSessionMutation(
-    () => {
-      setShowResult(false);
-      navigation.navigate('Tabs' as never);
-    },
-    error => {
-      console.error('푸쉬업 세션 저장 실패:', error);
-      setShowResult(false);
-      navigation.navigate('Tabs' as never);
-    },
-  );
-
-  // 푸쉬업 카운트가 증가할 때 진동
   useEffect(() => {
-    // 첫 번째 카운트는 진동하지 않음
     if (pushUpCount === 0) {
       return;
     }
-    // 매우 짧은 진동 (1ms)
     ReactNativeHapticFeedback.trigger('impactHeavy', {
       enableVibrateFallback: true,
       ignoreAndroidSystemSettings: false,
@@ -76,22 +58,7 @@ function Challenge(): React.JSX.Element {
     resumeTimer();
   };
 
-  // 푸쉬업 세션 저장 및 홈으로 이동
-  const handleSaveAndGoHome = () => {
-    if (pushUpCount === 0) {
-      return;
-    }
-    savePushupMutation.mutate({
-      reps: pushUpCount,
-      duration_seconds: elapsedTime,
-      set_number: 1,
-    });
-  };
-
-  // isGoingDown 상태 변화 감지 및 애니메이션
   useEffect(() => {
-    console.log('🔄 isGoingDown 상태 변경:', isGoingDown);
-
     Animated.timing(scaleAnim, {
       toValue: isGoingDown ? 0.85 : 1,
       duration: 250,
@@ -101,13 +68,7 @@ function Challenge(): React.JSX.Element {
 
   // 결과 화면 표시
   if (showResult) {
-    return (
-      <ChallengeResult
-        pushUpCount={pushUpCount}
-        duration={formattedTime}
-        onSaveAndGoHome={handleSaveAndGoHome}
-      />
-    );
+    return <ChallengeResult pushUpCount={pushUpCount} duration={elapsedTime} />;
   }
 
   return (
@@ -133,7 +94,7 @@ function Challenge(): React.JSX.Element {
             size={17}
             color={colors.gray400}
           />
-          <Timer time={formattedTime} style={styles.timeText} />
+          <Timer time={formatTime(elapsedTime)} style={styles.timeText} />
         </View>
         <Engagement show={isTracking} pushUpCount={pushUpCount} />
 
@@ -147,9 +108,11 @@ function Challenge(): React.JSX.Element {
               <>
                 <CustomButton
                   style={[styles.button, styles.pauseButton]}
-                  title={isRunning ? '일시정지' : '재개하기'}
+                  title={isTimerRunning ? '일시정지' : '재개하기'}
                   variant="default"
-                  onPress={isRunning ? handlePauseTimer : handleResumeTimer}
+                  onPress={
+                    isTimerRunning ? handlePauseTimer : handleResumeTimer
+                  }
                 />
                 <CustomButton
                   style={[styles.button, styles.stopButton]}

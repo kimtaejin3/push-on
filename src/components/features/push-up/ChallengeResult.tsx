@@ -1,10 +1,15 @@
-import React, {useEffect, useRef} from 'react';
+import React from 'react';
 import {SafeAreaView, StyleSheet, Text, View, Animated} from 'react-native';
 import CustomButton from '../../common/CustomButton';
 import {colors} from '../../../constants/colors';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
 import {useNavigation} from '@react-navigation/native';
 import {useSavePushupSessionMutation} from '../../../tanstack-query';
+import {
+  useSequentialAnimation,
+  createScaleRotateStyle,
+  createFadeInStyle,
+} from '../../../hooks/useSequentialAnimation';
 
 interface ChallengeResultProps {
   pushUpCount: number;
@@ -15,9 +20,9 @@ function ChallengeResult({
   pushUpCount,
   duration,
 }: ChallengeResultProps): React.JSX.Element {
-  const iconAnim = useRef(new Animated.Value(0)).current;
-  const titleAnim = useRef(new Animated.Value(0)).current;
-  const subtitleAnim = useRef(new Animated.Value(0)).current;
+  const [iconAnim, titleAnim, subtitleAnim] = useSequentialAnimation(3, {
+    durations: [500, 400, 300],
+  });
   const navigation = useNavigation();
 
   const savePushupMutation = useSavePushupSessionMutation(
@@ -41,51 +46,11 @@ function ChallengeResult({
     });
   };
 
-  useEffect(() => {
-    // 순차적으로 애니메이션 실행
-    Animated.sequence([
-      // 아이콘 애니메이션 (첫 번째)
-      Animated.timing(iconAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-      // 제목 애니메이션 (두 번째)
-      Animated.timing(titleAnim, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-      // 부제목 애니메이션 (세 번째)
-      Animated.timing(subtitleAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [iconAnim, titleAnim, subtitleAnim]);
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Animated.View
-            style={{
-              transform: [
-                {
-                  scale: iconAnim.interpolate({
-                    inputRange: [0, 0.5, 1],
-                    outputRange: [0, 1.2, 1],
-                  }),
-                },
-                {
-                  rotate: iconAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: ['0deg', '360deg'],
-                  }),
-                },
-              ],
-              opacity: iconAnim,
-            }}>
+          <Animated.View style={createScaleRotateStyle(iconAnim)}>
             {pushUpCount > 0 ? (
               <FontAwesome5
                 name="check-circle"
@@ -106,35 +71,12 @@ function ChallengeResult({
             style={[
               styles.title,
               pushUpCount === 0 && styles.titleError,
-              {
-                opacity: titleAnim,
-                transform: [
-                  {
-                    translateY: titleAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [30, 0],
-                    }),
-                  },
-                ],
-              },
+              createFadeInStyle(titleAnim, 30),
             ]}>
             {pushUpCount > 0 ? '훌륭해요!' : '측정된 푸쉬업 횟수가 없어요!'}
           </Animated.Text>
           <Animated.Text
-            style={[
-              styles.subtitle,
-              {
-                opacity: subtitleAnim,
-                transform: [
-                  {
-                    translateY: subtitleAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [20, 0],
-                    }),
-                  },
-                ],
-              },
-            ]}>
+            style={[styles.subtitle, createFadeInStyle(subtitleAnim, 20)]}>
             {pushUpCount > 0 ? '세트를 완료했습니다' : '다시 시도해보세요!'}
           </Animated.Text>
         </View>

@@ -1,9 +1,12 @@
-import {useEffect, useRef} from 'react';
-import {Animated, StyleSheet, View, Text, Alert} from 'react-native';
+import {StyleSheet, View, Text, Alert, Animated} from 'react-native';
 import {colors} from '../../../constants/colors';
 import CustomButton from '../../common/CustomButton';
 import {useAuth} from '../../../hooks/useAuth';
 import {useUpsertProfileMutation} from '../../../tanstack-query/mutationHooks/profile';
+import {
+  useSequentialAnimation,
+  createFadeInStyle,
+} from '../../../hooks/useSequentialAnimation';
 
 interface OnboardingResultProps {
   nickname: string;
@@ -18,9 +21,9 @@ function OnboardingResult({
   targetSetsPerDay,
   onComplete,
 }: OnboardingResultProps) {
-  const titleAnim = useRef(new Animated.Value(0)).current;
-  const contentAnim = useRef(new Animated.Value(0)).current;
-  const buttonAnim = useRef(new Animated.Value(0)).current;
+  const [titleAnim, contentAnim, buttonAnim] = useSequentialAnimation(3, {
+    durations: [500, 400, 300],
+  });
 
   const {user} = useAuth();
 
@@ -68,61 +71,14 @@ function OnboardingResult({
     });
   };
 
-  useEffect(() => {
-    Animated.sequence([
-      Animated.timing(titleAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-      Animated.timing(contentAnim, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-      Animated.timing(buttonAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [titleAnim, contentAnim, buttonAnim]);
-
   return (
     <View style={styles.container}>
-      <Animated.Text
-        style={[
-          styles.title,
-          {
-            opacity: titleAnim,
-            transform: [
-              {
-                translateY: titleAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [30, 0],
-                }),
-              },
-            ],
-          },
-        ]}>
+      <Animated.Text style={[styles.title, createFadeInStyle(titleAnim, 30)]}>
         프로필 설정 완료! 🎉
       </Animated.Text>
 
       <Animated.View
-        style={[
-          styles.contentContainer,
-          {
-            opacity: contentAnim,
-            transform: [
-              {
-                translateY: contentAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [20, 0],
-                }),
-              },
-            ],
-          },
-        ]}>
+        style={[styles.contentContainer, createFadeInStyle(contentAnim, 20)]}>
         <View style={styles.resultCard}>
           <View style={styles.resultItem}>
             <Text style={styles.resultLabel}>닉네임</Text>
@@ -144,20 +100,7 @@ function OnboardingResult({
       </Animated.View>
 
       <Animated.View
-        style={[
-          styles.buttonContainer,
-          {
-            opacity: buttonAnim,
-            transform: [
-              {
-                translateY: buttonAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [30, 0],
-                }),
-              },
-            ],
-          },
-        ]}>
+        style={[styles.buttonContainer, createFadeInStyle(buttonAnim, 30)]}>
         <CustomButton
           title="온보딩 완료하기"
           onPress={handleSave}

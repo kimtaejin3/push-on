@@ -85,8 +85,8 @@ export const getWeeklyPushupStats = async (): Promise<WeeklyStatsData[]> => {
       .from('pushup_sets')
       .select('*')
       .eq('user_id', user.user.id) // 사용자별 필터링 추가
-      .gte('workout_date', startDate.toISOString().split('T')[0])
-      .lte('workout_date', endDate.toISOString().split('T')[0])
+      .gte('workout_date', formatKSTDate(startDate))
+      .lte('workout_date', formatKSTDate(endDate))
       .order('workout_date', {ascending: true});
 
     if (error) {
@@ -99,7 +99,7 @@ export const getWeeklyPushupStats = async (): Promise<WeeklyStatsData[]> => {
     for (let i = 0; i < 7; i++) {
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + i);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = formatKSTDate(date);
       statsMap.set(dateStr, {
         date: dateStr,
         totalReps: 0,
@@ -142,8 +142,8 @@ export const getMonthlyPushupStats = async (): Promise<MonthlyStatsData[]> => {
       .from('pushup_sets')
       .select('*')
       .eq('user_id', user.user.id) // 사용자별 필터링 추가
-      .gte('workout_date', startDate.toISOString().split('T')[0])
-      .lte('workout_date', endDate.toISOString().split('T')[0])
+      .gte('workout_date', formatKSTDate(startDate))
+      .lte('workout_date', formatKSTDate(endDate))
       .order('workout_date', {ascending: true});
 
     if (error) {
@@ -164,9 +164,7 @@ export const getMonthlyPushupStats = async (): Promise<MonthlyStatsData[]> => {
       const weekStart = new Date();
       weekStart.setDate(weekEnd.getDate() - 6);
 
-      const weekKey = `${weekStart.toISOString().split('T')[0]}_${
-        weekEnd.toISOString().split('T')[0]
-      }`;
+      const weekKey = `${formatKSTDate(weekStart)}_${formatKSTDate(weekEnd)}`;
 
       weeklyStats.push({
         date: weekKey,
@@ -182,8 +180,8 @@ export const getMonthlyPushupStats = async (): Promise<MonthlyStatsData[]> => {
       weeklyStats.forEach(week => {
         //TODO: 조건 로직 간소화가 가능할 것 같다.
         if (
-          set.workout_date >= week.weekStart.toISOString().split('T')[0] &&
-          set.workout_date <= week.weekEnd.toISOString().split('T')[0]
+          set.workout_date >= formatKSTDate(week.weekStart) &&
+          set.workout_date <= formatKSTDate(week.weekEnd)
         ) {
           week.totalReps += set.reps;
           week.totalSets += 1;

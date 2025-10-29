@@ -16,7 +16,7 @@ type SetCardProps = {
 };
 
 const SetCard: React.FC<SetCardProps> = ({set, targetReps}) => {
-  const progressWidth = (set.reps / targetReps) * 100;
+  const progress = (set.reps / targetReps) * 100;
 
   return (
     <View style={styles.setCard}>
@@ -29,7 +29,7 @@ const SetCard: React.FC<SetCardProps> = ({set, targetReps}) => {
             <Text style={styles.setReps}>{set.reps}회</Text>
             <Text style={styles.setTime}>{formatTime(Number(set.time))}</Text>
           </View>
-          {progressWidth === 100 && (
+          {progress >= 100 && (
             <View style={styles.bestBadge}>
               <Fontawesome5
                 name="star"
@@ -45,9 +45,9 @@ const SetCard: React.FC<SetCardProps> = ({set, targetReps}) => {
 
       <View style={styles.progressContainer}>
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, {width: `${progressWidth}%`}]} />
+          <View style={[styles.progressFill, {width: `${progress}%`}]} />
         </View>
-        <Text style={styles.progressText}>{progressWidth.toFixed(0)}%</Text>
+        <Text style={styles.progressText}>{progress.toFixed(0)}%</Text>
       </View>
     </View>
   );

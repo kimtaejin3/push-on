@@ -37,6 +37,9 @@ const Calendar: React.FC<CalendarProps> = ({selectedDate}) => {
   const [, updateSelectedDate] = useAtom(updateSelectedDateAtom);
   const [isExpanded, setIsExpanded] = useState(true);
 
+  console.log('calendarData', calendarData);
+  console.log('pushupData', pushupData);
+
   const handleMonthChange = (year: number, month: number) => {
     const newDate = new Date(year, month, 1);
     updateSelectedDate(newDate);

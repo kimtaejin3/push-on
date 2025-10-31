@@ -1,6 +1,7 @@
 import {useQuery} from '@tanstack/react-query';
 import {useAuth} from './useAuth';
 import {supabase} from '../lib/supabase';
+import {formatKSTDate} from '../utils/time';
 
 export interface PushupDayData {
   date: string; // YYYY-MM-DD 형식
@@ -34,8 +35,11 @@ export const usePushupCalendarData = ({
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 0); // 해당 월의 마지막 날
 
-        const startDateStr = startDate.toISOString().split('T')[0];
-        const endDateStr = endDate.toISOString().split('T')[0];
+        const startDateStr = formatKSTDate(startDate);
+        const endDateStr = formatKSTDate(endDate);
+
+        console.log('startDateStr', startDateStr);
+        console.log('endDateStr', endDateStr);
 
         // 해당 월의 푸쉬업 데이터 조회
         const {data, error} = await supabase
@@ -56,9 +60,9 @@ export const usePushupCalendarData = ({
         // 해당 월의 모든 날짜를 초기화
         for (let day = 1; day <= endDate.getDate(); day++) {
           const date = new Date(year, month - 1, day);
-          const dateStr = date.toISOString().split('T')[0];
+          const dateStr = formatKSTDate(date);
           workoutMap.set(dateStr, {
-            date: dateStr,
+            date: formatKSTDate(date),
             hasWorkout: false,
             totalReps: 0,
             totalSets: 0,

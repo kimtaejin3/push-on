@@ -9,11 +9,6 @@ export const useKakaoLoginNative = () => {
   const signInWithKakao = async () => {
     try {
       setIsLoading(true);
-      console.log('카카오 로그인 시작');
-      console.log('현재 시간:', new Date().toISOString());
-
-      // 카카오 SDK 초기화 상태 확인
-      console.log('카카오 SDK 초기화 확인 중...');
 
       const token = await login();
 
@@ -28,7 +23,6 @@ export const useKakaoLoginNative = () => {
           console.error('Supabase 로그인 에러:', error);
           Alert.alert('로그인 실패', error.message);
         } else {
-          console.log('Supabase 로그인 성공:', data);
           Alert.alert('로그인 성공', '카카오 계정으로 로그인되었습니다.');
         }
 
@@ -41,7 +35,7 @@ export const useKakaoLoginNative = () => {
       console.error('에러 상세:', JSON.stringify(error, null, 2));
 
       if (error.code === 'CANCELLED') {
-        console.log('사용자가 카카오 로그인을 취소했습니다.');
+        // 사용자가 카카오 로그인을 취소했습니다.
       } else if (error.message) {
         console.error('에러 메시지:', error.message);
         Alert.alert('로그인 실패', `카카오 로그인 오류: ${error.message}`);
@@ -59,7 +53,6 @@ export const useKakaoLoginNative = () => {
     try {
       await logout();
       await supabase.auth.signOut();
-      console.log('카카오 로그아웃 성공');
     } catch (error) {
       console.error('카카오 로그아웃 에러:', error);
     }
@@ -68,7 +61,6 @@ export const useKakaoLoginNative = () => {
   const getKakaoProfile = async () => {
     try {
       const profile = await getProfile();
-      console.log('카카오 프로필:', profile);
       return profile;
     } catch (error) {
       console.error('카카오 프로필 조회 에러:', error);

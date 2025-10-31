@@ -29,12 +29,6 @@ export const deleteUserAccount = async (): Promise<void> => {
     }
 
     // Edge Function 직접 호출
-    console.log('Edge Function 호출 시작:', {
-      url: 'https://lyzmpbgastvarksnqgjo.supabase.co/functions/v1/hyper-function',
-      userId,
-      hasAccessToken: !!accessToken,
-    });
-
     const response = await fetch(
       'https://lyzmpbgastvarksnqgjo.supabase.co/functions/v1/hyper-function',
       {
@@ -48,14 +42,7 @@ export const deleteUserAccount = async (): Promise<void> => {
       },
     );
 
-    console.log('Edge Function 응답:', {
-      status: response.status,
-      statusText: response.statusText,
-      ok: response.ok,
-    });
-
     const functionData = await response.json();
-    console.log('Edge Function 데이터:', functionData);
 
     if (!response.ok) {
       throw new Error(
@@ -71,10 +58,6 @@ export const deleteUserAccount = async (): Promise<void> => {
         `계정 삭제 실패: ${functionData?.error || 'Unknown error'}`,
       );
     }
-
-    console.log('계정이 완전히 삭제되었습니다.');
-
-    console.log('회원 탈퇴가 성공적으로 완료되었습니다.');
   } catch (error) {
     console.error('회원 탈퇴 오류:', error);
     throw error;

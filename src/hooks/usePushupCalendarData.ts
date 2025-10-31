@@ -38,9 +38,6 @@ export const usePushupCalendarData = ({
         const startDateStr = formatKSTDate(startDate);
         const endDateStr = formatKSTDate(endDate);
 
-        console.log('startDateStr', startDateStr);
-        console.log('endDateStr', endDateStr);
-
         // 해당 월의 푸쉬업 데이터 조회
         const {data, error} = await supabase
           .from('pushup_sets')

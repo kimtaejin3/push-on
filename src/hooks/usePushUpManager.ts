@@ -56,14 +56,11 @@ function usePushUpManager() {
   };
 
   const startTracking = async () => {
-    console.log('🚀 startTracking 호출됨');
-
     // PushupManager 모듈 확인
     if (!PushupManager) {
       console.error('❌ PushupManager 모듈이 없습니다!');
       return;
     }
-    console.log('✅ PushupManager 모듈 확인됨:', PushupManager);
 
     // 카메라 권한 확인
     const hasPermission = await requestCameraPermission();
@@ -72,13 +69,11 @@ function usePushUpManager() {
       return;
     }
 
-    console.log('✅ 카메라 권한 확인됨, 푸쉬업 세션 시작');
     setIsTracking(true);
     setPushUpCount(INITIAL_COUNT);
 
     try {
       await PushupManager.startPushupSession();
-      console.log('✅ PushupManager.startPushupSession() 호출 완료');
     } catch (error) {
       console.error('❌ PushupManager.startPushupSession() 에러:', error);
     }

@@ -227,8 +227,6 @@ export const savePushupSession = async (
     if (rpcError) {
       console.warn('add_daily_pushups RPC 실패:', rpcError.message);
     }
-
-    console.log('푸쉬업 세션 저장 완료:', data);
   } catch (error) {
     console.error('푸쉬업 세션 저장 실패:', error);
     throw error;

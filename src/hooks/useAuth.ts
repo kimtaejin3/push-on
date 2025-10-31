@@ -32,7 +32,6 @@ export const useAuth = () => {
     const {
       data: {subscription},
     } = supabase.auth.onAuthStateChange((event, newSession) => {
-      console.log('인증 상태 변경:', event, newSession?.user?.email);
       setSession(newSession);
       setLoading(false);
     });
@@ -69,16 +68,11 @@ export const useAuth = () => {
 
         // 5분 전에 갱신
         if (timeUntilExpiry < 5 * 60 * 1000) {
-          console.log('세션 갱신 시도...');
           const {error: refreshError} = await supabase.auth.refreshSession();
           if (refreshError) {
             console.error('세션 갱신 실패:', refreshError);
-          } else {
-            console.log('세션 갱신 성공');
           }
         }
-      } else {
-        console.log('저장된 세션이 없음');
       }
     } catch (error) {
       console.error('세션 확인 중 오류:', error);

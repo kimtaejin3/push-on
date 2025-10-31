@@ -32,8 +32,6 @@ export default function LeaderboardScreen() {
       target_date: todayKst,
     });
 
-    console.log('리더보드 조회 결과:', data);
-
     if (error) {
       console.warn('리더보드 조회 실패:', error.message);
       return;

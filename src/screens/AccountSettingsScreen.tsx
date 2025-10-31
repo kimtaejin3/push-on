@@ -37,7 +37,6 @@ function AccountSettingsScreen() {
         const fnamePart = rawProfileImage.split('fname=')[1];
         profileImage = decodeURIComponent(fnamePart);
       } catch (error) {
-        console.log('URL 디코딩 실패:', error);
         profileImage = rawProfileImage;
       }
     } else {
@@ -105,11 +104,6 @@ function AccountSettingsScreen() {
     ]);
   };
 
-  // 디버깅용 로그
-  console.log('Raw Profile Image URL:', rawProfileImage);
-  console.log('Processed Profile Image URL:', profileImage);
-  console.log('User metadata:', user?.user_metadata);
-
   const handleWithdrawal = () => {
     Alert.alert(
       '회원 탈퇴',
@@ -160,11 +154,9 @@ function AccountSettingsScreen() {
                   source={{uri: profileImage}}
                   style={styles.profileImage}
                   onError={() => {
-                    console.log('이미지 로딩 실패:', profileImage);
                     setImageError(true);
                   }}
                   onLoad={() => {
-                    console.log('이미지 로딩 성공');
                     setImageError(false);
                   }}
                   resizeMode="cover"

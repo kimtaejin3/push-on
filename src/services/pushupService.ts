@@ -35,8 +35,6 @@ class PushupService {
       if (error) {
         throw error;
       }
-
-      console.log('푸쉬업 세트 저장 완료:', data);
     } catch (error) {
       console.error('푸쉬업 세트 저장 실패:', error);
       throw error;
@@ -91,8 +89,6 @@ class PushupService {
           throw error;
         }
       }
-
-      console.log('일일 통계 업데이트 완료:', data);
     } catch (error) {
       console.error('일일 통계 업데이트 실패:', error);
       throw error;
@@ -115,8 +111,6 @@ class PushupService {
       //     total_duration_seconds: setData.duration_seconds,
       //     date: today,
       //   });
-
-      console.log('푸쉬업 세션 저장 완료');
     } catch (error) {
       console.error('푸쉬업 세션 저장 실패:', error);
       throw error;

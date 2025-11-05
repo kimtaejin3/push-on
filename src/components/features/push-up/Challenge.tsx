@@ -1,5 +1,6 @@
 import React, {useEffect, useState, useRef} from 'react';
-import {SafeAreaView, StyleSheet, Text, View, Animated} from 'react-native';
+import {StyleSheet, Text, View, Animated} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import usePushUpManager from '../../../hooks/usePushUpManager';
 import CustomButton from '../../common/CustomButton';
 import Engagement from '../../features/push-up/Engagement';

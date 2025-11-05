@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import AppNavigation from './src/navigations/AppNavigation';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 export const queryClient = new QueryClient();
 
@@ -22,9 +23,11 @@ function App(): React.JSX.Element {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AppNavigation />
-    </QueryClientProvider>
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <AppNavigation />
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 }
 

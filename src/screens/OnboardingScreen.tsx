@@ -1,11 +1,11 @@
 import React, {useState} from 'react';
 import {
-  SafeAreaView,
   StyleSheet,
   TouchableWithoutFeedback,
   Keyboard,
   View,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {colors} from '../constants/colors';
 import InputNickname from '../components/features/onboarding/InputNickName';
 import InputTargetSetsPerDay from '../components/features/onboarding/InputTargetSetsPerDay';

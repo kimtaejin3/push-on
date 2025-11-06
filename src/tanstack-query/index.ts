@@ -2,6 +2,7 @@ export {queryKeys} from './queryKeys';
 
 export {
   pushUpSetsByDateQueryOptions,
+  pushupCalendarQueryOptions,
   weeklyPushupStatsQueryOptions,
   monthlyPushupStatsQueryOptions,
 } from './queryOptions/pushup';

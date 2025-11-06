@@ -9,10 +9,7 @@ import {
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
 import {colors} from '../../../constants/colors';
 import {useCalendarData} from '../../../hooks/useCalendarData';
-import {
-  usePushupCalendarData,
-  PushupDayData,
-} from '../../../hooks/usePushupCalendarData';
+import {PushupDayData} from '../../../remote/pushup';
 import CalendarDay from './CalendarDay';
 import {
   CURRENT_MONTH,
@@ -22,6 +19,8 @@ import {
 import {useAtom} from 'jotai';
 import {useAuth} from '../../../hooks/useAuth';
 import {formatKSTDate} from '../../../utils/time';
+import {useQuery} from '@tanstack/react-query';
+import {pushupCalendarQueryOptions} from '../../../tanstack-query';
 
 interface CalendarProps {
   selectedDate: Date;
@@ -29,11 +28,14 @@ interface CalendarProps {
 
 const Calendar: React.FC<CalendarProps> = ({selectedDate}) => {
   const calendarData = useCalendarData({selectedDate});
-  const {data: pushupData, isLoading} = usePushupCalendarData({
-    year: calendarData.year,
-    month: calendarData.month + 1,
-  });
   const {user} = useAuth();
+  const {data: pushupData, isLoading} = useQuery(
+    pushupCalendarQueryOptions(
+      user?.id || '',
+      calendarData.year,
+      calendarData.month + 1,
+    ),
+  );
   const [, updateSelectedDate] = useAtom(updateSelectedDateAtom);
   const [isExpanded, setIsExpanded] = useState(true);
 

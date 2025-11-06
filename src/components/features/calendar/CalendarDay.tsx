@@ -3,7 +3,7 @@ import {TouchableOpacity, Text, StyleSheet, View} from 'react-native';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
 import {colors} from '../../../constants/colors';
 import {CalendarDay as CalendarDayType} from '../../../hooks/useCalendarData';
-import {PushupDayData} from '../../../hooks/usePushupCalendarData';
+import {PushupDayData} from '../../../remote/pushup';
 import {useAtom} from 'jotai';
 import {updateSelectedDateAtom} from '../../../atoms/date';
 

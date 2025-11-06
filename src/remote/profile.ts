@@ -54,3 +54,59 @@ export const checkNicknameAvailability = async (
     throw error;
   }
 };
+
+export interface UpdateProfileData {
+  nickname: string;
+  target_reps_per_set: number;
+  target_sets_per_day: number;
+}
+
+/**
+ * 프로필 업데이트 API
+ * 기존 프로필 정보를 수정합니다.
+ */
+export const updateProfile = async (
+  userId: string,
+  updatedData: UpdateProfileData,
+): Promise<ProfileData> => {
+  try {
+    const {data, error} = await supabase
+      .from('profiles')
+      .update(updatedData)
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+    return data;
+  } catch (error) {
+    console.error('프로필 업데이트 실패:', error);
+    throw error;
+  }
+};
+
+/**
+ * 프로필 생성/업데이트 API (Upsert)
+ * 프로필이 없으면 생성하고, 있으면 업데이트합니다.
+ */
+export const upsertProfile = async (
+  profileData: UpdateProfileData & {id: string},
+): Promise<ProfileData> => {
+  try {
+    const {data, error} = await supabase
+      .from('profiles')
+      .upsert(profileData)
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+    return data;
+  } catch (error) {
+    console.error('프로필 생성/업데이트 실패:', error);
+    throw error;
+  }
+};

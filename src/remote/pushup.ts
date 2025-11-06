@@ -190,8 +190,6 @@ export const processMonthlyStats = (
     });
   }
 
-  console.log('weeklyStats', weeklyStats);
-
   // 데이터 집계
   rawData?.forEach(set => {
     weeklyStats.forEach(week => {

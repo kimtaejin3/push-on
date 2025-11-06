@@ -46,12 +46,14 @@ const Calendar: React.FC<CalendarProps> = ({selectedDate}) => {
 
   const handlePreviousMonth = () => {
     const newDate = new Date(selectedDate);
+    newDate.setDate(1); // 날짜를 1일로 설정하여 월 오버플로우 방지
     newDate.setMonth(newDate.getMonth() - 1);
     handleMonthChange(newDate.getFullYear(), newDate.getMonth());
   };
 
   const handleNextMonth = () => {
     const newDate = new Date(selectedDate);
+    newDate.setDate(1); // 날짜를 1일로 설정하여 월 오버플로우 방지
     newDate.setMonth(newDate.getMonth() + 1);
     handleMonthChange(newDate.getFullYear(), newDate.getMonth());
   };

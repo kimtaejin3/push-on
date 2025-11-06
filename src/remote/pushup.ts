@@ -174,7 +174,7 @@ export const processMonthlyStats = (
   const weeklyStats: MonthlyStatsData[] = [];
   for (let week = 0; week < 4; week++) {
     const weekStart = new Date();
-    weekStart.setDate(nowDate.getDate() - week - (week + 1) * 7);
+    weekStart.setDate(nowDate.getDate() - week * 8 - 7);
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 7);
 
@@ -193,6 +193,7 @@ export const processMonthlyStats = (
   // 데이터 집계
   rawData?.forEach(set => {
     weeklyStats.forEach(week => {
+      //TODO: 이건 안전한 코드가 아닌것 같다. 문자열 비교이니까
       if (
         set.workout_date >= formatKSTDate(week.weekStart) &&
         set.workout_date <= formatKSTDate(week.weekEnd)

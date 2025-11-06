@@ -1,6 +1,6 @@
 import React, {useEffect, useState, useRef} from 'react';
 import {StyleSheet, Text, View, Animated} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import usePushUpManager from '../../../hooks/usePushUpManager';
 import CustomButton from '../../common/CustomButton';
 import Engagement from '../../features/push-up/Engagement';
@@ -26,6 +26,7 @@ function Challenge(): React.JSX.Element {
   } = useTimer();
   const [showResult, setShowResult] = useState(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (pushUpCount === 0) {
@@ -73,7 +74,7 @@ function Challenge(): React.JSX.Element {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <View style={styles.container}>
         <SetTitle />
 
@@ -104,7 +105,11 @@ function Challenge(): React.JSX.Element {
             {!isTracking && '기기를 얼굴과 마주보게 바닥에 두세요'}
           </Text>
 
-          <View style={styles.buttonContainer}>
+          <View
+            style={[
+              styles.buttonContainer,
+              {paddingBottom: insets.bottom || 34},
+            ]}>
             {isTracking ? (
               <>
                 <CustomButton

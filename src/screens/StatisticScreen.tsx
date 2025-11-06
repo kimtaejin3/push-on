@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useMemo} from 'react';
 import {
   StyleSheet,
   Text,
@@ -12,8 +12,9 @@ import {useQuery} from '@tanstack/react-query';
 import {colors} from '../constants/colors';
 import PushupStatsChart from '../components/features/push-up/PushupStatsChart';
 import {
-  weeklyPushupStatsQueryOptions,
-  monthlyPushupStatsQueryOptions,
+  pushupStatsQueryOptions,
+  processWeeklyStats,
+  processMonthlyStats,
 } from '../tanstack-query';
 
 type TimePeriod = 'weekly' | 'monthly';
@@ -23,16 +24,25 @@ function StatisticScreen() {
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('weekly');
   const [selectedMetric, setSelectedMetric] = useState<MetricType>('reps');
 
-  const {data: weeklyData, isLoading: weeklyLoading} = useQuery(
-    weeklyPushupStatsQueryOptions(),
-  );
-  const {data: monthlyData, isLoading: monthlyLoading} = useQuery(
-    monthlyPushupStatsQueryOptions(),
-  );
+  // 30일 raw 데이터를 한 번만 가져오기 (최적화)
+  const {data: rawData, isLoading} = useQuery(pushupStatsQueryOptions(30));
+
+  // 클라이언트에서 주간/월간 데이터로 가공
+  const weeklyData = useMemo(() => {
+    if (!rawData) {
+      return [];
+    }
+    return processWeeklyStats(rawData);
+  }, [rawData]);
+
+  const monthlyData = useMemo(() => {
+    if (!rawData) {
+      return [];
+    }
+    return processMonthlyStats(rawData);
+  }, [rawData]);
 
   const currentData = selectedPeriod === 'weekly' ? weeklyData : monthlyData;
-  const isLoading =
-    selectedPeriod === 'weekly' ? weeklyLoading : monthlyLoading;
 
   const periodButtons = [
     {key: 'weekly' as TimePeriod, label: '주간'},

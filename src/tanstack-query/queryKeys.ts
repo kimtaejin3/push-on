@@ -8,6 +8,7 @@ export const queryKeys = {
       ['pushup', 'calendar', year, month] as const,
     stats: {
       all: ['pushup', 'stats'] as const,
+      raw: (days: number) => ['pushup', 'stats', 'raw', days] as const,
       weekly: ['pushup', 'stats', 'weekly'] as const,
       monthly: ['pushup', 'stats', 'monthly'] as const,
     },

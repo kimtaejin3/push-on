@@ -3,6 +3,9 @@ import {
   getWeeklyPushupStats,
   getMonthlyPushupStats,
   getPushupCalendarData,
+  getPushupStats,
+  processWeeklyStats,
+  processMonthlyStats,
 } from '../../remote/pushup';
 import {queryKeys} from '../queryKeys';
 
@@ -30,6 +33,18 @@ const pushupCalendarQueryOptions = (
   };
 };
 
+/**
+ * 통합 푸쉬업 통계 데이터 query option (최적화)
+ * 30일 데이터를 한 번만 가져와서 클라이언트에서 가공
+ */
+const pushupStatsQueryOptions = (days: number = 30) => {
+  return {
+    queryKey: queryKeys.pushup.stats.raw(days),
+    queryFn: () => getPushupStats(days),
+    staleTime: 5 * 60 * 1000, // 5분
+  };
+};
+
 const weeklyPushupStatsQueryOptions = () => {
   return {
     queryKey: queryKeys.pushup.stats.weekly,
@@ -49,6 +64,10 @@ const monthlyPushupStatsQueryOptions = () => {
 export {
   pushUpSetsByDateQueryOptions,
   pushupCalendarQueryOptions,
+  pushupStatsQueryOptions,
   weeklyPushupStatsQueryOptions,
   monthlyPushupStatsQueryOptions,
+  // 클라이언트 사이드 가공 함수들도 export
+  processWeeklyStats,
+  processMonthlyStats,
 };

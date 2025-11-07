@@ -1,6 +1,7 @@
-import {useState, useCallback} from 'react';
+import {useState, useCallback, useEffect} from 'react';
 import {NativeModules, PermissionsAndroid, Platform} from 'react-native';
 import useInterval from './useInterval';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
 const {PushupManager} = NativeModules;
 
@@ -11,6 +12,16 @@ function usePushUpManager() {
   const [pushUpCount, setPushUpCount] = useState(INITIAL_COUNT);
   const [isTracking, setIsTracking] = useState(false);
   const [isGoingDown, setIsGoingDown] = useState(false);
+
+  useEffect(() => {
+    if (pushUpCount === 0) {
+      return;
+    }
+    ReactNativeHapticFeedback.trigger('impactHeavy', {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: false,
+    });
+  }, [pushUpCount]);
 
   const getPushupCount = useCallback(async () => {
     try {

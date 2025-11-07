@@ -6,7 +6,6 @@ import CustomButton from '../../common/CustomButton';
 import Engagement from '../../features/push-up/Engagement';
 import ChallengeResult from './ChallengeResult';
 import {colors} from '../../../constants/colors';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import {useTimer} from '../../../hooks/useTimer';
 import Timer from '../../common/Timer';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
@@ -27,16 +26,6 @@ function Challenge(): React.JSX.Element {
   const [showResult, setShowResult] = useState(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const insets = useSafeAreaInsets();
-
-  useEffect(() => {
-    if (pushUpCount === 0) {
-      return;
-    }
-    ReactNativeHapticFeedback.trigger('impactHeavy', {
-      enableVibrateFallback: true,
-      ignoreAndroidSystemSettings: false,
-    });
-  }, [pushUpCount]);
 
   // 추적 시작 시 타이머도 함께 시작
   const handleStartTracking = () => {

@@ -1,6 +1,6 @@
-import React, {useEffect, useState, useRef} from 'react';
-import {StyleSheet, Text, View, Animated} from 'react-native';
-import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
+import React, {useState} from 'react';
+import {StyleSheet, Text, View} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import usePushUpManager from '../../../hooks/usePushUpManager';
 import CustomButton from '../../common/CustomButton';
 import Engagement from '../../features/push-up/Engagement';
@@ -12,6 +12,7 @@ import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
 import {useQuery} from '@tanstack/react-query';
 import {pushUpSetsByDateQueryOptions} from '../../../tanstack-query';
 import {formatTime} from '../../../utils/time';
+import AnimatedCounter from '../../common/AnimatedCounter';
 
 function Challenge(): React.JSX.Element {
   const {pushUpCount, isTracking, isGoingDown, startTracking, stopTracking} =
@@ -24,16 +25,6 @@ function Challenge(): React.JSX.Element {
     resumeTimer,
   } = useTimer();
   const [showResult, setShowResult] = useState(false);
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const insets = useSafeAreaInsets();
-
-  useEffect(() => {
-    Animated.timing(scaleAnim, {
-      toValue: isGoingDown ? 0.85 : 1,
-      duration: 250,
-      useNativeDriver: true,
-    }).start();
-  }, [isGoingDown, scaleAnim]);
 
   if (showResult) {
     return <ChallengeResult pushUpCount={pushUpCount} duration={elapsedTime} />;
@@ -44,16 +35,12 @@ function Challenge(): React.JSX.Element {
       <View style={styles.container}>
         <SetTitle />
 
-        <Animated.View
-          style={[
-            styles.countContainer,
-            isGoingDown && styles.countContainerActive,
-            {
-              transform: [{scale: scaleAnim}],
-            },
-          ]}>
-          <Text style={styles.countText}>{pushUpCount}</Text>
-        </Animated.View>
+        <AnimatedCounter
+          count={pushUpCount}
+          isActive={isGoingDown}
+          style={styles.countContainer}
+          activeStyle={styles.countContainerActive}
+        />
 
         <View style={styles.timeContainer}>
           <FontAwesome5
@@ -71,11 +58,7 @@ function Challenge(): React.JSX.Element {
             {!isTracking && '기기를 얼굴과 마주보게 바닥에 두세요'}
           </Text>
 
-          <View
-            style={[
-              styles.buttonContainer,
-              {paddingBottom: insets.bottom || 34},
-            ]}>
+          <View style={styles.buttonContainer}>
             {isTracking ? (
               <>
                 <CustomButton

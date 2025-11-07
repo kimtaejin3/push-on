@@ -99,8 +99,8 @@ function usePushUpManager() {
     pushUpCount,
     isTracking,
     isGoingDown,
-    startTracking,
-    stopTracking,
+    handleStartTracking: startTracking,
+    handleStopTracking: stopTracking,
   };
 }
 

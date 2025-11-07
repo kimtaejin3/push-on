@@ -12,27 +12,21 @@ import SetTitle from '../components/features/push-up/SetTitle';
 import {formatTime} from '../utils/time';
 
 function ChallengeScreen(): React.JSX.Element {
-  const {pushUpCount, isTracking, isGoingDown, startTracking, stopTracking} =
-    usePushUpManager();
+  const {
+    pushUpCount,
+    isTracking,
+    isGoingDown,
+    handleStartTracking,
+    handleStopTracking,
+  } = usePushUpManager();
   const {
     elapsedTime,
     isTimerRunning,
-    stopTimer,
-    startAndResetTimer,
-    resumeTimer,
+    handleStopTimer,
+    handleStartAndResetTimer,
+    handleResumeTimer,
   } = useTimer();
   const [showResult, setShowResult] = useState(false);
-
-  const handleStartTracking = () => {
-    startAndResetTimer();
-    startTracking();
-  };
-
-  const handleStopTracking = () => {
-    stopTimer();
-    stopTracking();
-    setShowResult(true);
-  };
 
   if (showResult) {
     return <ChallengeResult pushUpCount={pushUpCount} duration={elapsedTime} />;
@@ -60,13 +54,17 @@ function ChallengeScreen(): React.JSX.Element {
                   style={[styles.button, styles.pauseButton]}
                   title={isTimerRunning ? '일시정지' : '재개하기'}
                   variant="default"
-                  onPress={isTimerRunning ? stopTimer : resumeTimer}
+                  onPress={isTimerRunning ? handleStopTimer : handleResumeTimer}
                 />
                 <CustomButton
                   style={[styles.button, styles.stopButton]}
                   title="종료하기"
                   variant="stop"
-                  onPress={handleStopTracking}
+                  onPress={() => {
+                    handleStopTracking();
+                    handleStopTimer();
+                    setShowResult(true);
+                  }}
                 />
               </>
             ) : (
@@ -74,7 +72,10 @@ function ChallengeScreen(): React.JSX.Element {
                 style={styles.button}
                 title="시작하기"
                 variant="start"
-                onPress={handleStartTracking}
+                onPress={() => {
+                  handleStartAndResetTimer();
+                  handleStartTracking();
+                }}
               />
             )}
           </View>

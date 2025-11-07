@@ -44,10 +44,10 @@ export const useTimer = () => {
   return {
     elapsedTime,
     isTimerRunning: isRunning,
-    startTimer,
-    stopTimer,
-    resumeTimer,
-    resetTimer,
-    startAndResetTimer,
+    handleStartTimer: startTimer,
+    handleStopTimer: stopTimer,
+    handleResumeTimer: resumeTimer,
+    handleResetTimer: resetTimer,
+    handleStartAndResetTimer: startAndResetTimer,
   };
 };

@@ -27,28 +27,6 @@ function Challenge(): React.JSX.Element {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const insets = useSafeAreaInsets();
 
-  // 추적 시작 시 타이머도 함께 시작
-  const handleStartTracking = () => {
-    startAndResetTimer();
-    startTracking();
-  };
-
-  // 추적 중지 시 타이머도 중지하고 결과 화면 표시
-  const handleStopTracking = () => {
-    stopTimer();
-    stopTracking();
-    setShowResult(true);
-  };
-
-  // 타이머만 중지 (추적은 계속)
-  const handlePauseTimer = () => {
-    stopTimer();
-  };
-
-  const handleResumeTimer = () => {
-    resumeTimer();
-  };
-
   useEffect(() => {
     Animated.timing(scaleAnim, {
       toValue: isGoingDown ? 0.85 : 1,
@@ -57,7 +35,6 @@ function Challenge(): React.JSX.Element {
     }).start();
   }, [isGoingDown, scaleAnim]);
 
-  // 결과 화면 표시
   if (showResult) {
     return <ChallengeResult pushUpCount={pushUpCount} duration={elapsedTime} />;
   }
@@ -105,15 +82,17 @@ function Challenge(): React.JSX.Element {
                   style={[styles.button, styles.pauseButton]}
                   title={isTimerRunning ? '일시정지' : '재개하기'}
                   variant="default"
-                  onPress={
-                    isTimerRunning ? handlePauseTimer : handleResumeTimer
-                  }
+                  onPress={isTimerRunning ? stopTimer : resumeTimer}
                 />
                 <CustomButton
                   style={[styles.button, styles.stopButton]}
                   title="종료하기"
                   variant="stop"
-                  onPress={handleStopTracking}
+                  onPress={() => {
+                    stopTimer();
+                    stopTracking();
+                    setShowResult(true);
+                  }}
                 />
               </>
             ) : (
@@ -121,7 +100,10 @@ function Challenge(): React.JSX.Element {
                 style={styles.button}
                 title="시작하기"
                 variant="start"
-                onPress={handleStartTracking}
+                onPress={() => {
+                  startAndResetTimer();
+                  startTracking();
+                }}
               />
             )}
           </View>

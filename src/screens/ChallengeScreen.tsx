@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
-import {SafeAreaView, StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import usePushUpManager from '../hooks/usePushUpManager';
 import CustomButton from '../components/common/CustomButton';
 import Engagement from '../components/features/push-up/Engagement';
@@ -103,7 +104,6 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   instructionText: {
-    marginTop: 'auto',
     fontSize: 16,
     textAlign: 'center',
     opacity: 0.8,

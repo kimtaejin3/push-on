@@ -6,7 +6,6 @@ import CustomButton from '../components/common/CustomButton';
 import Engagement from '../components/features/push-up/Engagement';
 import ChallengeResult from '../components/features/push-up/ChallengeResult';
 import {colors} from '../constants/colors';
-import {useTimer} from '../hooks/useTimer';
 import Count from '../components/features/push-up/Count';
 import TimerContainer from '../components/features/push-up/TimerContainer';
 import SetTitle from '../components/features/push-up/SetTitle';
@@ -17,19 +16,18 @@ function ChallengeScreen(): React.JSX.Element {
     pushUpCount,
     isTracking,
     isGoingDown,
+    timer: {elapsedTime, isTimerRunning, handleStopTimer, handleResumeTimer},
     handleStartTracking,
     handleStopTracking,
   } = usePushUpManager();
-  const {
-    elapsedTime,
-    isTimerRunning,
-    handleStopTimer,
-    handleStartAndResetTimer,
-    handleResumeTimer,
-  } = useTimer();
-  const [showResult, setShowResult] = useState(false);
 
-  if (showResult) {
+  const [isPushUpFinished, setIsPushUpFinished] = useState(false);
+
+  const handleFinishPushUp = () => {
+    setIsPushUpFinished(true);
+  };
+
+  if (isPushUpFinished) {
     return <ChallengeResult pushUpCount={pushUpCount} duration={elapsedTime} />;
   }
 
@@ -63,8 +61,7 @@ function ChallengeScreen(): React.JSX.Element {
                   variant="stop"
                   onPress={() => {
                     handleStopTracking();
-                    handleStopTimer();
-                    setShowResult(true);
+                    handleFinishPushUp();
                   }}
                 />
               </>
@@ -73,10 +70,7 @@ function ChallengeScreen(): React.JSX.Element {
                 style={styles.button}
                 title="시작하기"
                 variant="start"
-                onPress={() => {
-                  handleStartAndResetTimer();
-                  handleStartTracking();
-                }}
+                onPress={handleStartTracking}
               />
             )}
           </View>

@@ -2,6 +2,7 @@ import {useState, useCallback, useEffect} from 'react';
 import {NativeModules, PermissionsAndroid, Platform} from 'react-native';
 import useInterval from './useInterval';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import {useTimer} from './useTimer';
 
 const {PushupManager} = NativeModules;
 
@@ -12,6 +13,15 @@ function usePushUpManager() {
   const [pushUpCount, setPushUpCount] = useState(INITIAL_COUNT);
   const [isTracking, setIsTracking] = useState(false);
   const [isGoingDown, setIsGoingDown] = useState(false);
+
+  // 타이머
+  const {
+    elapsedTime,
+    isTimerRunning,
+    handleStopTimer,
+    handleResumeTimer,
+    handleStartAndResetTimer,
+  } = useTimer();
 
   useEffect(() => {
     if (pushUpCount === 0) {
@@ -83,6 +93,9 @@ function usePushUpManager() {
     setIsTracking(true);
     setPushUpCount(INITIAL_COUNT);
 
+    // 타이머 시작 및 리셋
+    handleStartAndResetTimer();
+
     try {
       await PushupManager.startPushupSession();
     } catch (error) {
@@ -92,6 +105,7 @@ function usePushUpManager() {
 
   const stopTracking = () => {
     setIsTracking(false);
+    handleStopTimer();
     PushupManager.stopPushupSession();
   };
 
@@ -99,6 +113,13 @@ function usePushUpManager() {
     pushUpCount,
     isTracking,
     isGoingDown,
+    timer: {
+      elapsedTime,
+      isTimerRunning,
+      handleStopTimer,
+      handleStartAndResetTimer,
+      handleResumeTimer,
+    },
     handleStartTracking: startTracking,
     handleStopTracking: stopTracking,
   };

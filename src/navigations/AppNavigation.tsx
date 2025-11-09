@@ -9,7 +9,6 @@ import BottomTabNavigation, {BottomTabParamList} from './BottomTabNavigation';
 import SettingScreen from '../screens/SettingScreen';
 import AuthScreen from '../screens/AuthScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
-import AppInfoScreen from '../screens/AppInfoScreen';
 import TermsOfServiceScreen from '../screens/TermsOfServiceScreen';
 import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
 import LeaderboardScreen from '../screens/LeaderboardScreen';
@@ -35,7 +34,6 @@ const AppStack = createNativeStackNavigator({
     },
     Challenge: ChallengeScreen,
     Setting: SettingScreen,
-    AppInfo: AppInfoScreen,
     TermsOfService: TermsOfServiceScreen,
     PrivacyPolicy: PrivacyPolicyScreen,
     Leaderboard: LeaderboardScreen,
@@ -71,7 +69,6 @@ export type AppStackParamList = {
   Challenge: undefined;
   Onboarding: undefined;
   Setting: undefined;
-  AppInfo: undefined;
   TermsOfService: undefined;
   PrivacyPolicy: undefined;
   Leaderboard: undefined;

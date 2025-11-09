@@ -67,10 +67,6 @@ function SettingScreen({navigation}: SettingScreenProps) {
     navigation.navigate('TermsOfService');
   };
 
-  const handleAppInfo = () => {
-    navigation.navigate('AppInfo');
-  };
-
   const handleAccountSettings = () => {
     navigation.navigate('AccountSettings');
   };
@@ -122,11 +118,6 @@ function SettingScreen({navigation}: SettingScreenProps) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>정보</Text>
           <View style={styles.sectionContent}>
-            <SettingItem
-              icon="info-circle"
-              title="앱 정보"
-              onPress={handleAppInfo}
-            />
             <SettingItem
               icon="file-contract"
               title="이용약관"

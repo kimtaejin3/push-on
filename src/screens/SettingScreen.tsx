@@ -95,7 +95,7 @@ function SettingScreen({navigation}: SettingScreenProps) {
 
         {/* 앱 버전 정보 */}
         <View style={styles.footer}>
-          <Text style={styles.versionText}>PushOn v1.1.1</Text>
+          <Text style={styles.versionText}>PushOn v1.2.0</Text>
           <Text style={styles.copyrightText}>
             © 2025 PushOn. All rights reserved.
           </Text>

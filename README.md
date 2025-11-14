@@ -1,10 +1,12 @@
-# PushupApp - ARKit 기반 푸쉬업 카운터
+# Push On - 얼굴 인식 기반 푸쉬업 카운터
 
-PushupApp은 iOS의 ARKit 프레임워크를 활용하여 사용자의 푸쉬업 동작을 감지하고 자동으로 카운트하는 React Native 애플리케이션입니다. 얼굴 추적 기술을 사용하여 사용자가 푸쉬업을 할 때 카메라와 얼굴 사이의 거리 변화를 측정하여 정확한 푸쉬업 횟수를 계산합니다.
+<img width="320" alt="1" src="https://github.com/user-attachments/assets/a38b37c2-b1c0-480c-802d-bf609a7ae362" />
+<img width="320" alt="2" src="https://github.com/user-attachments/assets/1c480da4-74a9-4880-a2b3-fe3c3c70b1f1" />
+<img width="320" alt="3" src="https://github.com/user-attachments/assets/12ada653-ad3c-47c3-9db5-9b54262d4c41" />
+<img width="320" alt="4" src="https://github.com/user-attachments/assets/d068257f-7293-4e9a-91ec-3c1663db60a0" />
+<img width="320" alt="5" src="https://github.com/user-attachments/assets/a44f382b-9325-4509-82ca-3d4afef788e1" />
 
-## 기술 스택
+# 데모
 
-- **React Native**: 크로스 플랫폼 모바일 애플리케이션 개발 프레임워크
-- **Swift & Objective-C**: iOS 네이티브 모듈 개발 언어
-- **ARKit**: Apple의 증강 현실 프레임워크
-- **SceneKit**: 3D 그래픽 렌더링 프레임워크
+https://github.com/user-attachments/assets/d6d2975c-e237-4113-a955-a2bb034417e9
+

@@ -10,3 +10,6 @@
 
 https://github.com/user-attachments/assets/d6d2975c-e237-4113-a955-a2bb034417e9
 
+# 출시
+- [구글 플레이 스토어 링크](https://play.google.com/store/apps/details?id=com.pushupapp)
+- 앱스토어 출시 예정

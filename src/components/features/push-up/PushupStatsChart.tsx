@@ -94,6 +94,15 @@ function PushupStatsChart({data, type, metric}: PushupStatsChartProps) {
   const maxValue = Math.max(...chartData.datasets[0].data);
   const yAxisSuffix = getMetricSuffix();
 
+  // 타입에 따라 차트 너비 계산
+  const chartWidth = useMemo(() => {
+    if (type === 'yearly') {
+      // 12개월 데이터는 더 넓은 너비 필요
+      return Math.max(screenWidth - 10, screenWidth * 1.2);
+    }
+    return screenWidth - 10;
+  }, [type]);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -110,7 +119,7 @@ function PushupStatsChart({data, type, metric}: PushupStatsChartProps) {
           contentContainerStyle={styles.scrollContent}>
           <BarChart
             data={chartData}
-            width={screenWidth - 10}
+            width={chartWidth}
             height={350}
             yAxisLabel=""
             yAxisSuffix={yAxisSuffix}

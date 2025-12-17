@@ -78,6 +78,13 @@ export interface MonthlyStatsData {
   weekEnd: Date;
 }
 
+export interface YearlyStatsData {
+  month: string; // YYYY-MM 형식
+  totalReps: number;
+  totalSets: number;
+  totalDuration: number;
+}
+
 /**
  * 지정된 기간의 raw pushup 데이터를 조회합니다.
  * @param days 조회할 일수 (기본값: 30일)
@@ -112,6 +119,44 @@ export const getPushupStats = async (
     console.error('푸쉬업 통계 조회 실패:', error);
     throw error;
   }
+};
+
+/**
+ * raw 데이터를 연간 통계로 가공합니다.
+ */
+export const processYearlyStats = (
+  rawData: PushupSetData[],
+): YearlyStatsData[] => {
+  const nowDate = new Date();
+
+  // 12개월간의 월별 데이터 초기화
+  const statsMap = new Map<string, YearlyStatsData>();
+  for (let i = 11; i >= 0; i--) {
+    const date = new Date(nowDate.getFullYear(), nowDate.getMonth() - i, 1);
+    const monthStr = `${date.getFullYear()}-${(date.getMonth() + 1)
+      .toString()
+      .padStart(2, '0')}`;
+    statsMap.set(monthStr, {
+      month: monthStr,
+      totalReps: 0,
+      totalSets: 0,
+      totalDuration: 0,
+    });
+  }
+
+  // 데이터 집계
+  rawData?.forEach(set => {
+    // workout_date는 YYYY-MM-DD 형식이므로 YYYY-MM으로 변환
+    const monthStr = set.workout_date.substring(0, 7);
+    const existing = statsMap.get(monthStr);
+    if (existing) {
+      existing.totalReps += set.reps;
+      existing.totalSets += 1;
+      existing.totalDuration += set.duration_seconds;
+    }
+  });
+
+  return Array.from(statsMap.values());
 };
 
 /**

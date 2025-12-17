@@ -16,8 +16,9 @@ import {
   processWeeklyStats,
   processMonthlyStats,
 } from '../tanstack-query';
+import { processYearlyStats } from '../remote/pushup';
 
-type TimePeriod = 'weekly' | 'monthly';
+type TimePeriod = 'weekly' | 'monthly' | 'yearly';
 type MetricType = 'reps' | 'sets' | 'duration';
 
 function StatisticScreen() {
@@ -26,6 +27,11 @@ function StatisticScreen() {
 
   // 30일 raw 데이터를 한 번만 가져오기 (최적화)
   const {data: rawData, isLoading} = useQuery(pushupStatsQueryOptions(30));
+
+  const {data: yearlyRawData, isLoading: isLoadingYearly} = useQuery({
+    ...pushupStatsQueryOptions(365),
+    enabled: selectedPeriod === 'yearly',
+  });
 
   // 클라이언트에서 주간/월간 데이터로 가공
   const weeklyData = useMemo(() => {
@@ -42,11 +48,24 @@ function StatisticScreen() {
     return processMonthlyStats(rawData);
   }, [rawData]);
 
-  const currentData = selectedPeriod === 'weekly' ? weeklyData : monthlyData;
+  const yearlyData = useMemo(() => {
+    if (!yearlyRawData) {
+      return [];
+    }
+    return processYearlyStats(yearlyRawData);
+  }, [yearlyRawData]);
+
+  const currentData =
+    selectedPeriod === 'weekly'
+      ? weeklyData
+      : selectedPeriod === 'monthly'
+        ? monthlyData
+        : yearlyData;
 
   const periodButtons = [
     {key: 'weekly' as TimePeriod, label: '주간'},
     {key: 'monthly' as TimePeriod, label: '월간'},
+    {key: 'yearly' as TimePeriod, label: '연간'},
   ];
 
   const metricButtons = [
@@ -106,7 +125,7 @@ function StatisticScreen() {
           </View>
 
           {/* 차트 */}
-          {isLoading ? (
+          {isLoading || isLoadingYearly ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={colors.primary} />
               <Text style={styles.loadingText}>데이터를 불러오는 중...</Text>
@@ -120,8 +139,12 @@ function StatisticScreen() {
           ) : (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
-                {selectedPeriod === 'weekly' ? '주간' : '월간'} 데이터가
-                없습니다.
+                {selectedPeriod === 'weekly'
+                  ? '주간'
+                  : selectedPeriod === 'monthly'
+                    ? '월간'
+                    : '연간'}{' '}
+                데이터가 없습니다.
               </Text>
               <Text style={styles.emptySubText}>푸쉬업을 시작해보세요!</Text>
             </View>

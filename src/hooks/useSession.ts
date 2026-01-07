@@ -37,14 +37,6 @@ export const useSession = () => {
     };
   }, []);
 
-  // 로그아웃 함수
-
-  const signOut = async () => {
-    const {error} = await supabase.auth.signOut();
-    return {error};
-  };
-
-  // 세션 확인 및 갱신 로직
   const checkAndRefreshSession = async () => {
     try {
       const {
@@ -97,7 +89,6 @@ export const useSession = () => {
     session,
     user: session?.user || null,
     isLoggedIn: !!session,
-    signOut,
     checkAndRefreshSession,
   };
 };

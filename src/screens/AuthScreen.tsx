@@ -9,18 +9,12 @@ import {
 } from 'react-native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import {colors} from '../constants/colors';
-import {useKakaoLoginNative} from '../hooks/useKakaoLoginNative';
-import {useGoogleLogin} from '../hooks/useGoogleLogin';
 import Logo from '../assets/svgs/logo.svg';
 import Google from '../assets/svgs/google.svg';
+import { useAuth } from '../hooks/useAuth';
 
 function AuthScreen() {
-  // 카카오 로그인 훅 사용 (새로운 네이티브 방식)
-  const {signInWithKakao, isLoading: isKakaoNativeLoading} =
-    useKakaoLoginNative();
-
-  // 구글 로그인 훅 사용
-  const {signInWithGoogle, isLoading: isGoogleLoading} = useGoogleLogin();
+  const {signInWithProvider, isLoading} = useAuth();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -71,11 +65,11 @@ function AuthScreen() {
           <TouchableOpacity
             style={[
               styles.kakaoButton,
-              isKakaoNativeLoading && styles.disabledButton,
+              isLoading && styles.disabledButton,
             ]}
-            onPress={signInWithKakao}
-            disabled={isKakaoNativeLoading}>
-            {isKakaoNativeLoading ? (
+            onPress={() => signInWithProvider('kakao')}
+            disabled={isLoading}>
+            {isLoading ? (
               <ActivityIndicator size="small" color={colors.textBlack} />
             ) : (
               <Fontawesome5
@@ -87,24 +81,24 @@ function AuthScreen() {
               />
             )}
             <Text style={styles.kakaoButtonText}>
-              {isKakaoNativeLoading ? '로그인 중...' : '카카오로 시작하기'}
+              {isLoading ? '로그인 중...' : '카카오로 시작하기'}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
               styles.googleButton,
-              isGoogleLoading && styles.disabledButton,
+              isLoading && styles.disabledButton,
             ]}
-            onPress={signInWithGoogle}
-            disabled={isGoogleLoading}>
-            {isGoogleLoading ? (
+            onPress={() => signInWithProvider('google')}
+            disabled={isLoading}>
+            {isLoading ? (
               <ActivityIndicator size="small" color={colors.textLight} />
             ) : (
               <Google width={20} height={20} />
             )}
             <Text style={styles.googleButtonText}>
-              {isGoogleLoading ? '로그인 중...' : 'Google로 시작하기'}
+              {isLoading ? '로그인 중...' : 'Google로 시작하기'}
             </Text>
           </TouchableOpacity>
         </View>

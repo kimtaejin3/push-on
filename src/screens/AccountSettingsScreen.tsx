@@ -15,10 +15,13 @@ import {colors} from '../constants/colors';
 import {useSession} from '../hooks/useSession';
 import Header from '../components/common/Header';
 import {useDeleteAccountMutation} from '../tanstack-query/mutationHooks/auth';
+import { useAuth } from '../hooks/useAuth';
+import { providers } from '../types/auth';
 
 function AccountSettingsScreen() {
   const navigation = useNavigation();
-  const {user, signOut} = useSession();
+  const {user} = useSession();
+  const {signOut: signOutProvider} = useAuth();
   const [imageError, setImageError] = useState(false);
   const deleteAccountMutation = useDeleteAccountMutation();
 
@@ -89,12 +92,7 @@ function AccountSettingsScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            await signOut();
-            // 로그아웃 후 AuthScreen으로 이동
-            navigation.reset({
-              index: 0,
-              routes: [{name: 'Auth' as never}],
-            });
+            await signOutProvider(user?.app_metadata?.provider as typeof providers[number]);
           } catch (error) {
             console.error('로그아웃 오류:', error);
             Alert.alert('오류', '로그아웃 중 오류가 발생했습니다.');

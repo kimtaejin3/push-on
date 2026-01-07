@@ -1,11 +1,11 @@
 import {useState, useEffect, useCallback} from 'react';
 import {supabase} from '../lib/supabase';
-import {useAuth} from './useAuth';
+import {useSession} from './useSession';
 
 export const useIsOnboarded = () => {
   const [isOnboarded, setIsOnboarded] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
-  const {user} = useAuth();
+  const {user} = useSession();
 
   const checkOnboardingStatus = useCallback(async () => {
     if (!user) {

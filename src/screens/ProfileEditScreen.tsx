@@ -13,14 +13,14 @@ import {useNavigation} from '@react-navigation/native';
 import {useQuery} from '@tanstack/react-query';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import {colors} from '../constants/colors';
-import {useAuth} from '../hooks/useAuth';
+import {useSession} from '../hooks/useSession';
 import Header from '../components/common/Header';
 import {profileQueryOptions} from '../tanstack-query/queryOptions/profile';
 import {useUpdateProfileMutation} from '../tanstack-query/mutationHooks/profile';
 
 function ProfileEditScreen() {
   const navigation = useNavigation();
-  const {user} = useAuth();
+  const {user} = useSession();
 
   // 로컬 상태
   const [nickname, setNickname] = useState('');

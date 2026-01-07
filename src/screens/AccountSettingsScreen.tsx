@@ -12,13 +12,13 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import {colors} from '../constants/colors';
-import {useAuth} from '../hooks/useAuth';
+import {useSession} from '../hooks/useSession';
 import Header from '../components/common/Header';
 import {useDeleteAccountMutation} from '../tanstack-query/mutationHooks/auth';
 
 function AccountSettingsScreen() {
   const navigation = useNavigation();
-  const {user, signOut} = useAuth();
+  const {user, signOut} = useSession();
   const [imageError, setImageError] = useState(false);
   const deleteAccountMutation = useDeleteAccountMutation();
 

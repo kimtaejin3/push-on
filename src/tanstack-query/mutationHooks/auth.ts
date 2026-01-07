@@ -1,6 +1,6 @@
 import {useMutation, useQueryClient} from '@tanstack/react-query';
 import {deleteUserAccount, checkWithdrawalEligibility} from '../../remote/auth';
-import {useAuth} from '../../hooks/useAuth';
+import {useSession} from '../../hooks/useSession';
 import {useNavigation} from '@react-navigation/native';
 
 /**
@@ -8,7 +8,7 @@ import {useNavigation} from '@react-navigation/native';
  */
 export const useDeleteAccountMutation = () => {
   const queryClient = useQueryClient();
-  const {signOut} = useAuth();
+  const {signOut} = useSession();
   const navigation = useNavigation();
 
   return useMutation({

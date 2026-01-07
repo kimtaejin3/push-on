@@ -7,7 +7,7 @@ import Calendar from '../components/features/calendar/Calendar';
 import {colors} from '../constants/colors';
 import SetCard from '../components/features/push-up/SetCard';
 import HistorySummary from '../components/features/push-up/HistorySummary';
-import {useAuth} from '../hooks/useAuth';
+import {useSession} from '../hooks/useSession';
 import {selectedDateAtom} from '../atoms/date';
 import {useSuspenseQuery, useQuery} from '@tanstack/react-query';
 import {
@@ -72,7 +72,7 @@ function SetCardList() {
     day: selectedDate.getDate(),
   };
 
-  const {user} = useAuth();
+  const {user} = useSession();
 
   const {data: pushupSets} = useSuspenseQuery(
     pushUpSetsByDateQueryOptions(year, month, day),

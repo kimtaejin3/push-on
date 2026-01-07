@@ -1,7 +1,7 @@
 import {StyleSheet, View, Text, Alert, Animated} from 'react-native';
 import {colors} from '../../../constants/colors';
 import CustomButton from '../../common/CustomButton';
-import {useAuth} from '../../../hooks/useAuth';
+import {useSession} from '../../../hooks/useSession';
 import {useUpsertProfileMutation} from '../../../tanstack-query/mutationHooks/profile';
 import {
   useSequentialAnimation,
@@ -25,7 +25,7 @@ function OnboardingResult({
     durations: [500, 400, 300],
   });
 
-  const {user} = useAuth();
+  const {user} = useSession();
 
   const upsertProfileMutation = useUpsertProfileMutation(
     async () => {

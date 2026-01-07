@@ -14,7 +14,7 @@ import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
 import LeaderboardScreen from '../screens/LeaderboardScreen';
 import AccountSettingsScreen from '../screens/AccountSettingsScreen';
 import ProfileEditScreen from '../screens/ProfileEditScreen';
-import {useAuth} from '../hooks/useAuth';
+import {useSession} from '../hooks/useSession';
 import {useIsOnboarded} from '../hooks/useIsOnboarded';
 
 const AppStack = createNativeStackNavigator({
@@ -46,7 +46,7 @@ const AppNavigation = createStaticNavigation(AppStack);
 
 // 조건부 네비게이션 컴포넌트
 const ConditionalNavigation = () => {
-  const {isLoggedIn, loading: authLoading} = useAuth();
+  const {isLoggedIn, loading: authLoading} = useSession();
   const {
     isOnboarded,
     loading: onboardingLoading,

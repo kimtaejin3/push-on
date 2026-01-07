@@ -2,9 +2,8 @@ import {useState, useEffect} from 'react';
 import {supabase} from '../lib/supabase';
 import {AppState} from 'react-native';
 
-export const useAuth = () => {
+export const useSession = () => {
   const [session, setSession] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // 초기 세션 확인
@@ -21,8 +20,6 @@ export const useAuth = () => {
         }
       } catch (error) {
         console.error('세션 확인 중 오류:', error);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -33,7 +30,6 @@ export const useAuth = () => {
       data: {subscription},
     } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
-      setLoading(false);
     });
 
     return () => {
@@ -42,6 +38,7 @@ export const useAuth = () => {
   }, []);
 
   // 로그아웃 함수
+
   const signOut = async () => {
     const {error} = await supabase.auth.signOut();
     return {error};
@@ -98,7 +95,6 @@ export const useAuth = () => {
 
   return {
     session,
-    loading,
     user: session?.user || null,
     isLoggedIn: !!session,
     signOut,

@@ -17,7 +17,7 @@ import {
   updateSelectedDateAtom,
 } from '../../../atoms/date';
 import {useAtom} from 'jotai';
-import {useAuth} from '../../../hooks/useAuth';
+import {useSession} from '../../../hooks/useSession';
 import {formatKSTDate} from '../../../utils/time';
 import {useQuery} from '@tanstack/react-query';
 import {pushupCalendarQueryOptions} from '../../../tanstack-query';
@@ -28,7 +28,7 @@ interface CalendarProps {
 
 const Calendar: React.FC<CalendarProps> = ({selectedDate}) => {
   const calendarData = useCalendarData({selectedDate});
-  const {user} = useAuth();
+  const {user} = useSession();
   const {data: pushupData, isLoading} = useQuery(
     pushupCalendarQueryOptions(
       user?.id || '',

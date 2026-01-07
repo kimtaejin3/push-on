@@ -12,7 +12,7 @@ import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import {colors} from '../../constants/colors';
 import {useQuery} from '@tanstack/react-query';
 import {profileQueryOptions} from '../../tanstack-query';
-import {useAuth} from '../../hooks/useAuth';
+import {useSession} from '../../hooks/useSession';
 import CustomButton from './CustomButton';
 import {
   CURRENT_YEAR,
@@ -103,7 +103,7 @@ const DatePickerModal: React.FC<MonthPickerModalProps> = ({
   onClose,
   onChangeSelectedDate,
 }) => {
-  const {user} = useAuth();
+  const {user} = useSession();
   const {data: profile} = useQuery({
     ...profileQueryOptions(user?.id || ''),
     enabled: user !== null,

@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {login, logout, getProfile} from '@react-native-seoul/kakao-login';
+import {login, logout} from '@react-native-seoul/kakao-login';
 import {supabase} from '../lib/supabase';
 import {Alert} from 'react-native';
 
@@ -58,20 +58,9 @@ export const useKakaoLoginNative = () => {
     }
   };
 
-  const getKakaoProfile = async () => {
-    try {
-      const profile = await getProfile();
-      return profile;
-    } catch (error) {
-      console.error('카카오 프로필 조회 에러:', error);
-      throw error;
-    }
-  };
-
   return {
     signInWithKakao,
     signOutKakao,
-    getKakaoProfile,
     isLoading,
   };
 };

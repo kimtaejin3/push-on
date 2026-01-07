@@ -235,17 +235,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 30,
   },
-  logoutButton: {
-    backgroundColor: colors.error,
-    paddingHorizontal: 30,
-    paddingVertical: 15,
-    borderRadius: 12,
-  },
-  logoutButtonText: {
-    color: colors.textLight,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
   footer: {
     paddingHorizontal: 30,
     paddingBottom: 30,

@@ -33,6 +33,8 @@ export const useGoogleLogin = () => {
         } else {
           Alert.alert('로그인 성공', 'Google 계정으로 로그인되었습니다.');
         }
+
+        return {data, error};
       } else {
         throw new Error('Google ID 토큰을 받지 못했습니다.');
       }

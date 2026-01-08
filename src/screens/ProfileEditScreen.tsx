@@ -16,7 +16,7 @@ import {colors} from '../constants/colors';
 import {useSession} from '../hooks/useSession';
 import Header from '../components/common/Header';
 import {profileQueryOptions} from '../tanstack-query/queryOptions/profile';
-import {useUpdateProfileMutation} from '../tanstack-query/mutationHooks/profile';
+import {useUpdateProfileMutation, useUpsertProfileMutation} from '../tanstack-query/mutationHooks/profile';
 
 function ProfileEditScreen() {
   const navigation = useNavigation();
@@ -40,13 +40,20 @@ function ProfileEditScreen() {
   const updateProfileMutation = useUpdateProfileMutation(
     user?.id || '',
     () => {
-      Alert.alert('성공', '프로필이 성공적으로 업데이트되었습니다.');
-      navigation.goBack();
+      Alert.alert('성공', '프로필이 성공적으로 업데이트 되었어요');
     },
     () => {
-      Alert.alert('오류', '프로필 업데이트에 실패했습니다.');
+      Alert.alert('오류', '프로필 업데이트에 실패했어요');
     },
   );
+
+  const upsertProfileMutation = useUpsertProfileMutation(() => {
+    Alert.alert('성공', '프로필이 성공적으로 생성되었어요');
+    navigation.goBack();
+  },
+  () => {
+    Alert.alert('오류', '프로필 생성에 실패했어요');
+  },);
 
   // 프로필 데이터가 로드되면 로컬 상태 업데이트
   useEffect(() => {
@@ -63,20 +70,35 @@ function ProfileEditScreen() {
 
     // 유효성 검사
     if (isNaN(repsPerSet) || repsPerSet < 1 || repsPerSet > 100) {
-      Alert.alert('오류', '세트당 목표 횟수는 1-100 사이의 숫자여야 합니다.');
+      Alert.alert('오류', '세트당 목표 횟수는 1-100 사이의 숫자여야 해요');
       return;
     }
 
     if (isNaN(setsPerDay) || setsPerDay < 1 || setsPerDay > 20) {
-      Alert.alert('오류', '목표 세트는 1-20 사이의 숫자여야 합니다.');
+      Alert.alert('오류', '목표 세트는 1-20 사이의 숫자여야 해요');
       return;
     }
 
-    updateProfileMutation.mutate({
-      target_reps_per_set: repsPerSet,
-      target_sets_per_day: setsPerDay,
-      nickname: nickname,
-    });
+    if(!nickname){
+      Alert.alert('오류', '닉네임을 입력해주세요');
+      return;
+    }
+
+    if (profileData?.nickname){
+      updateProfileMutation.mutate({
+        target_reps_per_set: repsPerSet,
+        target_sets_per_day: setsPerDay,
+        nickname: nickname,
+      });
+    }
+    if (user && !profileData?.nickname){
+      upsertProfileMutation.mutate({
+        id: user.id,
+        target_reps_per_set: repsPerSet,
+        target_sets_per_day: setsPerDay,
+        nickname: nickname,
+      });
+    }
   };
 
   if (isLoading) {

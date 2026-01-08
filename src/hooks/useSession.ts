@@ -3,6 +3,8 @@ import {supabase} from '../lib/supabase';
 import {AppState} from 'react-native';
 import {Session} from '@supabase/supabase-js';
 
+
+//TODO: user가 null일 경우의 처리는 여기서 해주기
 export const useSession = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);

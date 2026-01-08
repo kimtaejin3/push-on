@@ -1,9 +1,10 @@
 import {useState, useEffect} from 'react';
 import {supabase} from '../lib/supabase';
 import {AppState} from 'react-native';
+import {Session} from '@supabase/supabase-js';
 
 export const useSession = () => {
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
     // 초기 세션 확인
@@ -87,7 +88,7 @@ export const useSession = () => {
 
   return {
     session,
-    user: session?.user || null,
+    user: session?.user ?? null,
     isLoggedIn: !!session,
     checkAndRefreshSession,
   };

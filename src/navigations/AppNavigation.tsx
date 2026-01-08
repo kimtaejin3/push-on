@@ -1,4 +1,5 @@
 import React from 'react';
+import {View, StyleSheet, ActivityIndicator} from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {
   createStaticNavigation,
@@ -8,14 +9,14 @@ import ChallengeScreen from '../screens/ChallengeScreen';
 import BottomTabNavigation, {BottomTabParamList} from './BottomTabNavigation';
 import SettingScreen from '../screens/SettingScreen';
 import AuthScreen from '../screens/AuthScreen';
-import OnboardingScreen from '../screens/OnboardingScreen';
 import TermsOfServiceScreen from '../screens/TermsOfServiceScreen';
 import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
 import LeaderboardScreen from '../screens/LeaderboardScreen';
 import AccountSettingsScreen from '../screens/AccountSettingsScreen';
 import ProfileEditScreen from '../screens/ProfileEditScreen';
 import {useSession} from '../hooks/useSession';
-import {useIsOnboarded} from '../hooks/useIsOnboarded';
+import {colors} from '../constants/colors';
+import Text from '../components/common/Text';
 
 const AppStack = createNativeStackNavigator({
   initialRouteName: 'Tabs',
@@ -46,23 +47,37 @@ const AppNavigation = createStaticNavigation(AppStack);
 
 // 조건부 네비게이션 컴포넌트
 const ConditionalNavigation = () => {
-  const {isLoggedIn, loading: authLoading} = useSession();
-  const {
-    isOnboarded,
-    loading: onboardingLoading,
-    refresh: refreshOnboarding,
-  } = useIsOnboarded();
-  if (authLoading || onboardingLoading) {
-    return null;
+  const {isLoggedIn, loading} = useSession();
+
+  if (loading) {
+    return (
+      <View style={styles.splashContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={styles.loadingText}>앱 데이터를 불러오고 있어요</Text>
+      </View>
+    );
   }
+
   if (!isLoggedIn) {
     return <AuthScreen />;
   }
-  if (isOnboarded === false) {
-    return <OnboardingScreen onComplete={refreshOnboarding} />;
-  }
+
   return <AppNavigation />;
 };
+
+const styles = StyleSheet.create({
+  splashContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.backgroundDark,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: colors.textLight,
+  },
+});
 
 export type AppStackParamList = {
   Tabs: NavigatorScreenParams<BottomTabParamList>;

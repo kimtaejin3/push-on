@@ -5,11 +5,12 @@ import {Session} from '@supabase/supabase-js';
 
 export const useSession = () => {
   const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 초기 세션 확인
     const getInitialSession = async () => {
       try {
+        setLoading(true);
         const {
           data: {session: sessionData},
           error,
@@ -19,8 +20,12 @@ export const useSession = () => {
         } else {
           setSession(sessionData);
         }
+        // 스플래시 화면을 최소 1초간 표시
+        await new Promise(resolve => setTimeout(resolve, 500));
       } catch (error) {
         console.error('세션 확인 중 오류:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -90,6 +95,7 @@ export const useSession = () => {
     session,
     user: session?.user ?? null,
     isLoggedIn: !!session,
+    loading,
     checkAndRefreshSession,
   };
 };

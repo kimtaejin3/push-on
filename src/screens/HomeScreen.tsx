@@ -10,15 +10,32 @@ import {
 import {colors} from '../constants/colors';
 import Logo from '../assets/svgs/logo.svg';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
-import {pushUpSetsByDateQueryOptions} from '../tanstack-query';
+import {profileQueryOptions, pushUpSetsByDateQueryOptions} from '../tanstack-query';
 import {useQuery} from '@tanstack/react-query';
 import {CURRENT_DATE, CURRENT_MONTH, CURRENT_YEAR} from '../atoms/date';
+import { useSession } from '../hooks/useSession';
+import { useEffect } from 'react';
 
 function HomeScreen(): React.JSX.Element {
   const navigation = useNavigation();
+  const session = useSession();
   useQuery(
     pushUpSetsByDateQueryOptions(CURRENT_YEAR, CURRENT_MONTH, CURRENT_DATE),
   );
+
+  const {data: profileInfo, isLoading} = useQuery(
+    profileQueryOptions(session?.user?.id ?? '')
+  );
+
+  useEffect(() => {
+    if(session && !profileInfo && !isLoading) {
+      console.log('session:', session, 'profileInfo:',profileInfo);
+      navigation.navigate('ProfileEdit');
+    }
+    console.log('session:', session, 'profileInfo:',profileInfo);
+
+
+  },[session, profileInfo, isLoading, navigation]);
 
   return (
     <SafeAreaView style={styles.safeArea}>

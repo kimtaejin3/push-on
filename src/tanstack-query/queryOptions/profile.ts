@@ -5,6 +5,7 @@ const profileQueryOptions = (userId: string) => {
   return {
     queryKey: queryKeys.profile.me,
     queryFn: () => getProfile(userId),
+    retry: 0,
   };
 };
 

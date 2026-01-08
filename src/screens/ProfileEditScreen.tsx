@@ -168,26 +168,6 @@ function ProfileEditScreen() {
             </View>
           </View>
 
-          {/* 현재 목표 요약 */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>현재 목표</Text>
-            <View style={styles.summaryContainer}>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryText}>
-                  세트당 {targetRepsPerSet}회 × {targetSetsPerDay}세트
-                </Text>
-              </View>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryText}>
-                  총{' '}
-                  {parseInt(targetRepsPerSet, 10) *
-                    parseInt(targetSetsPerDay, 10)}
-                  회
-                </Text>
-              </View>
-            </View>
-          </View>
-
           {/* 저장 버튼 */}
           <TouchableOpacity
             style={[

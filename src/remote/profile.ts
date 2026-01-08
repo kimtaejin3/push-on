@@ -17,7 +17,7 @@ export const getProfile = async (userId: string): Promise<ProfileData> => {
       .eq('id', userId)
       .single();
 
-    if (error) {
+    if (error && error.code !== 'PGRST116') {
       throw error;
     }
 

@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
-  Text,
   View,
   ScrollView,
   Image,
@@ -14,72 +13,35 @@ import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import {colors} from '../constants/colors';
 import {useSession} from '../hooks/useSession';
 import Header from '../components/common/Header';
+import Text from '../components/common/Text';
 import {useDeleteAccountMutation} from '../tanstack-query/mutationHooks/auth';
 import { useAuth } from '../hooks/useAuth';
-import { providers } from '../types/auth';
+import {ProviderInfo, providers } from '../types/auth';
+import {User} from '@supabase/supabase-js';
 
 function AccountSettingsScreen() {
   const navigation = useNavigation();
   const {user} = useSession();
-  const {signOut: signOutProvider} = useAuth();
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* 헤더 */}
+      <Header title="계정 설정" onBackPress={() => navigation.goBack()} />
+
+      {user && <UserInfo user={user}/>}
+      {!user && <Text>사용자 정보를 불러올 수 없습니다.</Text>}
+
+    </SafeAreaView>
+  );
+}
+
+const UserInfo = ({user}: {user: User}) => {
+  const {userName, userEmail, profileImage, providerInfo, joinedDate} = extractUserInfo(user);
   const [imageError, setImageError] = useState(false);
+  const {signOut: signOutProvider} = useAuth();
+  const navigation = useNavigation();
   const deleteAccountMutation = useDeleteAccountMutation();
 
-  // 사용자 정보 추출
-  const userName =
-    user?.user_metadata?.name || user?.user_metadata?.full_name || '사용자';
-  const userEmail = user?.email || '';
-
-  // 카카오 이미지 URL 처리
-  const rawProfileImage = user?.user_metadata?.avatar_url || '';
-  let profileImage = '';
-
-  if (rawProfileImage) {
-    if (rawProfileImage.includes('fname=')) {
-      try {
-        const fnamePart = rawProfileImage.split('fname=')[1];
-        profileImage = decodeURIComponent(fnamePart);
-      } catch (error) {
-        profileImage = rawProfileImage;
-      }
-    } else {
-      profileImage = rawProfileImage;
-    }
-
-    // HTTP를 HTTPS로 변경 (보안 정책 대응)
-    if (profileImage.startsWith('http://')) {
-      profileImage = profileImage.replace('http://', 'https://');
-    }
-  }
-  const provider = user?.app_metadata?.provider || 'unknown';
-  const joinedDate = user?.created_at
-    ? new Date(user.created_at).toLocaleDateString('ko-KR')
-    : '';
-
-  const getProviderInfo = (providerType: string) => {
-    switch (providerType) {
-      case 'kakao':
-        return {
-          name: '카카오',
-          icon: 'comment',
-          color: '#FEE500',
-        };
-      case 'google':
-        return {
-          name: '구글',
-          icon: 'search',
-          color: colors.primary,
-        };
-      default:
-        return {
-          name: '이메일',
-          icon: 'envelope',
-          color: colors.primary,
-        };
-    }
-  };
-
-  const providerInfo = getProviderInfo(provider);
 
   const handleLogout = async () => {
     Alert.alert('로그아웃', '정말 로그아웃하시겠습니까?', [
@@ -92,7 +54,11 @@ function AccountSettingsScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            await signOutProvider(user?.app_metadata?.provider as typeof providers[number]);
+            if (!user) {
+              Alert.alert('오류', '사용자 정보를 찾을 수 없습니다.');
+              return;
+            }
+            await signOutProvider(user.app_metadata.provider as typeof providers[number]);
           } catch (error) {
             console.error('로그아웃 오류:', error);
             Alert.alert('오류', '로그아웃 중 오류가 발생했습니다.');
@@ -137,12 +103,9 @@ function AccountSettingsScreen() {
     );
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      {/* 헤더 */}
-      <Header title="계정 설정" onBackPress={() => navigation.goBack()} />
 
-      <ScrollView style={styles.scrollView}>
+  return (
+    <ScrollView style={styles.scrollView}>
         <View style={styles.content}>
           {/* 프로필 섹션 */}
           <View style={styles.profileSection}>
@@ -194,7 +157,7 @@ function AccountSettingsScreen() {
               <View style={styles.infoItem}>
                 <View style={styles.infoItemLeft}>
                   <Fontawesome5
-                    name={providerInfo.icon as any}
+                    name={providerInfo.icon as 'comment' | 'search' | 'envelope'}
                     size={16}
                     iconStyle="solid"
                     color={providerInfo.color}
@@ -273,9 +236,8 @@ function AccountSettingsScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -423,3 +385,79 @@ const styles = StyleSheet.create({
 });
 
 export default AccountSettingsScreen;
+
+/**
+ * 사용자 정보를 추출하고 정제하는 함수
+ */
+const extractUserInfo = (user: User): {
+  userName: string | null;
+  userEmail: string | null;
+  profileImage: string | null;
+  providerInfo: {
+    name: string;
+    icon: string;
+    color: string;
+  },
+  joinedDate: string | null;
+} => {
+
+  const userName =
+    user.user_metadata.name || user.user_metadata.full_name || '사용자';
+  const userEmail = user.email || '';
+
+  const rawProfileImage = user.user_metadata.avatar_url || '';
+  let profileImage = '';
+
+  if (rawProfileImage) {
+    if (rawProfileImage.includes('fname=')) {
+      try {
+        const fnamePart = rawProfileImage.split('fname=')[1];
+        profileImage = decodeURIComponent(fnamePart);
+      } catch (error) {
+        profileImage = rawProfileImage;
+      }
+    } else {
+      profileImage = rawProfileImage;
+    }
+
+    if (profileImage.startsWith('http://')) {
+      profileImage = profileImage.replace('http://', 'https://');
+    }
+  }
+
+  const provider = user.app_metadata.provider || 'unknown';
+  const joinedDate = user.created_at
+    ? new Date(user.created_at).toLocaleDateString('ko-KR')
+    : '';
+
+  return {
+    userName,
+    userEmail,
+    profileImage,
+    providerInfo: getProviderInfo(provider),
+    joinedDate,
+  };
+};
+
+const getProviderInfo = (providerType: string): ProviderInfo => {
+  switch (providerType) {
+    case 'kakao':
+      return {
+        name: '카카오',
+        icon: 'comment',
+        color: '#FEE500',
+      };
+    case 'google':
+      return {
+        name: '구글',
+        icon: 'search',
+        color: colors.primary,
+      };
+    default:
+      return {
+        name: '이메일',
+        icon: 'envelope',
+        color: colors.primary,
+      };
+  }
+};

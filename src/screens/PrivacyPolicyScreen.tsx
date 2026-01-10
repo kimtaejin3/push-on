@@ -133,12 +133,7 @@ function PrivacyPolicyScreen() {
                 • Supabase (데이터베이스 서비스)
               </Text>
               {'\n'}- 위탁업무: 회원 정보 및 운동 기록 저장{'\n'}- 보유 및
-              이용기간: 회원 탈퇴 시까지{'\n\n'}
-              <Text style={styles.subTitle}>
-                • Google Analytics (분석 서비스)
-              </Text>
-              {'\n'}- 위탁업무: 서비스 이용 통계 분석{'\n'}- 보유 및 이용기간:
-              익명화된 통계 데이터
+              이용기간: 회원 탈퇴 시까지
             </Text>
           </View>
 

@@ -59,6 +59,12 @@ export default function LeaderboardScreen() {
       <Header title="오늘의 순위" onBackPress={() => navigation.goBack()} />
 
       <View style={styles.tableHeader}>
+        <Text>년</Text>
+        <Text>월</Text>
+        <Text>일</Text>
+      </View>
+
+      <View style={styles.tableHeader}>
         <Text style={[styles.th, styles.thRank]}>순위</Text>
         <Text style={[styles.th, styles.thUser]}>닉네임</Text>
         <Text style={[styles.th, styles.thReps]}>푸쉬업 횟수</Text>

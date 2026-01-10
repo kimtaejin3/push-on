@@ -19,27 +19,22 @@ export type BottomTabParamList = {
 
 const Tab = createBottomTabNavigator<BottomTabParamList>();
 
-// 아이콘 컴포넌트들을 외부로 분리
+// TODO: 필요없는 Wrapper들 제거필요.
 const HomeIcon = ({color}: {color: string}) => (
   <Fontawesome5 name="home" size={20} color={color} iconStyle="solid" />
 );
-
 const HistoryIcon = ({color}: {color: string}) => (
   <Fontawesome5 name="history" size={20} color={color} iconStyle="solid" />
 );
-
 const StatisticIcon = ({color}: {color: string}) => (
   <FontAwesome6 name="chart-simple" size={20} color={color} iconStyle="solid" />
 );
-
 const SettingIcon = ({color}: {color: string}) => (
   <Fontawesome5 name="cog" size={20} color={color} iconStyle="solid" />
 );
-
 const MedalIcon = ({color}: {color: string}) => (
   <Fontawesome5 name="medal" size={20} color={color} iconStyle="solid" />
 );
-
 const homeTabBarIcon = ({color}: {color: string}) => <HomeIcon color={color} />;
 const historyTabBarIcon = ({color}: {color: string}) => (
   <HistoryIcon color={color} />

@@ -5,14 +5,13 @@ import {colors} from '../../constants/colors';
 
 interface HeaderProps {
   title: string;
-  onBackPress: () => void;
-  showBackButton?: boolean;
+  onBackPress?: () => void;
 }
 
-function Header({title, onBackPress, showBackButton = true}: HeaderProps) {
+function Header({title, onBackPress}: HeaderProps) {
   return (
     <View style={styles.header}>
-      {showBackButton ? (
+      {onBackPress ? (
         <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
           <Fontawesome5
             name="arrow-left"

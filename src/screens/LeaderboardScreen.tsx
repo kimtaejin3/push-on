@@ -3,7 +3,6 @@ import {FlatList, StyleSheet, Text, View, RefreshControl} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {colors} from '../constants/colors';
 import Header from '../components/common/Header';
-import {useNavigation} from '@react-navigation/native';
 import {supabase} from '../lib/supabase';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
 
@@ -15,13 +14,11 @@ type LeaderItem = {
 
 const MOCK_DATA: LeaderItem[] = [];
 
-// 국가 표시는 제거됨
-
 export default function LeaderboardScreen() {
-  const navigation = useNavigation();
   const [items, setItems] = useState<LeaderItem[]>(MOCK_DATA);
   const [refreshing, setRefreshing] = useState(false);
 
+  //TODO: Tanstack Query로 바꾸기
   async function fetchTodayLeaderboard() {
     const todayKst = new Date().toLocaleDateString('en-CA', {
       timeZone: 'Asia/Seoul',
@@ -56,13 +53,13 @@ export default function LeaderboardScreen() {
   };
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Header title="오늘의 순위" onBackPress={() => navigation.goBack()} />
+      <Header title="오늘의 순위" />
 
-      <View style={styles.tableHeader}>
-        <Text>년</Text>
-        <Text>월</Text>
-        <Text>일</Text>
-      </View>
+      {/* <Chips style={styles.tableHeader} onChange={() => {}}>
+        <Chip>일</Chip>
+        <Chip>월</Chip>
+        <Chip>년</Chip>
+      </Chips> */}
 
       <View style={styles.tableHeader}>
         <Text style={[styles.th, styles.thRank]}>순위</Text>
@@ -110,8 +107,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
   },
   th: {
     color: colors.textLight,

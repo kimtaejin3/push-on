@@ -1,15 +1,17 @@
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
+import LeaderboardScreen from '../screens/LeaderboardScreen';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
+import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import {colors} from '../constants/colors';
 import HistoryScreen from '../screens/HistoryScreen';
 import StatisticScreen from '../screens/StatisticScreen';
-import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import SettingScreen from '../screens/SettingScreen';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
 export type BottomTabParamList = {
   Home: undefined;
+  Leaderboard: undefined;
   Statistic: undefined;
   History: undefined;
   Setting: undefined;
@@ -34,6 +36,10 @@ const SettingIcon = ({color}: {color: string}) => (
   <Fontawesome5 name="cog" size={20} color={color} iconStyle="solid" />
 );
 
+const MedalIcon = ({color}: {color: string}) => (
+  <Fontawesome5 name="medal" size={20} color={color} iconStyle="solid" />
+);
+
 const homeTabBarIcon = ({color}: {color: string}) => <HomeIcon color={color} />;
 const historyTabBarIcon = ({color}: {color: string}) => (
   <HistoryIcon color={color} />
@@ -43,6 +49,9 @@ const statisticTabBarIcon = ({color}: {color: string}) => (
 );
 const settingTabBarIcon = ({color}: {color: string}) => (
   <SettingIcon color={color} />
+);
+const medalTabBarIcon = ({color}:{color: string}) => (
+  <MedalIcon color={color}/>
 );
 
 const BottomTabNavigation = () => {
@@ -77,6 +86,16 @@ const BottomTabNavigation = () => {
         component={HomeScreen}
         options={{
           tabBarIcon: homeTabBarIcon,
+        }}
+        listeners={{
+          tabPress: handleTabPress,
+        }}
+      />
+      <Tab.Screen
+        name="Leaderboard"
+        component={LeaderboardScreen}
+        options={{
+          tabBarIcon: medalTabBarIcon,
         }}
         listeners={{
           tabPress: handleTabPress,

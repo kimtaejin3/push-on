@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {FlatList, StyleSheet, Text, View, RefreshControl} from 'react-native';
+import {FlatList, StyleSheet, Text, View, RefreshControl, TouchableOpacity} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {colors} from '../constants/colors';
 import Header from '../components/common/Header';
@@ -14,9 +14,12 @@ type LeaderItem = {
 
 const MOCK_DATA: LeaderItem[] = [];
 
+type LeaderBoardType = 'daily' | 'monthly' | 'yearly';
+
 export default function LeaderboardScreen() {
   const [items, setItems] = useState<LeaderItem[]>(MOCK_DATA);
   const [refreshing, setRefreshing] = useState(false);
+  const [leaderBoardMode, setLeaderBoardMode] = useState<LeaderBoardType>('daily');
 
   //TODO: Tanstack Query로 바꾸기
   async function fetchTodayLeaderboard() {
@@ -55,11 +58,23 @@ export default function LeaderboardScreen() {
     <SafeAreaView style={styles.safeArea}>
       <Header title="오늘의 순위" />
 
-      {/* <Chips style={styles.tableHeader} onChange={() => {}}>
-        <Chip>일</Chip>
-        <Chip>월</Chip>
-        <Chip>년</Chip>
-      </Chips> */}
+      <View style={styles.chips}>
+        <TouchableOpacity style={[styles.chip, leaderBoardMode === 'daily' && styles.active]} onPress={() => {
+          setLeaderBoardMode('daily');
+        }}>
+          <Text style={styles.chipText}>일</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.chip, leaderBoardMode === 'monthly' && styles.active]} onPress={()=>{
+          setLeaderBoardMode('monthly');
+        }}>
+          <Text style={styles.chipText}>월</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.chip, leaderBoardMode === 'yearly' && styles.active]} onPress={()=>{
+          setLeaderBoardMode('yearly');
+        }}>
+          <Text style={styles.chipText}>년</Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.tableHeader}>
         <Text style={[styles.th, styles.thRank]}>순위</Text>
@@ -144,5 +159,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   username: {color: colors.textLight, fontSize: 14, fontWeight: '600'},
-  // 국가 관련 스타일 제거됨
+  chips:{
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 10,
+    marginLeft: 10,
+    marginBottom: 10,
+  },
+  chip:{
+    backgroundColor: colors.gray400,
+    paddingVertical: 5,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+  },
+  active: {
+    backgroundColor: colors.primary,
+  },
+  chipText: {
+    color: colors.textLight,
+    fontSize: 15,
+  },
 });

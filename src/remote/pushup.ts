@@ -378,29 +378,27 @@ interface RpcLeaderboardRow {
 /**
  * 일일 리더보드 조회
  * 특정 날짜의 모든 사용자들의 푸쉬업 횟수를 조회합니다.
+ * RPC 함수를 사용하여 서버에서 조회하므로 효율적입니다.
  */
 export const getDailyLeaderboard = async (
   date: string, // YYYY-MM-DD 형식
 ): Promise<LeaderboardItem[]> => {
   try {
-    const {data, error} = await supabase
-      .from('pushup_daily_totals')
-      .select('user_id, total_reps, profiles!inner(nickname)')
-      .eq('date', date)
-      .order('total_reps', {ascending: false})
-      .limit(100);
+    const {data, error} = await supabase.rpc('get_leaderboard', {
+      target_date: date,
+    });
 
     if (error) {
       throw error;
     }
 
-    return (
-      data?.map(row => ({
-        user_id: row.user_id,
-        nickname: (row.profiles as any)?.nickname || null,
-        total_reps: row.total_reps || 0,
-      })) || []
-    );
+    const typedData = (data || []) as RpcLeaderboardRow[];
+
+    return typedData.map((row: RpcLeaderboardRow) => ({
+      user_id: row.user_id,
+      nickname: row.nickname || null,
+      total_reps: Number(row.total_reps) || 0,
+    }));
   } catch (error) {
     console.error('일일 리더보드 조회 실패:', error);
     throw error;

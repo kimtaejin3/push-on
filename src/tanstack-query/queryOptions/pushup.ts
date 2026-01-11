@@ -72,7 +72,7 @@ const dailyLeaderboardQueryOptions = (date: string) => {
   return {
     queryKey: queryKeys.pushup.leaderboard.daily(date),
     queryFn: () => getDailyLeaderboard(date),
-    staleTime: 2 * 60 * 1000, // 2분 (리더보드는 자주 업데이트될 수 있음)
+    staleTime: 0,
   };
 };
 

@@ -12,6 +12,14 @@ export const queryKeys = {
       weekly: ['pushup', 'stats', 'weekly'] as const,
       monthly: ['pushup', 'stats', 'monthly'] as const,
     },
+    leaderboard: {
+      all: ['pushup', 'leaderboard'] as const,
+      daily: (date: string) => ['pushup', 'leaderboard', 'daily', date] as const,
+      monthly: (year: number, month: number) =>
+        ['pushup', 'leaderboard', 'monthly', year, month] as const,
+      yearly: (year: number) =>
+        ['pushup', 'leaderboard', 'yearly', year] as const,
+    },
   },
 
   // 프로필 관련 쿼리 키

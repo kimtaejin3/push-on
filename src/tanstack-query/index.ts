@@ -6,6 +6,7 @@ export {
   pushupStatsQueryOptions,
   weeklyPushupStatsQueryOptions,
   monthlyPushupStatsQueryOptions,
+  dailyLeaderboardQueryOptions,
   processWeeklyStats,
   processMonthlyStats,
 } from './queryOptions/pushup';

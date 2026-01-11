@@ -1,10 +1,19 @@
-import React, {useEffect, useState} from 'react';
-import {FlatList, StyleSheet, Text, View, RefreshControl, TouchableOpacity} from 'react-native';
+import React, {useMemo, useState} from 'react';
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  View,
+  RefreshControl,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {useQuery} from '@tanstack/react-query';
 import {colors} from '../constants/colors';
 import Header from '../components/common/Header';
-import {supabase} from '../lib/supabase';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
+import {dailyLeaderboardQueryOptions} from '../tanstack-query';
 
 type LeaderItem = {
   rank: number;
@@ -12,66 +21,86 @@ type LeaderItem = {
   reps: number;
 };
 
-const MOCK_DATA: LeaderItem[] = [];
-
 type LeaderBoardType = 'daily' | 'monthly' | 'yearly';
 
 export default function LeaderboardScreen() {
-  const [items, setItems] = useState<LeaderItem[]>(MOCK_DATA);
-  const [refreshing, setRefreshing] = useState(false);
   const [leaderBoardMode, setLeaderBoardMode] = useState<LeaderBoardType>('daily');
 
-  //TODO: Tanstack Query로 바꾸기
-  async function fetchTodayLeaderboard() {
-    const todayKst = new Date().toLocaleDateString('en-CA', {
+  // 오늘 날짜 (KST 기준)
+  const todayKst = useMemo(() => {
+    return new Date().toLocaleDateString('en-CA', {
       timeZone: 'Asia/Seoul',
     }); // YYYY-MM-DD
-
-    // RLS 우회를 위해 RPC 함수 사용
-    const {data, error} = await supabase.rpc('get_leaderboard', {
-      target_date: todayKst,
-    });
-
-    if (error) {
-      console.warn('리더보드 조회 실패:', error.message);
-      return;
-    }
-
-    const mapped: LeaderItem[] = (data || []).map((row: any, idx: number) => ({
-      rank: idx + 1,
-      username: row.nickname ? `${row.nickname}` : '익명',
-      reps: row.total_reps ?? 0,
-    }));
-    setItems(mapped);
-  }
-
-  useEffect(() => {
-    fetchTodayLeaderboard();
   }, []);
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await fetchTodayLeaderboard();
-    setRefreshing(false);
+  // 일일 리더보드 조회
+  const {
+    data: dailyData,
+    isLoading,
+    refetch,
+    isRefetching,
+  } = useQuery({
+    ...dailyLeaderboardQueryOptions(todayKst),
+    enabled: leaderBoardMode === 'daily',
+  });
+
+  // TODO: 월간/연간 리더보드 구현 방법 논의 필요
+  // const {data: monthlyData, isLoading: isLoadingMonthly} = useQuery({...})
+  // const {data: yearlyData, isLoading: isLoadingYearly} = useQuery({...})
+
+  // 리더보드 데이터를 LeaderItem 형식으로 변환
+  const items: LeaderItem[] = useMemo(() => {
+    if (leaderBoardMode === 'daily' && dailyData) {
+      return dailyData.map((row, idx) => ({
+        rank: idx + 1,
+        username: row.nickname || '익명',
+        reps: row.total_reps,
+      }));
+    }
+    // TODO: 월간/연간 데이터 처리
+    return [];
+  }, [leaderBoardMode, dailyData]);
+
+  const onRefresh = () => {
+    refetch();
   };
+  const getHeaderTitle = () => {
+    switch (leaderBoardMode) {
+      case 'daily':
+        return '오늘의 순위';
+      case 'monthly':
+        return '이번 달 순위';
+      case 'yearly':
+        return '올해 순위';
+      default:
+        return '순위';
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Header title="오늘의 순위" />
+      <Header title={getHeaderTitle()} />
 
       <View style={styles.chips}>
-        <TouchableOpacity style={[styles.chip, leaderBoardMode === 'daily' && styles.active]} onPress={() => {
-          setLeaderBoardMode('daily');
-        }}>
+        <TouchableOpacity
+          style={[styles.chip, leaderBoardMode === 'daily' && styles.active]}
+          onPress={() => {
+            setLeaderBoardMode('daily');
+          }}>
           <Text style={styles.chipText}>일</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.chip, leaderBoardMode === 'monthly' && styles.active]} onPress={()=>{
-          setLeaderBoardMode('monthly');
-        }}>
+        <TouchableOpacity
+          style={[styles.chip, leaderBoardMode === 'monthly' && styles.active]}
+          onPress={() => {
+            setLeaderBoardMode('monthly');
+          }}>
           <Text style={styles.chipText}>월</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.chip, leaderBoardMode === 'yearly' && styles.active]} onPress={()=>{
-          setLeaderBoardMode('yearly');
-        }}>
+        <TouchableOpacity
+          style={[styles.chip, leaderBoardMode === 'yearly' && styles.active]}
+          onPress={() => {
+            setLeaderBoardMode('yearly');
+          }}>
           <Text style={styles.chipText}>년</Text>
         </TouchableOpacity>
       </View>
@@ -82,32 +111,46 @@ export default function LeaderboardScreen() {
         <Text style={[styles.th, styles.thReps]}>푸쉬업 횟수</Text>
       </View>
 
-      <FlatList
-        data={items}
-        keyExtractor={item => String(item.rank)}
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        renderItem={({item}) => (
-          <View style={styles.row}>
-            <Text style={[styles.cell, styles.cellRank]}>{item.rank}</Text>
-            <View style={styles.cellUser}>
-              <View style={styles.avatar}>
-                <FontAwesome5
-                  name="user"
-                  size={16}
-                  color={colors.overlayMedium}
-                />
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>데이터를 불러오는 중...</Text>
+        </View>
+      ) : items.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>리더보드 데이터가 없습니다</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={items}
+          keyExtractor={item => String(item.rank)}
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={onRefresh}
+            />
+          }
+          renderItem={({item}) => (
+            <View style={styles.row}>
+              <Text style={[styles.cell, styles.cellRank]}>{item.rank}</Text>
+              <View style={styles.cellUser}>
+                <View style={styles.avatar}>
+                  <FontAwesome5
+                    name="user"
+                    size={16}
+                    color={colors.overlayMedium}
+                  />
+                </View>
+                <Text style={styles.username}>{item.username}</Text>
               </View>
-              <Text style={styles.username}>{item.username}</Text>
+              <Text style={[styles.cell, styles.cellReps]}>
+                {item.reps.toLocaleString()}
+              </Text>
             </View>
-            <Text style={[styles.cell, styles.cellReps]}>
-              {item.reps.toLocaleString()}
-            </Text>
-          </View>
-        )}
-      />
+          )}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -178,5 +221,26 @@ const styles = StyleSheet.create({
   chipText: {
     color: colors.textLight,
     fontSize: 15,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: colors.textSecondary,
   },
 });

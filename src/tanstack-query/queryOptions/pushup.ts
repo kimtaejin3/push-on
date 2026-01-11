@@ -6,6 +6,7 @@ import {
   getPushupStats,
   processWeeklyStats,
   processMonthlyStats,
+  getDailyLeaderboard,
 } from '../../remote/pushup';
 import {queryKeys} from '../queryKeys';
 
@@ -61,12 +62,29 @@ const monthlyPushupStatsQueryOptions = () => {
   };
 };
 
+/**
+ * 일일 리더보드 query option
+ * @param date YYYY-MM-DD 형식의 날짜
+ */
+const dailyLeaderboardQueryOptions = (date: string) => {
+  return {
+    queryKey: queryKeys.pushup.leaderboard.daily(date),
+    queryFn: () => getDailyLeaderboard(date),
+    staleTime: 2 * 60 * 1000, // 2분 (리더보드는 자주 업데이트될 수 있음)
+  };
+};
+
+// TODO: 월간/연간 리더보드 queryOptions는 구현 방법 논의 후 추가
+// const monthlyLeaderboardQueryOptions = (year: number, month: number) => { ... }
+// const yearlyLeaderboardQueryOptions = (year: number) => { ... }
+
 export {
   pushUpSetsByDateQueryOptions,
   pushupCalendarQueryOptions,
   pushupStatsQueryOptions,
   weeklyPushupStatsQueryOptions,
   monthlyPushupStatsQueryOptions,
+  dailyLeaderboardQueryOptions,
   // 클라이언트 사이드 가공 함수들도 export
   processWeeklyStats,
   processMonthlyStats,

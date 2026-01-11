@@ -229,6 +229,8 @@ export default function LeaderboardScreen() {
             <RefreshControl
               refreshing={isRefetching}
               onRefresh={onRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
             />
           }
           renderItem={({item}) => (

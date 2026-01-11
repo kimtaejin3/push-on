@@ -3,7 +3,6 @@ import {supabase} from '../lib/supabase';
 export interface PushupSetData {
   reps: number;
   duration_seconds: number;
-  set_number: number;
 }
 
 export interface DailyStatsData {
@@ -26,7 +25,6 @@ class PushupService {
 
       const {error} = await supabase.from('pushup_sets').insert({
         workout_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD 형식
-        set_number: data.set_number,
         reps: data.reps,
         duration_seconds: data.duration_seconds,
         created_at: new Date().toISOString(),

@@ -43,7 +43,6 @@ function ChallengeResult({
     savePushupMutation.mutate({
       reps: pushUpCount,
       duration_seconds: duration,
-      set_number: 1,
     });
   };
 

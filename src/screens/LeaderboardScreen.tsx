@@ -13,7 +13,11 @@ import {useQuery} from '@tanstack/react-query';
 import {colors} from '../constants/colors';
 import Header from '../components/common/Header';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
-import {dailyLeaderboardQueryOptions} from '../tanstack-query';
+import {
+  dailyLeaderboardQueryOptions,
+  monthlyLeaderboardQueryOptions,
+  yearlyLeaderboardQueryOptions,
+} from '../tanstack-query';
 
 type LeaderItem = {
   rank: number;
@@ -26,43 +30,139 @@ type LeaderBoardType = 'daily' | 'monthly' | 'yearly';
 export default function LeaderboardScreen() {
   const [leaderBoardMode, setLeaderBoardMode] = useState<LeaderBoardType>('daily');
 
-  // 오늘 날짜 (KST 기준)
-  const todayKst = useMemo(() => {
-    return new Date().toLocaleDateString('en-CA', {
+  // 현재 날짜 정보 (KST 기준)
+  const {todayKst, currentYear, currentMonth} = useMemo(() => {
+    const now = new Date();
+
+    // KST 날짜 문자열 (YYYY-MM-DD)
+    const todayKstStr = now.toLocaleDateString('en-CA', {
       timeZone: 'Asia/Seoul',
-    }); // YYYY-MM-DD
+    });
+
+    // KST 기준으로 연도와 월 추출
+    const kstFormatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Seoul',
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+    });
+
+    const parts = kstFormatter.formatToParts(now);
+    const year = parseInt(parts.find(p => p.type === 'year')?.value || '0', 10);
+    const month = parseInt(parts.find(p => p.type === 'month')?.value || '0', 10);
+
+    return {
+      todayKst: todayKstStr,
+      currentYear: year,
+      currentMonth: month,
+    };
   }, []);
 
   // 일일 리더보드 조회
   const {
     data: dailyData,
-    isLoading,
-    refetch,
-    isRefetching,
+    isLoading: isLoadingDaily,
+    refetch: refetchDaily,
+    isRefetching: isRefetchingDaily,
   } = useQuery({
     ...dailyLeaderboardQueryOptions(todayKst),
     enabled: leaderBoardMode === 'daily',
   });
 
-  // TODO: 월간/연간 리더보드 구현 방법 논의 필요
-  // const {data: monthlyData, isLoading: isLoadingMonthly} = useQuery({...})
-  // const {data: yearlyData, isLoading: isLoadingYearly} = useQuery({...})
+  // 월간 리더보드 조회
+  const {
+    data: monthlyData,
+    isLoading: isLoadingMonthly,
+    refetch: refetchMonthly,
+    isRefetching: isRefetchingMonthly,
+  } = useQuery({
+    ...monthlyLeaderboardQueryOptions(currentYear, currentMonth),
+    enabled: leaderBoardMode === 'monthly',
+  });
+
+  // 연간 리더보드 조회
+  const {
+    data: yearlyData,
+    isLoading: isLoadingYearly,
+    refetch: refetchYearly,
+    isRefetching: isRefetchingYearly,
+  } = useQuery({
+    ...yearlyLeaderboardQueryOptions(currentYear),
+    enabled: leaderBoardMode === 'yearly',
+  });
+
+  // 현재 모드에 따른 로딩/리프레시 상태
+  const isLoading = useMemo(() => {
+    switch (leaderBoardMode) {
+      case 'daily':
+        return isLoadingDaily;
+      case 'monthly':
+        return isLoadingMonthly;
+      case 'yearly':
+        return isLoadingYearly;
+      default:
+        return false;
+    }
+  }, [leaderBoardMode, isLoadingDaily, isLoadingMonthly, isLoadingYearly]);
+
+  const isRefetching = useMemo(() => {
+    switch (leaderBoardMode) {
+      case 'daily':
+        return isRefetchingDaily;
+      case 'monthly':
+        return isRefetchingMonthly;
+      case 'yearly':
+        return isRefetchingYearly;
+      default:
+        return false;
+    }
+  }, [
+    leaderBoardMode,
+    isRefetchingDaily,
+    isRefetchingMonthly,
+    isRefetchingYearly,
+  ]);
 
   // 리더보드 데이터를 LeaderItem 형식으로 변환
   const items: LeaderItem[] = useMemo(() => {
-    if (leaderBoardMode === 'daily' && dailyData) {
-      return dailyData.map((row, idx) => ({
-        rank: idx + 1,
-        username: row.nickname || '익명',
-        reps: row.total_reps,
-      }));
+    let data;
+    switch (leaderBoardMode) {
+      case 'daily':
+        data = dailyData;
+        break;
+      case 'monthly':
+        data = monthlyData;
+        break;
+      case 'yearly':
+        data = yearlyData;
+        break;
+      default:
+        data = null;
     }
-    // TODO: 월간/연간 데이터 처리
-    return [];
-  }, [leaderBoardMode, dailyData]);
+
+    if (!data) {
+      return [];
+    }
+
+    return data.map((row, idx) => ({
+      rank: idx + 1,
+      username: row.nickname || '익명',
+      reps: row.total_reps,
+    }));
+  }, [leaderBoardMode, dailyData, monthlyData, yearlyData]);
 
   const onRefresh = () => {
-    refetch();
+    switch (leaderBoardMode) {
+      case 'daily':
+        refetchDaily();
+        break;
+      case 'monthly':
+        refetchMonthly();
+        break;
+      case 'yearly':
+        refetchYearly();
+        break;
+    }
   };
   const getHeaderTitle = () => {
     switch (leaderBoardMode) {

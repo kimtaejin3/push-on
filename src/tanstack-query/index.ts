@@ -7,6 +7,8 @@ export {
   weeklyPushupStatsQueryOptions,
   monthlyPushupStatsQueryOptions,
   dailyLeaderboardQueryOptions,
+  monthlyLeaderboardQueryOptions,
+  yearlyLeaderboardQueryOptions,
   processWeeklyStats,
   processMonthlyStats,
 } from './queryOptions/pushup';

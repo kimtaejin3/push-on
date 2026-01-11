@@ -371,6 +371,13 @@ export interface LeaderboardItem {
   total_reps: number;
 }
 
+// RPC 함수 반환 타입
+interface RpcLeaderboardRow {
+  user_id: string;
+  nickname: string | null;
+  total_reps: number | string; // RPC에서 BIGINT는 string으로 반환될 수 있음
+}
+
 /**
  * 일일 리더보드 조회
  * 특정 날짜의 모든 사용자들의 푸쉬업 횟수를 조회합니다.
@@ -399,6 +406,68 @@ export const getDailyLeaderboard = async (
     );
   } catch (error) {
     console.error('일일 리더보드 조회 실패:', error);
+    throw error;
+  }
+};
+
+/**
+ * 월간 리더보드 조회
+ * 특정 연도/월의 모든 사용자들의 푸쉬업 횟수를 집계하여 조회합니다.
+ * RPC 함수를 사용하여 서버에서 집계하므로 효율적입니다.
+ */
+export const getMonthlyLeaderboard = async (
+  year: number,
+  month: number, // 1-12
+): Promise<LeaderboardItem[]> => {
+  try {
+    const {data, error} = await supabase.rpc('get_monthly_leaderboard', {
+      p_year: year,
+      p_month: month,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const typedData = (data || []) as RpcLeaderboardRow[];
+
+    return typedData.map((row: RpcLeaderboardRow) => ({
+      user_id: row.user_id,
+      nickname: row.nickname || null,
+      total_reps: Number(row.total_reps) || 0,
+    }));
+  } catch (error) {
+    console.error('월간 리더보드 조회 실패:', error);
+    throw error;
+  }
+};
+
+/**
+ * 연간 리더보드 조회
+ * 특정 연도의 모든 사용자들의 푸쉬업 횟수를 집계하여 조회합니다.
+ * RPC 함수를 사용하여 서버에서 집계하므로 효율적입니다.
+ */
+export const getYearlyLeaderboard = async (
+  year: number,
+): Promise<LeaderboardItem[]> => {
+  try {
+    const {data, error} = await supabase.rpc('get_yearly_leaderboard', {
+      p_year: year,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const typedData = (data || []) as RpcLeaderboardRow[];
+
+    return typedData.map((row: RpcLeaderboardRow) => ({
+      user_id: row.user_id,
+      nickname: row.nickname || null,
+      total_reps: Number(row.total_reps) || 0,
+    }));
+  } catch (error) {
+    console.error('연간 리더보드 조회 실패:', error);
     throw error;
   }
 };

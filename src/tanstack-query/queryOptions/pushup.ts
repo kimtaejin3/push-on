@@ -7,6 +7,8 @@ import {
   processWeeklyStats,
   processMonthlyStats,
   getDailyLeaderboard,
+  getMonthlyLeaderboard,
+  getYearlyLeaderboard,
 } from '../../remote/pushup';
 import {queryKeys} from '../queryKeys';
 
@@ -74,9 +76,30 @@ const dailyLeaderboardQueryOptions = (date: string) => {
   };
 };
 
-// TODO: 월간/연간 리더보드 queryOptions는 구현 방법 논의 후 추가
-// const monthlyLeaderboardQueryOptions = (year: number, month: number) => { ... }
-// const yearlyLeaderboardQueryOptions = (year: number) => { ... }
+/**
+ * 월간 리더보드 query option
+ * @param year 연도 (예: 2025)
+ * @param month 월 (1-12)
+ */
+const monthlyLeaderboardQueryOptions = (year: number, month: number) => {
+  return {
+    queryKey: queryKeys.pushup.leaderboard.monthly(year, month),
+    queryFn: () => getMonthlyLeaderboard(year, month),
+    staleTime: 5 * 60 * 1000, // 5분
+  };
+};
+
+/**
+ * 연간 리더보드 query option
+ * @param year 연도 (예: 2025)
+ */
+const yearlyLeaderboardQueryOptions = (year: number) => {
+  return {
+    queryKey: queryKeys.pushup.leaderboard.yearly(year),
+    queryFn: () => getYearlyLeaderboard(year),
+    staleTime: 10 * 60 * 1000, // 10분 (연간 데이터는 자주 변하지 않음)
+  };
+};
 
 export {
   pushUpSetsByDateQueryOptions,
@@ -85,6 +108,8 @@ export {
   weeklyPushupStatsQueryOptions,
   monthlyPushupStatsQueryOptions,
   dailyLeaderboardQueryOptions,
+  monthlyLeaderboardQueryOptions,
+  yearlyLeaderboardQueryOptions,
   // 클라이언트 사이드 가공 함수들도 export
   processWeeklyStats,
   processMonthlyStats,

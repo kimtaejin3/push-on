@@ -3,7 +3,6 @@ import {supabase} from '../lib/supabase';
 export interface ProfileData {
   id: string;
   target_reps_per_set: number;
-  target_sets_per_day: number;
   nickname: string;
   created_at: string;
   updated_at: string;
@@ -58,7 +57,6 @@ export const checkNicknameAvailability = async (
 export interface UpdateProfileData {
   nickname: string;
   target_reps_per_set: number;
-  target_sets_per_day: number;
 }
 
 /**

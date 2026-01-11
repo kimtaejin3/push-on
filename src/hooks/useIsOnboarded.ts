@@ -17,14 +17,14 @@ export const useIsOnboarded = () => {
     try {
       const {data, error} = await supabase
         .from('profiles')
-        .select('target_reps_per_set, target_sets_per_day')
+        .select('target_reps_per_set')
         .eq('id', user.id)
         .single();
 
       if (error) {
         console.error('프로필 조회 오류:', error);
         setIsOnboarded(false);
-      } else if (data && data.target_reps_per_set && data.target_sets_per_day) {
+      } else if (data && data.target_reps_per_set) {
         // 프로필 데이터가 있고 목표값이 설정되어 있으면 온보딩 완료
         setIsOnboarded(true);
       } else {

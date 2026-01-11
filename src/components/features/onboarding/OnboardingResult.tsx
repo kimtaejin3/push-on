@@ -11,14 +11,12 @@ import {
 interface OnboardingResultProps {
   nickname: string;
   targetRepsPerSet: string;
-  targetSetsPerDay: string;
   onComplete: () => void;
 }
 
 function OnboardingResult({
   nickname,
   targetRepsPerSet,
-  targetSetsPerDay,
   onComplete,
 }: OnboardingResultProps) {
   const [titleAnim, contentAnim, buttonAnim] = useSequentialAnimation(3, {
@@ -45,7 +43,6 @@ function OnboardingResult({
 
   const handleSave = async () => {
     const reps = parseInt(targetRepsPerSet, 10);
-    const sets = parseInt(targetSetsPerDay, 10);
 
     if (isNaN(reps) || reps < 1 || reps > 100) {
       Alert.alert(
@@ -55,18 +52,9 @@ function OnboardingResult({
       return;
     }
 
-    if (isNaN(sets) || sets < 1 || sets > 20) {
-      Alert.alert(
-        '오류',
-        '하루 목표 세트 수는 1-20 사이의 숫자를 입력해주세요.',
-      );
-      return;
-    }
-
     upsertProfileMutation.mutate({
       id: user?.id || '',
       target_reps_per_set: reps,
-      target_sets_per_day: sets,
       nickname: nickname,
     });
   };
@@ -88,11 +76,6 @@ function OnboardingResult({
           <View style={styles.resultItem}>
             <Text style={styles.resultLabel}>세트당 목표 횟수</Text>
             <Text style={styles.resultValue}>{targetRepsPerSet}회</Text>
-          </View>
-
-          <View style={styles.resultItem}>
-            <Text style={styles.resultLabel}>하루 목표 세트 수</Text>
-            <Text style={styles.resultValue}>{targetSetsPerDay}세트</Text>
           </View>
         </View>
 

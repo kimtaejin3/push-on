@@ -60,7 +60,7 @@ function InputNickname({
     <View style={styles.questionContainer}>
       <Animated.Text
         style={[styles.questionText, createFadeInStyle(questionAnim, 20)]}>
-        사용할 닉네임을 입력해주세요
+        앞으로 사용할 닉네임을 입력해주세요
       </Animated.Text>
       <Animated.View style={createSlideUpStyle(inputAnim, 15)}>
         <CustomTextInput

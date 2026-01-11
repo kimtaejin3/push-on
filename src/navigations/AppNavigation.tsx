@@ -17,6 +17,8 @@ import ProfileEditScreen from '../screens/ProfileEditScreen';
 import {useSession} from '../hooks/useSession';
 import {colors} from '../constants/colors';
 import Text from '../components/common/Text';
+import OnboardingScreen from '../screens/OnboardingScreen';
+import { useIsOnboarded } from '../hooks/useIsOnboarded';
 
 const AppStack = createNativeStackNavigator({
   initialRouteName: 'Tabs',
@@ -48,8 +50,9 @@ const AppNavigation = createStaticNavigation(AppStack);
 // 조건부 네비게이션 컴포넌트
 const ConditionalNavigation = () => {
   const {isLoggedIn, loading} = useSession();
+  const {isOnboarded, loading: onboardingLoading, refresh: refreshOnboardingStatus} = useIsOnboarded();
 
-  if (loading) {
+  if (loading || onboardingLoading) {
     return (
       <View style={styles.splashContainer}>
         <ActivityIndicator size="large" color={colors.primary} />
@@ -60,6 +63,12 @@ const ConditionalNavigation = () => {
 
   if (!isLoggedIn) {
     return <AuthScreen />;
+  }
+
+  if (!isOnboarded) {
+    return <OnboardingScreen onComplete={() => {
+      refreshOnboardingStatus();
+    }} />;
   }
 
   return <AppNavigation />;

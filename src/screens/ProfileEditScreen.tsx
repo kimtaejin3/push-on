@@ -25,7 +25,6 @@ function ProfileEditScreen() {
   // 로컬 상태
   const [nickname, setNickname] = useState('');
   const [targetRepsPerSet, setTargetRepsPerSet] = useState('');
-  const [targetSetsPerDay, setTargetSetsPerDay] = useState('');
 
   // 프로필 데이터 조회
   const {
@@ -59,23 +58,16 @@ function ProfileEditScreen() {
   useEffect(() => {
     if (profileData) {
       setTargetRepsPerSet(profileData.target_reps_per_set?.toString() || '');
-      setTargetSetsPerDay(profileData.target_sets_per_day?.toString() || '');
       setNickname(profileData.nickname || '');
     }
   }, [profileData]);
 
   const handleSave = () => {
     const repsPerSet = parseInt(targetRepsPerSet, 10);
-    const setsPerDay = parseInt(targetSetsPerDay, 10);
 
     // 유효성 검사
     if (isNaN(repsPerSet) || repsPerSet < 1 || repsPerSet > 100) {
       Alert.alert('오류', '세트당 목표 횟수는 1-100 사이의 숫자여야 해요');
-      return;
-    }
-
-    if (isNaN(setsPerDay) || setsPerDay < 1 || setsPerDay > 20) {
-      Alert.alert('오류', '목표 세트는 1-20 사이의 숫자여야 해요');
       return;
     }
 
@@ -87,7 +79,6 @@ function ProfileEditScreen() {
     if (profileData?.nickname){
       updateProfileMutation.mutate({
         target_reps_per_set: repsPerSet,
-        target_sets_per_day: setsPerDay,
         nickname: nickname,
       });
     }
@@ -95,7 +86,6 @@ function ProfileEditScreen() {
       upsertProfileMutation.mutate({
         id: user.id,
         target_reps_per_set: repsPerSet,
-        target_sets_per_day: setsPerDay,
         nickname: nickname,
       });
     }
@@ -169,24 +159,6 @@ function ProfileEditScreen() {
                 </Text>
               </View>
 
-              {/* 목표 세트 수 */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>목표 세트 수</Text>
-                <View style={styles.inputContainer}>
-                  <TextInput
-                    style={styles.textInput}
-                    value={targetSetsPerDay}
-                    onChangeText={setTargetSetsPerDay}
-                    keyboardType="numeric"
-                    placeholder="3"
-                    placeholderTextColor={colors.textSecondary}
-                  />
-                  <Text style={styles.inputSuffix}>세트</Text>
-                </View>
-                <Text style={styles.inputDescription}>
-                  하루에 목표로 하는 세트 수입니다.
-                </Text>
-              </View>
             </View>
           </View>
 

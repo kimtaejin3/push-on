@@ -8,20 +8,20 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {colors} from '../constants/colors';
 import InputNickname from '../components/features/onboarding/InputNickName';
-import InputTargetSetsPerDay from '../components/features/onboarding/InputTargetSetsPerDay';
 import InputTargetRepsPerSet from '../components/features/onboarding/InputTargetRepsPerSet';
 import OnboardingResult from '../components/features/onboarding/OnboardingResult';
+import Header from '../components/common/Header';
 
 function OnboardingScreen({onComplete}: {onComplete: () => void}) {
   const [onboardingData, setOnboardingData] = useState({
     nickname: '',
     targetRepsPerSet: '',
-    targetSetsPerDay: '',
   });
   const [step, setStep] = useState(0);
 
   return (
     <SafeAreaView style={styles.container}>
+      <Header title="푸쉬온에 오신 것을 환영해요" />
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.content}>
           {(() => {
@@ -49,23 +49,9 @@ function OnboardingScreen({onComplete}: {onComplete: () => void}) {
             }
             if (step === 2) {
               return (
-                <InputTargetSetsPerDay
-                  targetSetsPerDay={onboardingData.targetSetsPerDay}
-                  setTargetSetsPerDay={targetSetsPerDay =>
-                    setOnboardingData(prev => ({...prev, targetSetsPerDay}))
-                  }
-                  onNext={() => {
-                    setStep(3);
-                  }}
-                />
-              );
-            }
-            if (step === 3) {
-              return (
                 <OnboardingResult
                   nickname={onboardingData.nickname}
                   targetRepsPerSet={onboardingData.targetRepsPerSet}
-                  targetSetsPerDay={onboardingData.targetSetsPerDay}
                   onComplete={onComplete}
                 />
               );

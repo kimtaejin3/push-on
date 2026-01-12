@@ -82,8 +82,8 @@ android {
         applicationId "com.pushupapp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 30
-        versionName "1.5.0"
+        versionCode 31
+        versionName "1.5.1"
         
         // Force ARM 64-bit only for 16KB page size support
         // x86_64 excluded due to libfilament-jni.so not supporting 16KB

@@ -45,7 +45,6 @@ function HomeScreen(): React.JSX.Element {
           </View>
         </TouchableOpacity>
 
-        {/* 오늘의 순위 섹션 */}
         <View style={styles.leaderboardContainer}>
           <View style={styles.leaderboardInner}>
             <View style={styles.leaderboardHeader}>
@@ -55,12 +54,12 @@ function HomeScreen(): React.JSX.Element {
                 color={colors.primary}
                 iconStyle="solid"
               />
-              <Text style={styles.leaderboardTitle}>오늘의 순위</Text>
+              <Text style={styles.leaderboardTitle}>내 순위 보기</Text>
             </View>
 
             <View style={styles.leaderboardContent}>
               <Text style={styles.leaderboardDescription}>
-                다른 사용자들과 경쟁하며{'\n'}오늘의 순위를 확인해보세요!
+                다른 사용자들과 경쟁하며{'\n'}몇 등인지 확인해보세요!
               </Text>
               <TouchableOpacity
                 style={styles.leaderboardButton}

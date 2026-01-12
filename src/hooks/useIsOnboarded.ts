@@ -8,17 +8,14 @@ export const useIsOnboarded = () => {
   const {user} = useSession();
 
   const checkOnboardingStatus = useCallback(async () => {
-    if (!user) {
-      setIsOnboarded(false);
-      setLoading(false);
+    if (!user){
       return;
     }
-
     try {
       const {data, error} = await supabase
         .from('profiles')
         .select('target_reps_per_set')
-        .eq('id', user.id)
+        .eq('id', user?.id)
         .single();
 
       if (error) {
@@ -41,7 +38,7 @@ export const useIsOnboarded = () => {
 
   useEffect(() => {
     checkOnboardingStatus();
-  }, [user, checkOnboardingStatus]);
+  }, [checkOnboardingStatus]);
 
   return {isOnboarded, loading, refresh: checkOnboardingStatus};
 };

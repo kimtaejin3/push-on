@@ -65,7 +65,6 @@ const ConditionalNavigation = () => {
     return <AuthScreen />;
   }
 
-  //TODO: UX 개선하기: 이게 가끔 보여지는 경우가 있음.
   if (!isOnboarded) {
     return <OnboardingScreen onComplete={() => {
       refreshOnboardingStatus();

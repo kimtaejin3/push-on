@@ -56,7 +56,7 @@ export const isVersionNewer = (version1: string, version2: string): boolean => {
  *
  * 새 버전 출시 시 이 값을 업데이트하세요
  */
-export const CURRENT_APP_VERSION = '1.5.2';
+export const CURRENT_APP_VERSION = '1.5.3';
 
 /**
  * 현재 앱 버전 가져오기

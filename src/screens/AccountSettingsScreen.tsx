@@ -16,8 +16,9 @@ import Header from '../components/common/Header';
 import Text from '../components/common/Text';
 import {useDeleteAccountMutation} from '../tanstack-query/mutationHooks/auth';
 import { useAuth } from '../hooks/useAuth';
-import {ProviderInfo, providers } from '../types/auth';
+import {providers} from '../types/auth';
 import {User} from '@supabase/supabase-js';
+import {extractUserInfo} from '../utils/user';
 
 function AccountSettingsScreen() {
   const navigation = useNavigation();
@@ -385,79 +386,3 @@ const styles = StyleSheet.create({
 });
 
 export default AccountSettingsScreen;
-
-/**
- * 사용자 정보를 추출하고 정제하는 함수
- */
-const extractUserInfo = (user: User): {
-  userName: string | null;
-  userEmail: string | null;
-  profileImage: string | null;
-  providerInfo: {
-    name: string;
-    icon: string;
-    color: string;
-  },
-  joinedDate: string | null;
-} => {
-
-  const userName =
-    user.user_metadata.name || user.user_metadata.full_name || '사용자';
-  const userEmail = user.email || '';
-
-  const rawProfileImage = user.user_metadata.avatar_url || '';
-  let profileImage = '';
-
-  if (rawProfileImage) {
-    if (rawProfileImage.includes('fname=')) {
-      try {
-        const fnamePart = rawProfileImage.split('fname=')[1];
-        profileImage = decodeURIComponent(fnamePart);
-      } catch (error) {
-        profileImage = rawProfileImage;
-      }
-    } else {
-      profileImage = rawProfileImage;
-    }
-
-    if (profileImage.startsWith('http://')) {
-      profileImage = profileImage.replace('http://', 'https://');
-    }
-  }
-
-  const provider = user.app_metadata.provider || 'unknown';
-  const joinedDate = user.created_at
-    ? new Date(user.created_at).toLocaleDateString('ko-KR')
-    : '';
-
-  return {
-    userName,
-    userEmail,
-    profileImage,
-    providerInfo: getProviderInfo(provider),
-    joinedDate,
-  };
-};
-
-const getProviderInfo = (providerType: string): ProviderInfo => {
-  switch (providerType) {
-    case 'kakao':
-      return {
-        name: '카카오',
-        icon: 'comment',
-        color: '#FEE500',
-      };
-    case 'google':
-      return {
-        name: '구글',
-        icon: 'search',
-        color: colors.primary,
-      };
-    default:
-      return {
-        name: '이메일',
-        icon: 'envelope',
-        color: colors.primary,
-      };
-  }
-};

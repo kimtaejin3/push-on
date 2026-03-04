@@ -3,30 +3,40 @@ import ARKit
 import UIKit
 
 @objc(PushupManager)
-class PushupManager: NSObject {
+class PushupManager: RCTEventEmitter {
 
   private var pushupRecognition: PushupRecognition?
   private var arSession: ARSession?
-  private var timer: Timer?
+
+  override func supportedEvents() -> [String]! {
+    return ["onPushupCount", "onPushupGoingDown"]
+  }
 
   @objc func startPushupSession() {
     DispatchQueue.main.async {
       // Create AR session (without view)
       let arSession = ARSession()
-      
+
       // Configure AR session
       let configuration = ARFaceTrackingConfiguration()
       arSession.run(configuration)
-      
+
       // Set up pushup recognition
-      self.pushupRecognition = PushupRecognition()
-      
+      let recognition = PushupRecognition()
+      recognition.onPushupCount = { [weak self] count in
+        self?.sendEvent(withName: "onPushupCount", body: ["count": count])
+      }
+      recognition.onGoingDown = { [weak self] isGoingDown in
+        self?.sendEvent(withName: "onPushupGoingDown", body: ["isGoingDown": isGoingDown])
+      }
+      self.pushupRecognition = recognition
+
       // Set up delegate for AR session
-      arSession.delegate = self.pushupRecognition
-      
+      arSession.delegate = recognition
+
       // Store session
       self.arSession = arSession
-      
+
       print("Pushup session started in background")
     }
   }
@@ -40,24 +50,8 @@ class PushupManager: NSObject {
     }
   }
 
-  @objc func getPushupCount(_ resolve: RCTPromiseResolveBlock, rejecter reject: RCTPromiseRejectBlock) {
-    guard let count = pushupRecognition?.pushupCount else {
-      reject("NO_SESSION", "Pushup session not started", nil)
-      return
-    }
-    resolve(count)
-  }
-  
   // Required for React Native modules
-  @objc static func requiresMainQueueSetup() -> Bool {
+  @objc override static func requiresMainQueueSetup() -> Bool {
     return true
-  }
-
-  @objc func getIsGoingDown(_ resolve: RCTPromiseResolveBlock, rejecter reject: RCTPromiseRejectBlock) {
-    guard let isGoingDown = pushupRecognition?.isGoingDown else {
-      reject("NO_SESSION", "Pushup session not started", nil)
-      return
-    }
-    resolve(isGoingDown)
   }
 }

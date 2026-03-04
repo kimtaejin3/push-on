@@ -8,6 +8,9 @@ class PushupRecognition: NSObject, ARSessionDelegate {
     @objc var isGoingDown = false
     private let closeThreshold: Float = 0.25
     private let farThreshold: Float = 0.35
+
+    var onPushupCount: ((Int) -> Void)?
+    var onGoingDown: ((Bool) -> Void)?
     
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         guard let faceAnchor = frame.anchors.first(where: { $0 is ARFaceAnchor }) as? ARFaceAnchor else { return }
@@ -28,12 +31,15 @@ class PushupRecognition: NSObject, ARSessionDelegate {
         
         if distance < closeThreshold && !isGoingDown {
             isGoingDown = true
+            onGoingDown?(true)
             print("푸쉬업 내려가는 중")
         }
-        
+
         if distance > farThreshold && isGoingDown {
             pushupCount += 1
             isGoingDown = false
+            onPushupCount?(pushupCount)
+            onGoingDown?(false)
             print("푸쉬업 카운트 증가 → \(pushupCount)")
         }
     }

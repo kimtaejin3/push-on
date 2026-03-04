@@ -212,6 +212,15 @@ public class AugmentedFacesActivity implements GLSurfaceView.Renderer {
                 if (distance < CLOSE_THRESHOLD && !isGoingDown) {
                     isGoingDown = true;
                     Log.d(TAG, "RENDERER 푸쉬업 내려가는 중 - 거리: " + distance + "m");
+
+                    // ✅ React Native로 isGoingDown 이벤트 전송
+                    if (reactContext != null) {
+                        var goingDownParams = Arguments.createMap();
+                        goingDownParams.putBoolean("isGoingDown", true);
+                        reactContext
+                            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                            .emit("onPushupGoingDown", goingDownParams);
+                    }
                 }
                 if (distance > FAR_THRESHOLD && isGoingDown) {
                     pushUpCount++;
@@ -225,6 +234,12 @@ public class AugmentedFacesActivity implements GLSurfaceView.Renderer {
                         reactContext
                             .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                             .emit("onPushupCount", params);
+
+                        var goingDownParams = Arguments.createMap();
+                        goingDownParams.putBoolean("isGoingDown", false);
+                        reactContext
+                            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                            .emit("onPushupGoingDown", goingDownParams);
                     }
                 }
             }

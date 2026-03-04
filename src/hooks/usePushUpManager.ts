@@ -1,13 +1,17 @@
-import {useState, useCallback, useEffect} from 'react';
-import {NativeModules, PermissionsAndroid, Platform} from 'react-native';
-import useInterval from './useInterval';
+import {useState, useEffect} from 'react';
+import {
+  NativeModules,
+  NativeEventEmitter,
+  PermissionsAndroid,
+  Platform,
+} from 'react-native';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import {useTimer} from './useTimer';
 
 const {PushupManager} = NativeModules;
+const pushupEventEmitter = new NativeEventEmitter(PushupManager);
 
 const INITIAL_COUNT = 0;
-const PUSHUP_POLLING_INTERVAL = 100;
 
 function usePushUpManager() {
   const [pushUpCount, setPushUpCount] = useState(INITIAL_COUNT);
@@ -23,6 +27,8 @@ function usePushUpManager() {
     handleStartAndResetTimer,
   } = useTimer();
 
+
+  //TODO: 훅으로 분리하기
   useEffect(() => {
     if (pushUpCount === 0) {
       return;
@@ -33,26 +39,30 @@ function usePushUpManager() {
     });
   }, [pushUpCount]);
 
-  const getPushupCount = useCallback(async () => {
-    try {
-      const currentCount = await PushupManager.getPushupCount();
-      setPushUpCount(currentCount);
-    } catch (error) {
-      console.error('Failed to get pushup count:', error);
+  useEffect(() => {
+    if (!isTracking) {
+      return;
     }
-  }, []);
 
-  const getIsGoingDown = useCallback(async () => {
-    try {
-      const isGoingDownValue = await PushupManager.getIsGoingDown();
-      setIsGoingDown(isGoingDownValue);
-    } catch (error) {
-      console.error('Failed to get is going down:', error);
-    }
-  }, []);
+    const countSubscription = pushupEventEmitter.addListener(
+      'onPushupCount',
+      (event: {count: number}) => {
+        setPushUpCount(event.count);
+      },
+    );
 
-  useInterval(getIsGoingDown, isTracking ? PUSHUP_POLLING_INTERVAL : null);
-  useInterval(getPushupCount, isTracking ? PUSHUP_POLLING_INTERVAL : null);
+    const goingDownSubscription = pushupEventEmitter.addListener(
+      'onPushupGoingDown',
+      (event: {isGoingDown: boolean}) => {
+        setIsGoingDown(event.isGoingDown);
+      },
+    );
+
+    return () => {
+      countSubscription.remove();
+      goingDownSubscription.remove();
+    };
+  }, [isTracking]);
 
   const requestCameraPermission = async () => {
     if (Platform.OS === 'android') {

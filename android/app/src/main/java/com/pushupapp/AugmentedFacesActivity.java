@@ -29,6 +29,7 @@ public class AugmentedFacesActivity implements GLSurfaceView.Renderer {
 
     private int pushUpCount = 0;
     private boolean isGoingDown = false;
+    private volatile boolean isPaused = false;
 
     private final float CLOSE_THRESHOLD = 0.30f;
     private final float FAR_THRESHOLD = 0.35f;
@@ -191,6 +192,8 @@ public class AugmentedFacesActivity implements GLSurfaceView.Renderer {
                 return;
             }
             
+            if (isPaused) return;
+
             for (AugmentedFace face : faces) {
                 Log.d(TAG, "RENDERER 얼굴 추적 상태: " + face.getTrackingState());
                 if (face.getTrackingState() != TrackingState.TRACKING) {
@@ -259,6 +262,16 @@ public class AugmentedFacesActivity implements GLSurfaceView.Renderer {
         }
         
         Log.d(TAG, "✅ ARCore 세션 정리 완료");
+    }
+
+    public void pauseSession() {
+        isPaused = true;
+        Log.d(TAG, "⏸ 푸쉬업 세션 일시정지");
+    }
+
+    public void resumeSession() {
+        isPaused = false;
+        Log.d(TAG, "▶ 푸쉬업 세션 재개");
     }
 
     public int getPushupCount() {

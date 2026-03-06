@@ -5,6 +5,8 @@
 @interface RCT_EXTERN_MODULE(PushupManager, RCTEventEmitter)
 
 RCT_EXTERN_METHOD(startPushupSession)
+RCT_EXTERN_METHOD(pausePushupSession)
+RCT_EXTERN_METHOD(resumePushupSession)
 RCT_EXTERN_METHOD(stopPushupSession)
 
 @end

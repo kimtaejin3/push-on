@@ -37,6 +37,20 @@ public class PushupManager extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void pausePushupSession() {
+        if (arActivity != null) {
+            arActivity.pauseSession();
+        }
+    }
+
+    @ReactMethod
+    public void resumePushupSession() {
+        if (arActivity != null) {
+            arActivity.resumeSession();
+        }
+    }
+
+    @ReactMethod
     public void stopPushupSession() {
         try {
             if (arActivity != null) {

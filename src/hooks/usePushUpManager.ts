@@ -47,9 +47,6 @@ function usePushUpManager() {
     const countSubscription = pushupEventEmitter.addListener(
       'onPushupCount',
       (event: {count: number}) => {
-        if (isPaused) {
-          return;
-        }
         setPushUpCount(event.count);
       },
     );
@@ -57,9 +54,6 @@ function usePushUpManager() {
     const goingDownSubscription = pushupEventEmitter.addListener(
       'onPushupGoingDown',
       (event: {isGoingDown: boolean}) => {
-        if (isPaused) {
-          return;
-        }
         setIsGoingDown(event.isGoingDown);
       },
     );
@@ -68,7 +62,7 @@ function usePushUpManager() {
       countSubscription.remove();
       goingDownSubscription.remove();
     };
-  }, [isTracking, isPaused]);
+  }, [isTracking]);
 
   const requestCameraPermission = async () => {
     if (Platform.OS === 'android') {
@@ -123,11 +117,13 @@ function usePushUpManager() {
   const pauseTracking = () => {
     setIsPaused(true);
     handleStopTimer();
+    PushupManager.pausePushupSession();
   };
 
   const resumeTracking = () => {
     setIsPaused(false);
     handleResumeTimer();
+    PushupManager.resumePushupSession();
   };
 
   const stopTracking = () => {

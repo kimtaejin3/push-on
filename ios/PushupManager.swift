@@ -41,6 +41,20 @@ class PushupManager: RCTEventEmitter {
     }
   }
 
+  @objc func pausePushupSession() {
+    DispatchQueue.main.async {
+      self.pushupRecognition?.isPaused = true
+      print("Pushup session paused")
+    }
+  }
+
+  @objc func resumePushupSession() {
+    DispatchQueue.main.async {
+      self.pushupRecognition?.isPaused = false
+      print("Pushup session resumed")
+    }
+  }
+
   @objc func stopPushupSession() {
     DispatchQueue.main.async {
       self.arSession?.pause()

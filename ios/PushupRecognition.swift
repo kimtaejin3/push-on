@@ -6,6 +6,7 @@ class PushupRecognition: NSObject, ARSessionDelegate {
 
     @objc var pushupCount: Int = 0
     @objc var isGoingDown = false
+    @objc var isPaused = false
     private let closeThreshold: Float = 0.25
     private let farThreshold: Float = 0.35
 
@@ -13,6 +14,7 @@ class PushupRecognition: NSObject, ARSessionDelegate {
     var onGoingDown: ((Bool) -> Void)?
     
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
+        guard !isPaused else { return }
         guard let faceAnchor = frame.anchors.first(where: { $0 is ARFaceAnchor }) as? ARFaceAnchor else { return }
         
         let cameraPos = SCNVector3(frame.camera.transform.columns.3.x,

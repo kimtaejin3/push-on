@@ -16,8 +16,11 @@ function ChallengeScreen(): React.JSX.Element {
     pushUpCount,
     isTracking,
     isGoingDown,
-    timer: {elapsedTime, isTimerRunning, handleStopTimer, handleResumeTimer},
+    isPaused,
+    timer: {elapsedTime},
     handleStartTracking,
+    handlePauseTracking,
+    handleResumeTracking,
     handleStopTracking,
   } = usePushUpManager();
 
@@ -51,9 +54,11 @@ function ChallengeScreen(): React.JSX.Element {
               <>
                 <CustomButton
                   style={[styles.button, styles.pauseButton]}
-                  title={isTimerRunning ? '일시정지' : '재개하기'}
+                  title={isPaused ? '재개하기' : '일시정지'}
                   variant="default"
-                  onPress={isTimerRunning ? handleStopTimer : handleResumeTimer}
+                  onPress={
+                    isPaused ? handleResumeTracking : handlePauseTracking
+                  }
                 />
                 <CustomButton
                   style={[styles.button, styles.stopButton]}

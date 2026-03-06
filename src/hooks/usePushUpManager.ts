@@ -17,6 +17,7 @@ function usePushUpManager() {
   const [pushUpCount, setPushUpCount] = useState(INITIAL_COUNT);
   const [isTracking, setIsTracking] = useState(false);
   const [isGoingDown, setIsGoingDown] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   // 타이머
   const {
@@ -26,7 +27,6 @@ function usePushUpManager() {
     handleResumeTimer,
     handleStartAndResetTimer,
   } = useTimer();
-
 
   //TODO: 훅으로 분리하기
   useEffect(() => {
@@ -47,6 +47,9 @@ function usePushUpManager() {
     const countSubscription = pushupEventEmitter.addListener(
       'onPushupCount',
       (event: {count: number}) => {
+        if (isPaused) {
+          return;
+        }
         setPushUpCount(event.count);
       },
     );
@@ -54,6 +57,9 @@ function usePushUpManager() {
     const goingDownSubscription = pushupEventEmitter.addListener(
       'onPushupGoingDown',
       (event: {isGoingDown: boolean}) => {
+        if (isPaused) {
+          return;
+        }
         setIsGoingDown(event.isGoingDown);
       },
     );
@@ -62,7 +68,7 @@ function usePushUpManager() {
       countSubscription.remove();
       goingDownSubscription.remove();
     };
-  }, [isTracking]);
+  }, [isTracking, isPaused]);
 
   const requestCameraPermission = async () => {
     if (Platform.OS === 'android') {
@@ -101,6 +107,7 @@ function usePushUpManager() {
     }
 
     setIsTracking(true);
+    setIsPaused(false);
     setPushUpCount(INITIAL_COUNT);
 
     // 타이머 시작 및 리셋
@@ -113,8 +120,19 @@ function usePushUpManager() {
     }
   };
 
+  const pauseTracking = () => {
+    setIsPaused(true);
+    handleStopTimer();
+  };
+
+  const resumeTracking = () => {
+    setIsPaused(false);
+    handleResumeTimer();
+  };
+
   const stopTracking = () => {
     setIsTracking(false);
+    setIsPaused(false);
     handleStopTimer();
     PushupManager.stopPushupSession();
   };
@@ -123,14 +141,14 @@ function usePushUpManager() {
     pushUpCount,
     isTracking,
     isGoingDown,
+    isPaused,
     timer: {
       elapsedTime,
       isTimerRunning,
-      handleStopTimer,
-      handleStartAndResetTimer,
-      handleResumeTimer,
     },
     handleStartTracking: startTracking,
+    handlePauseTracking: pauseTracking,
+    handleResumeTracking: resumeTracking,
     handleStopTracking: stopTracking,
   };
 }

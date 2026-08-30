@@ -1,81 +1,57 @@
+import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ScrollView,
-} from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
+import {useQuery} from '@tanstack/react-query';
 import {colors} from '../constants/colors';
 import Logo from '../assets/svgs/logo.svg';
-import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
-import {pushUpSetsByDateQueryOptions} from '../tanstack-query';
-import {useQuery} from '@tanstack/react-query';
-import {CURRENT_DATE, CURRENT_MONTH, CURRENT_YEAR} from '../atoms/date';
+import ModeCard from '../components/features/home/ModeCard';
+import {useSession} from '../hooks/useSession';
+import {activeProgramQueryOptions} from '../tanstack-query';
+import {toProgramState} from '../remote/program';
+import {ProgramState} from '../domain/hundredPushups';
+
+const programStatusText = (program: ProgramState | null): string => {
+  if (!program) {
+    return '시작 전';
+  }
+  if (program.testDue) {
+    return '테스트 차례';
+  }
+  return `${program.week}주차 · Day ${program.day}`;
+};
 
 function HomeScreen(): React.JSX.Element {
   const navigation = useNavigation();
-
-  useQuery(
-    pushUpSetsByDateQueryOptions(CURRENT_YEAR, CURRENT_MONTH, CURRENT_DATE),
-  );
+  const {user} = useSession();
+  const {data: programRow} = useQuery(activeProgramQueryOptions(user?.id ?? ''));
+  const program = programRow ? toProgramState(programRow) : null;
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}>
-        <View style={styles.titleContainer}>
-          <View style={styles.titleRow}>
-            <Logo width={26} height={26} fill={colors.primary} />
-            <Text style={styles.title}>PushOn</Text>
-          </View>
-        </View>
+      <View style={styles.titleRow}>
+        <Logo width={26} height={26} fill={colors.primary} />
+        <Text style={styles.title}>PushOn</Text>
+      </View>
 
-        <TouchableOpacity
-          style={styles.startButton}
-          onPress={() => navigation.navigate('Challenge')}>
-          <View style={styles.startButtonGradientBorder}>
-            <View style={styles.startButtonGradientBorderInner}>
-              <View style={styles.startButtonInner}>
-                <Text style={styles.startButtonText}>Start</Text>
-              </View>
-            </View>
-          </View>
-        </TouchableOpacity>
-
-        <View style={styles.leaderboardContainer}>
-          <View style={styles.leaderboardInner}>
-            <View style={styles.leaderboardHeader}>
-              <FontAwesome5
-                name="trophy"
-                size={18}
-                color={colors.primary}
-                iconStyle="solid"
-              />
-              <Text style={styles.leaderboardTitle}>내 순위 보기</Text>
-            </View>
-
-            <View style={styles.leaderboardContent}>
-              <Text style={styles.leaderboardDescription}>
-                다른 사용자들과 경쟁하며{'\n'}몇 등인지 확인해보세요!
-              </Text>
-              <TouchableOpacity
-                style={styles.leaderboardButton}
-                onPress={() => navigation.navigate('Leaderboard' as never)}>
-                <Text style={styles.leaderboardButtonText}>순위 확인하기</Text>
-                <FontAwesome5
-                  name="chevron-right"
-                  size={16}
-                  color={colors.primary}
-                  iconStyle="solid"
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </ScrollView>
+      <View style={styles.cards}>
+        <ModeCard
+          title="챌린지"
+          description="한 세트에 몇 개까지 되는지 도전해요"
+          onPress={() => navigation.navigate('Challenge')}
+        />
+        <ModeCard
+          title="세트"
+          description="세트 수와 목표 횟수를 정하고 휴식까지 챙겨요"
+          onPress={() => navigation.navigate('SetsSetup')}
+        />
+        <ModeCard
+          title="100개 만들기"
+          description="6주 프로그램으로 연속 100개까지"
+          status={programStatusText(program)}
+          onPress={() => navigation.navigate('Program')}
+        />
+      </View>
     </SafeAreaView>
   );
 }
@@ -86,119 +62,19 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: colors.backgroundDark,
   },
-  scrollView: {
-    flex: 1,
-  },
-  titleContainer: {
-    marginBottom: 40,
-  },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    marginBottom: 32,
   },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
     color: colors.textLight,
   },
-  startButton: {
-    marginTop: 20,
-    marginBottom: 30,
-    alignSelf: 'center',
-  },
-  startButtonGradientBorder: {
-    height: 260,
-    width: 260,
-    borderRadius: 130,
-    padding: 10,
-    backgroundColor: colors.primary,
-    shadowColor: colors.primary,
-    shadowOffset: {width: 0, height: 0},
-    shadowOpacity: 0.5,
-    shadowRadius: 15,
-    elevation: 10,
-  },
-  startButtonGradientBorderInner: {
-    flex: 1,
-    borderRadius: 120,
-    backgroundColor: colors.backgroundDark,
-    padding: 1,
-  },
-  startButtonInner: {
-    flex: 1,
-    borderRadius: 119,
-    backgroundColor: colors.backgroundDark,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  startButtonText: {
-    fontSize: 40,
-    fontWeight: 'bold',
-    color: colors.textLight,
-    textAlign: 'center',
-  },
-  // 리더보드 스타일
-  leaderboardContainer: {
-    marginTop: 30,
-  },
-  gradientBorder: {
-    borderRadius: 16,
-    padding: 2,
-    backgroundColor: colors.primary,
-    shadowColor: colors.primary,
-    shadowOffset: {width: 0, height: 0},
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  gradientBorderInner: {
-    borderRadius: 14,
-    backgroundColor: colors.backgroundDark,
-    padding: 1,
-  },
-  leaderboardInner: {
-    backgroundColor: colors.overlayLight,
-    borderRadius: 13,
-    padding: 20,
-  },
-  leaderboardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 16,
-  },
-  leaderboardTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.textLight,
-  },
-  leaderboardContent: {
-    alignItems: 'center',
-    gap: 16,
-  },
-  leaderboardDescription: {
-    fontSize: 14,
-    color: colors.textLight,
-    textAlign: 'center',
-    lineHeight: 24,
-    opacity: 0.8,
-  },
-  leaderboardButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: colors.primaryOverlay,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: colors.primaryBorderMedium,
-  },
-  leaderboardButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.primary,
+  cards: {
+    gap: 12,
   },
 });
 

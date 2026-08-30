@@ -15,26 +15,34 @@ import {
 interface ChallengeResultProps {
   pushUpCount: number;
   duration: number;
+  /** 100개 프로그램의 초기/재테스트로 쓰일 때 */
+  purpose?: 'program-test';
 }
 
 function ChallengeResult({
   pushUpCount,
   duration,
+  purpose,
 }: ChallengeResultProps): React.JSX.Element {
   const [iconAnim, titleAnim, subtitleAnim] = useSequentialAnimation(3, {
     durations: [500, 400, 300],
   });
   const navigation = useNavigation();
 
-  const savePushupMutation = useSavePushupSessionMutation(
-    () => {
+  const isProgramTest = purpose === 'program-test';
+
+  const goNext = () => {
+    if (isProgramTest) {
+      navigation.navigate('Program', {testReps: pushUpCount});
+    } else {
       navigation.navigate('Tabs' as never);
-    },
-    error => {
-      console.error('푸쉬업 세션 저장 실패:', error);
-      navigation.navigate('Tabs' as never);
-    },
-  );
+    }
+  };
+
+  const savePushupMutation = useSavePushupSessionMutation(goNext, error => {
+    console.error('푸쉬업 세션 저장 실패:', error);
+    goNext();
+  });
 
   const handleSaveAndGoHome = () => {
     if (pushUpCount === 0) {
@@ -43,6 +51,7 @@ function ChallengeResult({
     savePushupMutation.mutate({
       reps: pushUpCount,
       duration_seconds: duration,
+      mode: isProgramTest ? 'program_test' : 'challenge',
     });
   };
 
@@ -96,11 +105,21 @@ function ChallengeResult({
         <View style={styles.footer}>
           <CustomButton
             style={styles.saveButton}
-            title={pushUpCount > 0 ? '기록하고 홈으로 이동' : '홈으로 이동'}
+            title={
+              pushUpCount > 0
+                ? isProgramTest
+                  ? '기록하고 프로그램으로'
+                  : '기록하고 홈으로 이동'
+                : isProgramTest
+                ? '프로그램으로'
+                : '홈으로 이동'
+            }
             variant="start"
             onPress={() => {
               if (pushUpCount > 0) {
                 handleSaveAndGoHome();
+              } else if (isProgramTest) {
+                navigation.navigate('Program');
               } else {
                 navigation.navigate('Tabs', {
                   screen: 'Home',

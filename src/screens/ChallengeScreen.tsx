@@ -10,8 +10,12 @@ import Count from '../components/features/push-up/Count';
 import TimerContainer from '../components/features/push-up/TimerContainer';
 import SetTitle from '../components/features/push-up/SetTitle';
 import {formatTime} from '../utils/time';
+import {RouteProp, useRoute} from '@react-navigation/native';
+import {AppStackParamList} from '../navigations/AppNavigation';
 
 function ChallengeScreen(): React.JSX.Element {
+  const route = useRoute<RouteProp<AppStackParamList, 'Challenge'>>();
+  const purpose = route.params?.purpose;
   const {
     pushUpCount,
     isTracking,
@@ -31,7 +35,13 @@ function ChallengeScreen(): React.JSX.Element {
   };
 
   if (isPushUpFinished) {
-    return <ChallengeResult pushUpCount={pushUpCount} duration={elapsedTime} />;
+    return (
+      <ChallengeResult
+        pushUpCount={pushUpCount}
+        duration={elapsedTime}
+        purpose={purpose}
+      />
+    );
   }
 
   return (

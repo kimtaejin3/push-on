@@ -14,6 +14,10 @@ import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
 import LeaderboardScreen from '../screens/LeaderboardScreen';
 import AccountSettingsScreen from '../screens/AccountSettingsScreen';
 import ProfileEditScreen from '../screens/ProfileEditScreen';
+import SetsSetupScreen from '../screens/SetsSetupScreen';
+import WorkoutScreen from '../screens/WorkoutScreen';
+import ProgramScreen from '../screens/ProgramScreen';
+import {WorkoutPlan} from '../domain/workoutSession';
 import {useSession} from '../hooks/useSession';
 import {colors} from '../constants/colors';
 import Text from '../components/common/Text';
@@ -36,6 +40,9 @@ const AppStack = createNativeStackNavigator({
       screen: BottomTabNavigation,
     },
     Challenge: ChallengeScreen,
+    SetsSetup: SetsSetupScreen,
+    Workout: WorkoutScreen,
+    Program: ProgramScreen,
     Setting: SettingScreen,
     TermsOfService: TermsOfServiceScreen,
     PrivacyPolicy: PrivacyPolicyScreen,
@@ -99,9 +106,14 @@ const styles = StyleSheet.create({
   },
 });
 
+export type WorkoutSource = {kind: 'sets'} | {kind: 'program'; programId: string};
+
 export type AppStackParamList = {
   Tabs: NavigatorScreenParams<BottomTabParamList>;
-  Challenge: undefined;
+  Challenge: {purpose?: 'program-test'} | undefined;
+  SetsSetup: undefined;
+  Workout: {plan: WorkoutPlan; source: WorkoutSource};
+  Program: {testReps?: number} | undefined;
   Setting: undefined;
   TermsOfService: undefined;
   PrivacyPolicy: undefined;

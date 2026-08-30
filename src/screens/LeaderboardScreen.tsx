@@ -30,6 +30,12 @@ type LeaderItem = {
 
 type LeaderBoardType = 'daily' | 'monthly' | 'yearly';
 
+const LEADERBOARD_MODES: {key: LeaderBoardType; label: string}[] = [
+  {key: 'daily', label: '오늘'},
+  {key: 'monthly', label: '이번 달'},
+  {key: 'yearly', label: '올해'},
+];
+
 export default function LeaderboardScreen() {
   const [leaderBoardMode, setLeaderBoardMode] = useState<LeaderBoardType>('daily');
   const {user} = useSession();
@@ -187,28 +193,20 @@ export default function LeaderboardScreen() {
     <SafeAreaView style={styles.safeArea}>
       <Header title={getHeaderTitle()} onBackPress={() => navigation.goBack()} />
 
-      <View style={styles.chips}>
-        <TouchableOpacity
-          style={[styles.chip, leaderBoardMode === 'daily' && styles.active]}
-          onPress={() => {
-            setLeaderBoardMode('daily');
-          }}>
-          <Text style={styles.chipText}>일</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.chip, leaderBoardMode === 'monthly' && styles.active]}
-          onPress={() => {
-            setLeaderBoardMode('monthly');
-          }}>
-          <Text style={styles.chipText}>월</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.chip, leaderBoardMode === 'yearly' && styles.active]}
-          onPress={() => {
-            setLeaderBoardMode('yearly');
-          }}>
-          <Text style={styles.chipText}>년</Text>
-        </TouchableOpacity>
+      <View style={styles.segments}>
+        {LEADERBOARD_MODES.map(mode => {
+          const active = leaderBoardMode === mode.key;
+          return (
+            <TouchableOpacity
+              key={mode.key}
+              style={[styles.segment, active && styles.segmentActive]}
+              onPress={() => setLeaderBoardMode(mode.key)}>
+              <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
+                {mode.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       <View style={styles.tableHeader}>
@@ -327,25 +325,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   username: {color: colors.textLight, fontSize: 14, fontWeight: '600'},
-  chips:{
+  // 통계 화면의 기간 선택과 같은 규격의 세그먼트 컨트롤
+  segments: {
     flexDirection: 'row',
-    gap: 10,
-    marginTop: 10,
-    marginLeft: 10,
-    marginBottom: 10,
+    backgroundColor: colors.overlayLight,
+    borderRadius: 12,
+    padding: 4,
+    marginHorizontal: 20,
+    marginTop: 8,
+    marginBottom: 16,
   },
-  chip:{
-    backgroundColor: colors.gray400,
-    paddingVertical: 5,
-    paddingHorizontal: 20,
-    borderRadius: 20,
+  segment: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
   },
-  active: {
-    backgroundColor: colors.primary,
+  segmentActive: {
+    backgroundColor: colors.primaryDark,
   },
-  chipText: {
+  segmentText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  segmentTextActive: {
     color: colors.textLight,
-    fontSize: 15,
   },
   loadingContainer: {
     flex: 1,

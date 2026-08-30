@@ -1,12 +1,18 @@
 import {supabase} from '../lib/supabase';
 import {formatKSTDate} from '../utils/time';
 
+export type WorkoutMode = 'challenge' | 'sets' | 'program' | 'program_test';
+
 export interface PushupSetData {
   id: string;
   workout_date: string;
   reps: number;
   duration_seconds: number;
   created_at: string;
+  mode: WorkoutMode;
+  workout_id: string | null;
+  set_index: number | null;
+  target_reps: number | null;
 }
 
 export interface PushupDayData {
@@ -20,6 +26,10 @@ export interface PushupDayData {
 export interface SavePushupSessionData {
   reps: number;
   duration_seconds: number;
+  mode?: WorkoutMode; // 기본 challenge
+  workout_id?: string; // 세트/프로그램 운동 묶음
+  set_index?: number; // 운동 내 세트 순번 (1부터)
+  target_reps?: number; // 목표 (max 세트는 최소치)
 }
 
 export const getTodayPushupSets = async ({
@@ -277,6 +287,10 @@ export const savePushupSession = async (
       reps: data.reps,
       duration_seconds: data.duration_seconds,
       created_at: new Date().toISOString(),
+      mode: data.mode ?? 'challenge',
+      ...(data.workout_id !== undefined && {workout_id: data.workout_id}),
+      ...(data.set_index !== undefined && {set_index: data.set_index}),
+      ...(data.target_reps !== undefined && {target_reps: data.target_reps}),
     });
 
     if (error) {

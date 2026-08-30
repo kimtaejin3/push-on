@@ -40,7 +40,6 @@ const UserInfo = ({user}: {user: User}) => {
   const {userName, userEmail, profileImage, providerInfo, joinedDate} = extractUserInfo(user);
   const [imageError, setImageError] = useState(false);
   const {signOut: signOutProvider} = useAuth();
-  const navigation = useNavigation();
   const deleteAccountMutation = useDeleteAccountMutation();
 
 
@@ -89,11 +88,8 @@ const UserInfo = ({user}: {user: User}) => {
                   text: '탈퇴하기',
                   style: 'destructive',
                   onPress: () => {
+                    // 세션이 지워지면 ConditionalNavigation 이 AuthScreen 으로 전환한다
                     deleteAccountMutation.mutate();
-                    navigation.reset({
-                      index: 0,
-                      routes: [{name: 'Auth' as never}],
-                    });
                   },
                 },
               ],

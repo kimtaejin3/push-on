@@ -105,15 +105,22 @@ export const useAuth = () => {
   };
 
   const signOut = async (provider: typeof providers[number]) => {
+    // provider SDK 로그아웃은 best-effort. 카카오는 자체 토큰이 만료돼 있으면
+    // 서버 호출이 실패하는데, 그것 때문에 Supabase 세션 제거를 건너뛰면 안 된다.
     try {
       if (provider === 'google') {
         await GoogleSignin.signOut();
       } else if (provider === 'kakao') {
         await logout();
       }
-      await supabase.auth.signOut();
     } catch (error) {
-      console.error('Google 로그아웃 에러:', error);
+      console.warn(`${provider} 로그아웃 실패 (무시하고 계속 진행):`, error);
+    }
+
+    const {error: signOutError} = await supabase.auth.signOut();
+    if (signOutError) {
+      console.error('Supabase 로그아웃 에러:', signOutError);
+      throw signOutError;
     }
   };
 

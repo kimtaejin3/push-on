@@ -2,7 +2,20 @@ import {useState, useEffect} from 'react';
 import {supabase} from '../lib/supabase';
 import {AppState} from 'react-native';
 import {Session} from '@supabase/supabase-js';
+import {signOutIfUserDeleted} from '../remote/session';
 
+/**
+ * 저장된 세션의 서버 검증은 프로세스당 한 번이면 충분하다.
+ * useSession 은 여러 컴포넌트가 각자 호출하므로, 인스턴스마다 /user 를 부르고
+ * 죽은 세션이면 signOut 을 여러 번 보내는 일이 없도록 in-flight promise 를 공유한다.
+ */
+let storedSessionValidation: Promise<boolean> | null = null;
+const validateStoredSessionOnce = () => {
+  if (!storedSessionValidation) {
+    storedSessionValidation = signOutIfUserDeleted();
+  }
+  return storedSessionValidation;
+};
 
 //TODO: user가 null일 경우의 처리는 여기서 해주기
 export const useSession = () => {
@@ -19,6 +32,9 @@ export const useSession = () => {
         } = await supabase.auth.getSession();
         if (error) {
           console.error('세션 가져오기 오류:', error);
+        } else if (sessionData && (await validateStoredSessionOnce())) {
+          // 회원 탈퇴 등으로 서버에서 사라진 유저의 세션이 기기에 남아 있던 경우
+          setSession(null);
         } else {
           setSession(sessionData);
         }

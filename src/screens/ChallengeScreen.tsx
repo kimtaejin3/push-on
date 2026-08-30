@@ -8,7 +8,6 @@ import ChallengeResult from '../components/features/push-up/ChallengeResult';
 import {colors} from '../constants/colors';
 import Count from '../components/features/push-up/Count';
 import TimerContainer from '../components/features/push-up/TimerContainer';
-import SetTitle from '../components/features/push-up/SetTitle';
 import {formatTime} from '../utils/time';
 import {RouteProp, useRoute} from '@react-navigation/native';
 import {AppStackParamList} from '../navigations/AppNavigation';
@@ -47,7 +46,7 @@ function ChallengeScreen(): React.JSX.Element {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <SetTitle />
+        <Text style={styles.modeTitle}>{purpose === 'program-test' ? '최대 횟수 테스트' : '챌린지'}</Text>
 
         <Count pushUpCount={pushUpCount} isGoingDown={isGoingDown} />
 
@@ -105,6 +104,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     zIndex: 1,
+  },
+  modeTitle: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    marginBottom: 40,
+    color: colors.textSecondary,
   },
   countLabel: {
     fontSize: 30,

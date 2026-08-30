@@ -34,22 +34,37 @@ function HomeScreen(): React.JSX.Element {
         <Text style={styles.title}>PushOn</Text>
       </View>
 
+      <Text style={styles.sectionTitle}>운동 모드</Text>
+      <Text style={styles.sectionSubtitle}>오늘은 어떻게 할까요?</Text>
+
       <View style={styles.cards}>
         <ModeCard
+          icon="bolt"
           title="챌린지"
           description="한 세트에 몇 개까지 되는지 도전해요"
           onPress={() => navigation.navigate('Challenge')}
         />
         <ModeCard
+          icon="layer-group"
           title="세트"
           description="세트 수와 목표 횟수를 정하고 휴식까지 챙겨요"
           onPress={() => navigation.navigate('SetsSetup')}
         />
         <ModeCard
+          icon="flag-checkered"
           title="100개 만들기"
           description="6주 프로그램으로 연속 100개까지"
           status={programStatusText(program)}
           onPress={() => navigation.navigate('Program')}
+        />
+      </View>
+
+      <View style={styles.leaderboardSection}>
+        <ModeCard
+          icon="trophy"
+          title="순위 보러가기"
+          description="오늘 · 이번 달 · 올해 리더보드"
+          onPress={() => navigation.navigate('Leaderboard')}
         />
       </View>
     </SafeAreaView>
@@ -73,8 +88,22 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.textLight,
   },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: colors.textLight,
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: colors.gray400,
+    marginTop: 4,
+    marginBottom: 16,
+  },
   cards: {
     gap: 12,
+  },
+  leaderboardSection: {
+    marginTop: 24,
   },
 });
 

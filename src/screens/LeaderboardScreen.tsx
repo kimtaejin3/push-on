@@ -12,6 +12,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {useQuery} from '@tanstack/react-query';
 import {colors} from '../constants/colors';
 import Header from '../components/common/Header';
+import {useNavigation} from '@react-navigation/native';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
 import {
   dailyLeaderboardQueryOptions,
@@ -164,6 +165,7 @@ export default function LeaderboardScreen() {
         break;
     }
   };
+  const navigation = useNavigation();
   const getHeaderTitle = () => {
     switch (leaderBoardMode) {
       case 'daily':
@@ -179,7 +181,7 @@ export default function LeaderboardScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Header title={getHeaderTitle()} />
+      <Header title={getHeaderTitle()} onBackPress={() => navigation.goBack()} />
 
       <View style={styles.chips}>
         <TouchableOpacity

@@ -5,7 +5,8 @@ import {useAtom} from 'jotai';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import Calendar from '../components/features/calendar/Calendar';
 import {colors} from '../constants/colors';
-import SetCard from '../components/features/push-up/SetCard';
+import WorkoutGroupCard from '../components/features/push-up/WorkoutGroupCard';
+import {groupSetsByWorkout} from '../domain/history';
 import HistorySummary from '../components/features/push-up/HistorySummary';
 import {selectedDateAtom} from '../atoms/date';
 import {useSuspenseQuery} from '@tanstack/react-query';
@@ -85,16 +86,8 @@ function SetCardList() {
 
   return (
     <View>
-      {pushupSets.map((set, index) => (
-        <SetCard
-          key={index}
-          set={{
-            setNumber: index + 1,
-            reps: set.reps,
-            time: set.duration_seconds.toString(),
-            target: set.target_reps,
-          }}
-        />
+      {groupSetsByWorkout(pushupSets).map(group => (
+        <WorkoutGroupCard key={group.key} group={group} />
       ))}
     </View>
   );

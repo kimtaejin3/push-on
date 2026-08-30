@@ -8,9 +8,13 @@ export const useIsOnboarded = () => {
   const {user} = useSession();
 
   const checkOnboardingStatus = useCallback(async () => {
-    if (!user){
+    if (!user) {
+      // 로그아웃 상태: 조회할 프로필이 없으므로 로딩만 해제한다
+      setLoading(false);
       return;
     }
+    // 로그아웃 → 로그인 전환 시 이전 결과로 화면이 잠깐 잘못 뜨지 않도록 다시 로딩 상태로 돌린다
+    setLoading(true);
     try {
       const {data, error} = await supabase
         .from('profiles')

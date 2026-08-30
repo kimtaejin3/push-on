@@ -17,7 +17,6 @@ import {
   processMonthlyStats,
 } from '../tanstack-query';
 import { processYearlyStats } from '../remote/pushup';
-import {filterByMode, STAT_MODE_FILTERS, StatModeFilter} from '../domain/stats';
 
 type TimePeriod = 'weekly' | 'monthly' | 'yearly';
 type MetricType = 'reps' | 'sets' | 'duration';
@@ -25,7 +24,6 @@ type MetricType = 'reps' | 'sets' | 'duration';
 function StatisticScreen() {
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('weekly');
   const [selectedMetric, setSelectedMetric] = useState<MetricType>('reps');
-  const [selectedMode, setSelectedMode] = useState<StatModeFilter>('all');
 
   // 30일 raw 데이터를 한 번만 가져오기 (최적화)
   const {data: rawData, isLoading} = useQuery(pushupStatsQueryOptions(30));
@@ -36,36 +34,26 @@ function StatisticScreen() {
   });
 
   // 클라이언트에서 주간/월간 데이터로 가공
-  // 모드 필터를 거친 raw 데이터
-  const filteredRaw = useMemo(
-    () => (rawData ? filterByMode(rawData, selectedMode) : null),
-    [rawData, selectedMode],
-  );
-  const filteredYearlyRaw = useMemo(
-    () => (yearlyRawData ? filterByMode(yearlyRawData, selectedMode) : null),
-    [yearlyRawData, selectedMode],
-  );
-
   const weeklyData = useMemo(() => {
-    if (!filteredRaw) {
+    if (!rawData) {
       return [];
     }
-    return processWeeklyStats(filteredRaw);
-  }, [filteredRaw]);
+    return processWeeklyStats(rawData);
+  }, [rawData]);
 
   const monthlyData = useMemo(() => {
-    if (!filteredRaw) {
+    if (!rawData) {
       return [];
     }
-    return processMonthlyStats(filteredRaw);
-  }, [filteredRaw]);
+    return processMonthlyStats(rawData);
+  }, [rawData]);
 
   const yearlyData = useMemo(() => {
-    if (!filteredYearlyRaw) {
+    if (!yearlyRawData) {
       return [];
     }
-    return processYearlyStats(filteredYearlyRaw);
-  }, [filteredYearlyRaw]);
+    return processYearlyStats(yearlyRawData);
+  }, [yearlyRawData]);
 
   const currentData =
     selectedPeriod === 'weekly'
@@ -109,27 +97,6 @@ function StatisticScreen() {
                       styles.periodButtonTextActive,
                   ]}>
                   {button.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* 모드 필터 칩 */}
-          <View style={styles.modeChips}>
-            {STAT_MODE_FILTERS.map(filter => (
-              <TouchableOpacity
-                key={filter.key}
-                style={[
-                  styles.modeChip,
-                  selectedMode === filter.key && styles.modeChipActive,
-                ]}
-                onPress={() => setSelectedMode(filter.key)}>
-                <Text
-                  style={[
-                    styles.modeChipText,
-                    selectedMode === filter.key && styles.modeChipTextActive,
-                  ]}>
-                  {filter.label}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -223,28 +190,6 @@ const styles = StyleSheet.create({
   },
   periodButtonTextActive: {
     color: colors.textLight,
-  },
-  modeChips: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 20,
-  },
-  modeChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 16,
-    backgroundColor: colors.overlayLight,
-  },
-  modeChipActive: {
-    backgroundColor: colors.primary,
-  },
-  modeChipText: {
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  modeChipTextActive: {
-    color: colors.textLight,
-    fontWeight: '600',
   },
   metricSelector: {
     flexDirection: 'row',

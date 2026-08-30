@@ -6,6 +6,7 @@ import {useQuery} from '@tanstack/react-query';
 import {colors} from '../constants/colors';
 import Logo from '../assets/svgs/logo.svg';
 import ModeCard from '../components/features/home/ModeCard';
+import LinkRow from '../components/features/home/LinkRow';
 import {useSession} from '../hooks/useSession';
 import {activeProgramQueryOptions} from '../tanstack-query';
 import {toProgramState} from '../remote/program';
@@ -35,7 +36,6 @@ function HomeScreen(): React.JSX.Element {
       </View>
 
       <Text style={styles.sectionTitle}>운동 모드</Text>
-      <Text style={styles.sectionSubtitle}>오늘은 어떻게 할까요?</Text>
 
       <View style={styles.cards}>
         <ModeCard
@@ -59,14 +59,12 @@ function HomeScreen(): React.JSX.Element {
         />
       </View>
 
-      <View style={styles.leaderboardSection}>
-        <ModeCard
-          icon="trophy"
-          title="순위 보러가기"
-          description="오늘 · 이번 달 · 올해 리더보드"
-          onPress={() => navigation.navigate('Leaderboard')}
-        />
-      </View>
+      <View style={styles.divider} />
+      <LinkRow
+        icon="trophy"
+        title="순위 보러가기"
+        onPress={() => navigation.navigate('Leaderboard')}
+      />
     </SafeAreaView>
   );
 }
@@ -92,18 +90,15 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: colors.textLight,
-  },
-  sectionSubtitle: {
-    fontSize: 14,
-    color: colors.gray400,
-    marginTop: 4,
     marginBottom: 16,
   },
   cards: {
     gap: 12,
   },
-  leaderboardSection: {
-    marginTop: 24,
+  divider: {
+    height: 1,
+    backgroundColor: colors.overlayMedium,
+    marginVertical: 20,
   },
 });
 

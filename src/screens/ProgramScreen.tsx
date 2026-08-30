@@ -14,7 +14,7 @@ import {
   useUpdateProgramMutation,
 } from '../tanstack-query';
 import {toProgramState} from '../remote/program';
-import {applyTest, describeSets, startProgram, todayPlan} from '../domain/hundredPushups';
+import {applyTest, describeSets, retestLevel, startProgram, todayPlan} from '../domain/hundredPushups';
 import {WEEKS} from '../constants/hundredPushups';
 
 function ProgramScreen() {
@@ -41,12 +41,21 @@ function ProgramScreen() {
       return;
     }
     const state = toProgramState(programRow);
-    if (state.testDue) {
-      updateProgram.mutate({id: programRow.id, state: applyTest(state, testReps)});
+    // 테스트 차례면 주차 진행, 아니면 "레벨 다시 재기" 결과로 현재 주차의 열만 재배정
+    const next = state.testDue ? applyTest(state, testReps) : retestLevel(state, testReps);
+    if (next !== state) {
+      updateProgram.mutate({id: programRow.id, state: next});
     }
   }, [testReps, isLoading, programRow, user, navigation, createProgram, updateProgram]);
 
   const goTest = () => navigation.navigate('Challenge', {purpose: 'program-test'});
+
+  const handleRetest = () => {
+    Alert.alert('레벨 다시 재기', '최대 횟수를 다시 재서 이번 주 세트를 다시 정해요.\n주차와 일차는 그대로예요.', [
+      {text: '취소', style: 'cancel'},
+      {text: '테스트 하기', onPress: goTest},
+    ]);
+  };
 
   const handleAbandon = () => {
     if (!programRow) {
@@ -122,6 +131,9 @@ function ProgramScreen() {
             navigation.navigate('Workout', {plan, source: {kind: 'program', programId: programRow.id}})
           }
         />
+        <Text style={styles.retest} onPress={handleRetest}>
+          레벨 다시 재기
+        </Text>
       </View>
     );
   };
@@ -150,6 +162,7 @@ const styles = StyleSheet.create({
   body: {fontSize: 15, lineHeight: 22, color: colors.textSecondary},
   hint: {fontSize: 13, color: colors.gray400},
   button: {marginTop: 8},
+  retest: {textAlign: 'center', fontSize: 14, color: colors.primaryLight, paddingTop: 4},
   abandon: {textAlign: 'center', fontSize: 14, color: colors.gray400, padding: 8},
 });
 

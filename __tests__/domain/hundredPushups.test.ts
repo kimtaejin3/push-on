@@ -1,5 +1,5 @@
 import {
-  assignLevel, startProgram, todayPlan, completeDay, applyTest, describeSets,
+  assignLevel, startProgram, todayPlan, completeDay, applyTest, describeSets, retestLevel,
 } from '../../src/domain/hundredPushups';
 import {PROGRAM} from '../../src/constants/hundredPushups';
 
@@ -100,5 +100,25 @@ describe('describeSets', () => {
   it('가운뎃점으로 잇고 마지막이 max 면 + 를 붙인다', () => {
     expect(describeSets([6,6,4,4,5], true)).toBe('6 · 6 · 4 · 4 · 5+');
     expect(describeSets([10,10,10], false)).toBe('10 · 10 · 10');
+  });
+});
+
+describe('retestLevel (레벨 다시 재기)', () => {
+  const active = {week: 1, day: 2, level: 1 as const, lastTestReps: 3, testDue: false, status: 'active' as const};
+
+  it('현재 주차 기준으로 열만 다시 배정하고 주차/일차는 유지한다', () => {
+    expect(retestLevel(active, 12)).toEqual({...active, level: 3, lastTestReps: 12});
+  });
+
+  it('3주차 이상에서 최소 미달이면 열 1 로 둔다', () => {
+    const w3 = {...active, week: 3, level: 2 as const};
+    expect(retestLevel(w3, 10)).toMatchObject({week: 3, day: 2, level: 1, lastTestReps: 10});
+  });
+
+  it('테스트 차례(testDue)이거나 완료 상태면 그대로 돌려준다', () => {
+    const due = {...active, testDue: true};
+    expect(retestLevel(due, 30)).toBe(due);
+    const done = {...active, status: 'completed' as const};
+    expect(retestLevel(done, 30)).toBe(done);
   });
 });

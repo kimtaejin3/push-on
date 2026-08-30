@@ -98,3 +98,14 @@ export const describeSets = (sets: number[], lastIsMax: boolean): string =>
   sets
     .map((n, i) => (lastIsMax && i === sets.length - 1 ? `${n}+` : `${n}`))
     .join(' · ');
+
+/**
+ * 레벨 다시 재기: 진행 중인 주차 안에서 열만 다시 배정한다 (주차/일차 유지).
+ * 첫 테스트를 컨디션 나쁜 날 재서 너무 쉬운 열로 시작한 경우를 위한 장치.
+ */
+export const retestLevel = (state: ProgramState, reps: number): ProgramState => {
+  if (state.testDue || state.status !== 'active') {
+    return state;
+  }
+  return {...state, level: assignLevel(state.week, reps) ?? 1, lastTestReps: reps};
+};

@@ -1,4 +1,4 @@
--- 운동 모드(세트 / 100개 만들기) 도입용 DB 변경. Supabase SQL Editor 에서 실행.
+-- 운동 모드(세트 / 100개 챌린지) 도입용 DB 변경. Supabase SQL Editor 에서 실행.
 -- 구버전 앱 호환: 전부 기본값/nullable. 새 앱 배포 전에 실행해야 세트/프로그램 저장이 된다.
 
 ALTER TABLE pushup_sets

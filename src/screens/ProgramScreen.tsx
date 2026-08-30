@@ -125,7 +125,7 @@ function ProgramScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header title="100개 만들기" onBackPress={() => navigation.goBack()} />
+      <Header title="100개 챌린지" onBackPress={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         {renderBody()}
         {programRow && programRow.status === 'active' && (

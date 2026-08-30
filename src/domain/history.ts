@@ -14,7 +14,7 @@ const modeLabel = (mode: WorkoutMode, sets: PushupSetData[]): string => {
     case 'program_test':
       return '테스트';
     case 'program':
-      return `100개 만들기 · ${sets.length}세트`;
+      return `100개 챌린지 · ${sets.length}세트`;
     case 'sets': {
       const targets = new Set(sets.map(s => s.target_reps));
       const [only] = [...targets];

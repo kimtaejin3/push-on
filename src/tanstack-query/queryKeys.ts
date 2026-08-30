@@ -28,7 +28,7 @@ export const queryKeys = {
     me: ['profile', 'me'] as const,
   },
 
-  // 100개 만들기 프로그램
+  // 100개 챌린지 프로그램
   program: {
     all: ['program'] as const,
     active: ['program', 'active'] as const,

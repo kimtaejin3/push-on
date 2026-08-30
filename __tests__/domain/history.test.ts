@@ -36,12 +36,12 @@ describe('groupSetsByWorkout', () => {
     expect(groups[0].label).toBe('세트 · 2세트');
   });
 
-  it('프로그램 운동은 "100개 만들기 · N세트"', () => {
+  it('프로그램 운동은 "100개 챌린지 · N세트"', () => {
     const groups = groupSetsByWorkout([
       set({id: 'a', mode: 'program', workout_id: 'p1', set_index: 1, target_reps: 6}),
       set({id: 'b', mode: 'program', workout_id: 'p1', set_index: 2, target_reps: 6}),
     ]);
-    expect(groups[0].label).toBe('100개 만들기 · 2세트');
+    expect(groups[0].label).toBe('100개 챌린지 · 2세트');
   });
 
   it('그룹은 첫 세트 시각 순으로 정렬된다', () => {

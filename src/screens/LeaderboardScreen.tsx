@@ -19,17 +19,20 @@ import {
   monthlyLeaderboardQueryOptions,
   yearlyLeaderboardQueryOptions,
 } from '../tanstack-query';
+import {useSession} from '../hooks/useSession';
 
 type LeaderItem = {
   rank: number;
   username: string;
   reps: number;
+  isMe: boolean; // 내 순위 행 강조용
 };
 
 type LeaderBoardType = 'daily' | 'monthly' | 'yearly';
 
 export default function LeaderboardScreen() {
   const [leaderBoardMode, setLeaderBoardMode] = useState<LeaderBoardType>('daily');
+  const {user} = useSession();
 
   // 현재 날짜 정보 (KST 기준)
   const {todayKst, currentYear, currentMonth} = useMemo(() => {
@@ -149,8 +152,9 @@ export default function LeaderboardScreen() {
       rank: idx + 1,
       username: row.nickname || '익명',
       reps: row.total_reps,
+      isMe: row.user_id === user?.id,
     }));
-  }, [leaderBoardMode, dailyData, monthlyData, yearlyData]);
+  }, [leaderBoardMode, dailyData, monthlyData, yearlyData, user?.id]);
 
   const onRefresh = () => {
     switch (leaderBoardMode) {
@@ -236,8 +240,10 @@ export default function LeaderboardScreen() {
             />
           }
           renderItem={({item}) => (
-            <View style={styles.row}>
-              <Text style={[styles.cell, styles.cellRank]}>{item.rank}</Text>
+            <View style={[styles.row, item.isMe && styles.rowMe]}>
+              <Text style={[styles.cell, styles.cellRank, item.isMe && styles.cellMe]}>
+                {item.rank}
+              </Text>
               <View style={styles.cellUser}>
                 <View style={styles.avatar}>
                   <FontAwesome5
@@ -246,9 +252,12 @@ export default function LeaderboardScreen() {
                     color={colors.overlayMedium}
                   />
                 </View>
-                <Text style={styles.username}>{item.username}</Text>
+                <Text style={[styles.username, item.isMe && styles.cellMe]}>
+                  {item.username}
+                  {item.isMe ? ' (나)' : ''}
+                </Text>
               </View>
-              <Text style={[styles.cell, styles.cellReps]}>
+              <Text style={[styles.cell, styles.cellReps, item.isMe && styles.cellMe]}>
                 {item.reps.toLocaleString()}
               </Text>
             </View>
@@ -289,6 +298,18 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderColor: colors.overlayMedium,
+  },
+  // 내 순위 행: 배경을 연보라로 칠하고 글자를 강조한다
+  rowMe: {
+    backgroundColor: colors.primaryOverlayMedium,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    marginHorizontal: -8,
+    borderBottomWidth: 0,
+  },
+  cellMe: {
+    color: colors.primaryLight,
+    fontWeight: '700',
   },
   cell: {
     color: colors.textLight,

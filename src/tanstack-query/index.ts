@@ -16,3 +16,10 @@ export {
 export {profileQueryOptions} from './queryOptions/profile';
 
 export {useSavePushupSessionMutation} from './mutationHooks/pushup.ts';
+
+export {activeProgramQueryOptions} from './queryOptions/program';
+export {
+  useCreateProgramMutation,
+  useUpdateProgramMutation,
+  useAbandonProgramMutation,
+} from './mutationHooks/program';

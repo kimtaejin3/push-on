@@ -16,17 +16,17 @@ import {colors} from '../constants/colors';
 import {useSession} from '../hooks/useSession';
 import Header from '../components/common/Header';
 import {profileQueryOptions} from '../tanstack-query/queryOptions/profile';
-import {useUpdateProfileMutation, useUpsertProfileMutation} from '../tanstack-query/mutationHooks/profile';
+import {useUpdateProfileMutation} from '../tanstack-query/mutationHooks/profile';
+import {checkNicknameAvailability} from '../remote/profile';
+import {validateNickname, NICKNAME_MAX_LENGTH} from '../utils/nickname';
 
 function ProfileEditScreen() {
   const navigation = useNavigation();
   const {user} = useSession();
 
-  // 로컬 상태
   const [nickname, setNickname] = useState('');
-  const [targetRepsPerSet, setTargetRepsPerSet] = useState('');
+  const [isCheckingNickname, setIsCheckingNickname] = useState(false);
 
-  // 프로필 데이터 조회
   const {
     data: profileData,
     isLoading,
@@ -39,57 +39,52 @@ function ProfileEditScreen() {
   const updateProfileMutation = useUpdateProfileMutation(
     user?.id || '',
     () => {
-      Alert.alert('성공', '프로필이 성공적으로 업데이트 되었어요');
+      Alert.alert('성공', '닉네임이 변경되었어요');
     },
     () => {
-      Alert.alert('오류', '프로필 업데이트에 실패했어요');
+      Alert.alert('오류', '닉네임 변경에 실패했어요');
     },
   );
-
-  const upsertProfileMutation = useUpsertProfileMutation(() => {
-    Alert.alert('성공', '프로필이 성공적으로 생성되었어요');
-    navigation.goBack();
-  },
-  () => {
-    Alert.alert('오류', '프로필 생성에 실패했어요');
-  },);
 
   // 프로필 데이터가 로드되면 로컬 상태 업데이트
   useEffect(() => {
     if (profileData) {
-      setTargetRepsPerSet(profileData.target_reps_per_set?.toString() || '');
       setNickname(profileData.nickname || '');
     }
   }, [profileData]);
 
-  const handleSave = () => {
-    const repsPerSet = parseInt(targetRepsPerSet, 10);
+  const handleSave = async () => {
+    const trimmed = nickname.trim();
 
-    // 유효성 검사
-    if (isNaN(repsPerSet) || repsPerSet < 1 || repsPerSet > 100) {
-      Alert.alert('오류', '세트당 목표 횟수는 1-100 사이의 숫자여야 해요');
+    const validationError = validateNickname(trimmed);
+    if (validationError) {
+      Alert.alert('오류', validationError);
       return;
     }
 
-    if(!nickname){
-      Alert.alert('오류', '닉네임을 입력해주세요');
+    if (trimmed === profileData?.nickname) {
+      Alert.alert('알림', '변경된 내용이 없어요');
       return;
     }
 
-    if (profileData?.nickname){
-      updateProfileMutation.mutate({
-        target_reps_per_set: repsPerSet,
-        nickname: nickname,
-      });
+    setIsCheckingNickname(true);
+    try {
+      const isAvailable = await checkNicknameAvailability(trimmed);
+      if (!isAvailable) {
+        Alert.alert('오류', '이미 사용 중인 닉네임이에요');
+        return;
+      }
+    } catch (e) {
+      Alert.alert('오류', '닉네임 확인 중 오류가 발생했어요');
+      return;
+    } finally {
+      setIsCheckingNickname(false);
     }
-    if (user && !profileData?.nickname){
-      upsertProfileMutation.mutate({
-        id: user.id,
-        target_reps_per_set: repsPerSet,
-        nickname: nickname,
-      });
-    }
+
+    updateProfileMutation.mutate({nickname: trimmed});
   };
+
+  const isSaving = isCheckingNickname || updateProfileMutation.isPending;
 
   if (isLoading) {
     return (
@@ -121,9 +116,8 @@ function ProfileEditScreen() {
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.content}>
-          {/* 프로필 정보 섹션 */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>닉네일 설정</Text>
+            <Text style={styles.sectionTitle}>닉네임 설정</Text>
             <View style={styles.infoContainer}>
               <Text style={styles.inputLabel}>닉네임</Text>
               <TextInput
@@ -132,44 +126,20 @@ function ProfileEditScreen() {
                 onChangeText={setNickname}
                 placeholder="예: 푸쉬업 사랑"
                 placeholderTextColor={colors.textSecondary}
+                maxLength={NICKNAME_MAX_LENGTH}
+                autoCapitalize="none"
+                autoCorrect={false}
               />
+              <Text style={styles.inputDescription}>
+                2~{NICKNAME_MAX_LENGTH}글자. 리더보드에 표시되는 이름이에요.
+              </Text>
             </View>
           </View>
 
-          {/* 운동 목표 설정 섹션 */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>운동 목표 설정</Text>
-            <View style={styles.settingsContainer}>
-              {/* 세트당 목표 횟수 */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>세트당 목표 횟수</Text>
-                <View style={styles.inputContainer}>
-                  <TextInput
-                    style={styles.textInput}
-                    value={targetRepsPerSet}
-                    onChangeText={setTargetRepsPerSet}
-                    keyboardType="numeric"
-                    placeholder="10"
-                    placeholderTextColor={colors.textSecondary}
-                  />
-                  <Text style={styles.inputSuffix}>회</Text>
-                </View>
-                <Text style={styles.inputDescription}>
-                  한 세트당 목표로 하는 푸쉬업 횟수입니다.
-                </Text>
-              </View>
-
-            </View>
-          </View>
-
-          {/* 저장 버튼 */}
           <TouchableOpacity
-            style={[
-              styles.saveButton,
-              updateProfileMutation.isPending && styles.disabledButton,
-            ]}
+            style={[styles.saveButton, isSaving && styles.disabledButton]}
             onPress={handleSave}
-            disabled={updateProfileMutation.isPending}>
+            disabled={isSaving}>
             <Fontawesome5
               name="save"
               size={16}
@@ -177,7 +147,7 @@ function ProfileEditScreen() {
               color={colors.textLight}
             />
             <Text style={styles.saveButtonText}>
-              {updateProfileMutation.isPending ? '저장 중...' : '저장하기'}
+              {isSaving ? '저장 중...' : '저장하기'}
             </Text>
           </TouchableOpacity>
         </View>

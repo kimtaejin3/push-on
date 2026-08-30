@@ -17,8 +17,8 @@ import ProfileEditScreen from '../screens/ProfileEditScreen';
 import {useSession} from '../hooks/useSession';
 import {colors} from '../constants/colors';
 import Text from '../components/common/Text';
-import OnboardingScreen from '../screens/OnboardingScreen';
-import { useIsOnboarded } from '../hooks/useIsOnboarded';
+import CustomButton from '../components/common/CustomButton';
+import {useEnsureProfile} from '../hooks/useEnsureProfile';
 
 const AppStack = createNativeStackNavigator({
   initialRouteName: 'Tabs',
@@ -50,9 +50,10 @@ const AppNavigation = createStaticNavigation(AppStack);
 // 조건부 네비게이션 컴포넌트
 const ConditionalNavigation = () => {
   const {isLoggedIn, loading} = useSession();
-  const {isOnboarded, loading: onboardingLoading, refresh: refreshOnboardingStatus} = useIsOnboarded();
+  const {ready: profileReady, loading: profileLoading, retry: retryProfile} =
+    useEnsureProfile();
 
-  if (loading || onboardingLoading) {
+  if (loading || profileLoading) {
     return (
       <View style={styles.splashContainer}>
         <ActivityIndicator size="large" color={colors.primary} />
@@ -65,10 +66,16 @@ const ConditionalNavigation = () => {
     return <AuthScreen />;
   }
 
-  if (!isOnboarded) {
-    return <OnboardingScreen onComplete={() => {
-      refreshOnboardingStatus();
-    }} />;
+  if (!profileReady) {
+    // 프로필 자동 생성 실패 (네트워크 등). 온보딩 화면은 없어졌으므로 재시도만 제공한다
+    return (
+      <View style={styles.splashContainer}>
+        <Text style={styles.loadingText}>프로필을 준비하지 못했어요</Text>
+        <View style={styles.retryButton}>
+          <CustomButton title="다시 시도" onPress={retryProfile} />
+        </View>
+      </View>
+    );
   }
 
   return <AppNavigation />;
@@ -86,12 +93,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.textLight,
   },
+  retryButton: {
+    marginTop: 24,
+    width: '60%',
+  },
 });
 
 export type AppStackParamList = {
   Tabs: NavigatorScreenParams<BottomTabParamList>;
   Challenge: undefined;
-  Onboarding: undefined;
   Setting: undefined;
   TermsOfService: undefined;
   PrivacyPolicy: undefined;

@@ -7,12 +7,10 @@ import Calendar from '../components/features/calendar/Calendar';
 import {colors} from '../constants/colors';
 import SetCard from '../components/features/push-up/SetCard';
 import HistorySummary from '../components/features/push-up/HistorySummary';
-import {useSession} from '../hooks/useSession';
 import {selectedDateAtom} from '../atoms/date';
-import {useSuspenseQuery, useQuery} from '@tanstack/react-query';
+import {useSuspenseQuery} from '@tanstack/react-query';
 import {
   pushUpSetsByDateQueryOptions,
-  profileQueryOptions,
 } from '../tanstack-query';
 
 function HistoryScreen() {
@@ -72,15 +70,9 @@ function SetCardList() {
     day: selectedDate.getDate(),
   };
 
-  const {user} = useSession();
-
   const {data: pushupSets} = useSuspenseQuery(
     pushUpSetsByDateQueryOptions(year, month, day),
   );
-  const {data: profile} = useQuery({
-    ...profileQueryOptions(user?.id || ''),
-    enabled: user !== null,
-  });
 
   if (pushupSets.length === 0) {
     return (
@@ -101,7 +93,6 @@ function SetCardList() {
             reps: set.reps,
             time: set.duration_seconds.toString(),
           }}
-          targetReps={profile?.target_reps_per_set || 0}
         />
       ))}
     </View>

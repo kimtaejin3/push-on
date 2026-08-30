@@ -69,6 +69,7 @@ function ProgramScreen() {
           <Text style={styles.body}>
             주 3일, 하루 5세트.{'\n'}오늘 할 세트는 앱이 정해줘요.{'\n'}먼저 지금 몇 개까지 되는지 테스트해요.
           </Text>
+          <Text style={styles.hint}>운동하는 날 원하는 시간에 알림을 보내드릴게요 (준비 중)</Text>
           <CustomButton title="초기 테스트 시작" variant="start" style={styles.button} onPress={goTest} />
         </View>
       );
@@ -110,7 +111,9 @@ function ProgramScreen() {
         </Text>
         <Text style={styles.sets}>{describeSets(plan.sets, plan.lastIsMax)}</Text>
         <Text style={styles.body}>세트 사이 휴식 {plan.restSeconds}초 · 마지막 세트는 가능한 만큼</Text>
-        <Text style={styles.hint}>하루 쉬고 다음 운동을 권장해요</Text>
+        <Text style={styles.hint}>
+          하루 쉬고 다음 운동을 권장해요{'\n'}원하는 시간에 운동 알림을 보내드릴게요 (준비 중)
+        </Text>
         <CustomButton
           title="오늘 운동 시작"
           variant="start"

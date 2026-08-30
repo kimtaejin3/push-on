@@ -7,6 +7,7 @@ type SetData = {
   setNumber: number;
   reps: number;
   time: string;
+  target?: number | null; // 세트/프로그램 모드의 목표 횟수
 };
 
 type SetCardProps = {
@@ -21,7 +22,10 @@ const SetCard: React.FC<SetCardProps> = ({set}) => {
           <Text style={styles.setNumber}>{set.setNumber}</Text>
         </View>
         <View style={styles.setMainInfo}>
-          <Text style={styles.setReps}>{set.reps}회</Text>
+          <Text style={styles.setReps}>
+            {set.reps}회
+            {set.target ? <Text style={styles.setTarget}> / {set.target}</Text> : null}
+          </Text>
           <Text style={styles.setTime}>{formatTime(Number(set.time))}</Text>
         </View>
       </View>
@@ -69,6 +73,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.textLight,
     marginRight: 10,
+  },
+  setTarget: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: colors.gray400,
   },
   setTime: {
     fontSize: 12,

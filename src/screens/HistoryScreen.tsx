@@ -92,6 +92,7 @@ function SetCardList() {
             setNumber: index + 1,
             reps: set.reps,
             time: set.duration_seconds.toString(),
+            target: set.target_reps,
           }}
         />
       ))}

@@ -6,11 +6,15 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {getLatestAppVersion} from './src/remote/app';
 import {getCurrentAppVersion, isVersionNewer} from './src/utils/version';
 import {UpdateModal} from './src/components/common/UpdateModal';
+import {useReminderSync} from './src/hooks/useReminderSync';
 
 export const queryClient = new QueryClient();
 
 
 function App(): React.JSX.Element {
+  // 강제 중지 등으로 지워진 운동 알림 예약을 복구한다
+  useReminderSync();
+
   // 업데이트 모달 상태
   const [updateInfo, setUpdateInfo] = useState<{
     show: boolean;

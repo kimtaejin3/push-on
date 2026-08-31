@@ -16,11 +16,17 @@ export const DEFAULT_REMINDER_SETTINGS: ReminderSettings = {
   minute: 0,
 };
 
+/** 원본 프로그램이 주 3일이므로 알림도 최대 3일 */
+export const MAX_REMINDER_DAYS = 3;
+
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 
 export const clampReminderSettings = (s: ReminderSettings): ReminderSettings => ({
   enabled: !!s.enabled,
-  days: [...new Set(s.days)].filter(d => d >= 0 && d <= 6).sort((a, b) => a - b),
+  days: [...new Set(s.days)]
+    .filter(d => d >= 0 && d <= 6)
+    .sort((a, b) => a - b)
+    .slice(0, MAX_REMINDER_DAYS),
   hour: clamp(Math.trunc(s.hour), 0, 23),
   minute: clamp(Math.trunc(s.minute), 0, 59),
 });

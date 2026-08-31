@@ -3,6 +3,7 @@ import {Alert, Pressable, StyleSheet, Switch, Text, View} from 'react-native';
 import {colors} from '../../../constants/colors';
 import Stepper from '../workout/Stepper';
 import {
+  MAX_REMINDER_DAYS,
   ReminderSettings,
   clampReminderSettings,
   loadReminderSettings,
@@ -49,8 +50,14 @@ function ReminderSettingsCard() {
     await apply({...settings, enabled});
   };
 
+  const isFull = settings.days.length >= MAX_REMINDER_DAYS;
+
   const toggleDay = (day: number) => {
-    const days = settings.days.includes(day)
+    const selected = settings.days.includes(day);
+    if (!selected && isFull) {
+      return; // 최대 3일
+    }
+    const days = selected
       ? settings.days.filter(d => d !== day)
       : [...settings.days, day];
     if (days.length === 0) {
@@ -76,11 +83,13 @@ function ReminderSettingsCard() {
           <View style={styles.dayRow}>
             {DAY_LABELS.map((label, day) => {
               const selected = settings.days.includes(day);
+              const disabled = !selected && isFull;
               return (
                 <Pressable
                   key={label}
                   onPress={() => toggleDay(day)}
-                  style={[styles.day, selected && styles.daySelected]}>
+                  disabled={disabled}
+                  style={[styles.day, selected && styles.daySelected, disabled && styles.dayDisabled]}>
                   <Text style={[styles.dayText, selected && styles.dayTextSelected]}>
                     {label}
                   </Text>
@@ -88,6 +97,9 @@ function ReminderSettingsCard() {
               );
             })}
           </View>
+          <Text style={styles.hint}>
+            주 {MAX_REMINDER_DAYS}일 프로그램이라 최대 {MAX_REMINDER_DAYS}일까지 고를 수 있어요
+          </Text>
           <Stepper
             label="시간"
             value={settings.hour}
@@ -140,6 +152,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.overlayMedium,
   },
   daySelected: {backgroundColor: colors.primary},
+  dayDisabled: {opacity: 0.35},
+  hint: {fontSize: 12, color: colors.gray400, marginBottom: 4},
   dayText: {fontSize: 14, color: colors.textSecondary},
   dayTextSelected: {color: colors.textLight, fontWeight: '600'},
 });

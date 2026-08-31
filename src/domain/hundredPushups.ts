@@ -125,3 +125,31 @@ const REPEAT_SUGGEST_THRESHOLD = 0.8;
 /** 목표의 80% 미만이면 "이 날 다시 하기"를 제안한다 (원본 프로그램의 '힘들면 반복' 권장) */
 export const shouldSuggestRepeat = (planSets: number[], results: number[]): boolean =>
   dayAchievementRate(planSets, results) < REPEAT_SUGGEST_THRESHOLD;
+
+export type InitialTestPreviewRow = {
+  range: string;
+  week: number;
+  sets: string;
+  restSeconds: number;
+};
+
+/** 초기 테스트 결과 구간별 대표값 (열 경계 기준) */
+const PREVIEW_SAMPLES: {range: string; reps: number}[] = [
+  {range: '5개 이하', reps: 5},
+  {range: '6 ~ 10개', reps: 8},
+  {range: '11 ~ 20개', reps: 15},
+  {range: '21개 이상', reps: 30},
+];
+
+/** 초기 테스트 결과에 따라 첫 운동이 어떻게 정해지는지 미리 보여준다 (실제 표에서 계산) */
+export const initialTestPreview = (): InitialTestPreviewRow[] =>
+  PREVIEW_SAMPLES.map(({range, reps}) => {
+    const state = startProgram(reps);
+    const plan = todayPlan(state);
+    return {
+      range,
+      week: state.week,
+      sets: describeSets(plan.sets, plan.lastIsMax),
+      restSeconds: plan.restSeconds,
+    };
+  });

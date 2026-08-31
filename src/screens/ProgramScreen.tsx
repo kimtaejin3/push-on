@@ -14,7 +14,14 @@ import {
   useUpdateProgramMutation,
 } from '../tanstack-query';
 import {toProgramState} from '../remote/program';
-import {applyTest, describeSets, retestLevel, startProgram, todayPlan} from '../domain/hundredPushups';
+import {
+  applyTest,
+  describeSets,
+  initialTestPreview,
+  retestLevel,
+  startProgram,
+  todayPlan,
+} from '../domain/hundredPushups';
 import ReminderSettingsCard from '../components/features/program/ReminderSettingsCard';
 import {cancelWorkoutReminders} from '../services/workoutReminder';
 import {WEEKS} from '../constants/hundredPushups';
@@ -89,14 +96,34 @@ function ProgramScreen() {
     }
     if (!programRow) {
       return (
-        <View style={styles.card}>
-          <Text style={styles.heading}>6주 뒤, 연속 100개</Text>
-          <Text style={styles.body}>
-            주 3일, 하루 5세트.{'\n'}오늘 할 세트는 앱이 정해줘요.{'\n'}먼저 지금 몇 개까지 되는지 테스트해요.
-          </Text>
-          <Text style={styles.hint}>시작하면 운동하는 날 알림을 설정할 수 있어요</Text>
-          <CustomButton title="초기 테스트 시작" variant="start" style={styles.button} onPress={goTest} />
-        </View>
+        <>
+          <View style={styles.card}>
+            <Text style={styles.heading}>연속 100개에 도전하는 6주 챌린지</Text>
+            <Text style={styles.body}>
+              주 3일, 하루 5세트.{'\n'}오늘 할 세트는 앱이 정해줘요.{'\n'}먼저 지금 몇 개까지 되는지 테스트해요.
+            </Text>
+            <Text style={styles.hint}>시작하면 운동하는 날 알림을 설정할 수 있어요</Text>
+            <CustomButton title="초기 테스트 시작" variant="start" style={styles.button} onPress={goTest} />
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.previewTitle}>테스트 결과에 따라 이렇게 시작해요</Text>
+            {initialTestPreview().map(row => (
+              <View key={row.range} style={styles.previewRow}>
+                <Text style={styles.previewRange}>{row.range}</Text>
+                <View style={styles.previewRight}>
+                  <Text style={styles.previewSets}>{row.sets}</Text>
+                  <Text style={styles.previewWeek}>
+                    {row.week}주차부터 · 휴식 {row.restSeconds}초
+                  </Text>
+                </View>
+              </View>
+            ))}
+            <Text style={styles.hint}>
+              마지막 세트는 최소 횟수 이상 가능한 만큼 해요.{'\n'}2 · 4 · 5주차 끝에 다시 테스트해서 다음 주차 세트를 정해요.
+            </Text>
+          </View>
+        </>
       );
     }
     const state = toProgramState(programRow);
@@ -175,7 +202,20 @@ const styles = StyleSheet.create({
   heading: {fontSize: 22, fontWeight: '600', color: colors.textLight},
   sets: {fontSize: 28, fontWeight: 'bold', color: colors.textLight, marginVertical: 4},
   body: {fontSize: 15, lineHeight: 22, color: colors.textSecondary},
-  hint: {fontSize: 13, color: colors.gray400},
+  hint: {fontSize: 13, lineHeight: 19, color: colors.gray400},
+  previewTitle: {fontSize: 16, fontWeight: '600', color: colors.textLight, marginBottom: 4},
+  previewRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.overlayMedium,
+  },
+  previewRange: {fontSize: 14, color: colors.textSecondary},
+  previewRight: {alignItems: 'flex-end', gap: 2},
+  previewSets: {fontSize: 15, fontWeight: '600', color: colors.textLight},
+  previewWeek: {fontSize: 12, color: colors.gray400},
   button: {marginTop: 8},
   retest: {textAlign: 'center', fontSize: 14, color: colors.primaryLight, paddingTop: 4},
   abandon: {textAlign: 'center', fontSize: 14, color: colors.gray400, padding: 8},

@@ -155,3 +155,18 @@ export const initialTestPreview = (): InitialTestPreviewRow[] =>
       restSeconds: plan.restSeconds,
     };
   });
+
+export type ProgramTableDay = {day: number; sets: string; restSeconds: number};
+export type ProgramTableWeek = {week: number; hasTest: boolean; days: ProgramTableDay[]};
+
+/** 특정 레벨의 6주 × 3일 전체 세트 구성 */
+export const programTable = (level: Level): ProgramTableWeek[] =>
+  PROGRAM.map((week, weekIndex) => ({
+    week: weekIndex + 1,
+    hasTest: TEST_WEEKS.has(weekIndex + 1),
+    days: week.map((day, dayIndex) => ({
+      day: dayIndex + 1,
+      sets: describeSets(day.sets[level - 1], true),
+      restSeconds: day.rest,
+    })),
+  }));

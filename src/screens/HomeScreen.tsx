@@ -53,7 +53,7 @@ function HomeScreen(): React.JSX.Element {
         <ModeCard
           icon="flag-checkered"
           title="100개 챌린지"
-          description="6주 프로그램으로 연속 100개까지"
+          description="테스트 결과에 맞춘 세트로 연속 100개까지"
           status={programStatusText(program)}
           onPress={() => navigation.navigate('Program')}
         />

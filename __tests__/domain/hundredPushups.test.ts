@@ -1,5 +1,5 @@
 import {
-  assignLevel, startProgram, todayPlan, completeDay, applyTest, describeSets, retestLevel, dayAchievementRate, shouldSuggestRepeat, initialTestPreview,
+  assignLevel, startProgram, todayPlan, completeDay, applyTest, describeSets, retestLevel, dayAchievementRate, shouldSuggestRepeat, initialTestPreview, programTable,
 } from '../../src/domain/hundredPushups';
 import {PROGRAM} from '../../src/constants/hundredPushups';
 
@@ -154,5 +154,34 @@ describe('initialTestPreview', () => {
     expect(rows[2]).toMatchObject({week: 1, level: 3, sets: '10 · 12 · 7 · 7 · 9+'});
     // 20개 초과는 1·2주차를 건너뛰고 3주차부터
     expect(rows[3]).toMatchObject({week: 3, level: 3, sets: '14 · 18 · 14 · 14 · 20+'});
+  });
+});
+
+describe('programTable', () => {
+  it('레벨별로 6주 × 3일 세트를 돌려준다', () => {
+    const table = programTable(2);
+    expect(table).toHaveLength(6);
+    expect(table[0]).toMatchObject({week: 1, hasTest: false});
+    expect(table[0].days).toEqual([
+      {day: 1, sets: '6 · 6 · 4 · 4 · 5+', restSeconds: 60},
+      {day: 2, sets: '6 · 8 · 6 · 6 · 7+', restSeconds: 60},
+      {day: 3, sets: '8 · 10 · 7 · 7 · 10+', restSeconds: 60},
+    ]);
+  });
+
+  it('테스트가 있는 주차(2·4·5·6)를 표시한다', () => {
+    const table = programTable(1);
+    expect(table.filter(w => w.hasTest).map(w => w.week)).toEqual([2, 4, 5, 6]);
+  });
+
+  it('주차·요일마다 휴식 시간이 다르다', () => {
+    const table = programTable(1);
+    expect(table[1].days.map(d => d.restSeconds)).toEqual([60, 90, 120]);
+    expect(table[4].days.map(d => d.restSeconds)).toEqual([60, 45, 45]);
+  });
+
+  it('레벨 3 의 6주차 마지막 날은 9세트다', () => {
+    const table = programTable(3);
+    expect(table[5].days[2].sets).toBe('26 · 26 · 33 · 33 · 26 · 26 · 22 · 22 · 60+');
   });
 });

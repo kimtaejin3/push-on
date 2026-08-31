@@ -17,6 +17,7 @@ import ProfileEditScreen from '../screens/ProfileEditScreen';
 import SetsSetupScreen from '../screens/SetsSetupScreen';
 import WorkoutScreen from '../screens/WorkoutScreen';
 import ProgramScreen from '../screens/ProgramScreen';
+import ProgramTableScreen from '../screens/ProgramTableScreen';
 import {WorkoutPlan} from '../domain/workoutSession';
 import {useSession} from '../hooks/useSession';
 import {colors} from '../constants/colors';
@@ -43,6 +44,7 @@ const AppStack = createNativeStackNavigator({
     SetsSetup: SetsSetupScreen,
     Workout: WorkoutScreen,
     Program: ProgramScreen,
+    ProgramTable: ProgramTableScreen,
     Setting: SettingScreen,
     TermsOfService: TermsOfServiceScreen,
     PrivacyPolicy: PrivacyPolicyScreen,
@@ -114,6 +116,7 @@ export type AppStackParamList = {
   SetsSetup: undefined;
   Workout: {plan: WorkoutPlan; source: WorkoutSource};
   Program: {testReps?: number} | undefined;
+  ProgramTable: undefined;
   Setting: undefined;
   TermsOfService: undefined;
   PrivacyPolicy: undefined;

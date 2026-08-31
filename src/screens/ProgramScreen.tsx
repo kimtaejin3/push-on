@@ -98,9 +98,12 @@ function ProgramScreen() {
       return (
         <>
           <View style={styles.card}>
-            <Text style={styles.heading}>연속 100개에 도전하는 6주 챌린지</Text>
+            <Text style={styles.heading}>연속 100개 챌린지</Text>
             <Text style={styles.body}>
               주 3일, 하루 5세트.{'\n'}오늘 할 세트는 앱이 정해줘요.{'\n'}먼저 지금 몇 개까지 되는지 테스트해요.
+            </Text>
+            <Text style={styles.hint}>
+              6주 프로그램이지만, 테스트 결과에 따라 시작 주차가 다르고{'\n'}같은 주차를 반복하기도 해서 기간은 사람마다 달라요.
             </Text>
             <Text style={styles.hint}>시작하면 운동하는 날 알림을 설정할 수 있어요</Text>
             <CustomButton title="초기 테스트 시작" variant="start" style={styles.button} onPress={goTest} />
@@ -126,6 +129,9 @@ function ProgramScreen() {
               세트 사이 60초 휴식, 마지막 세트는 최소 횟수 이상 가능한 만큼.{'\n'}
               Day 2 · Day 3 로 갈수록 횟수가 조금씩 늘어나요.{'\n'}
               2 · 4 · 5주차 끝에 다시 테스트해서 다음 주차 레벨을 정해요.
+            </Text>
+            <Text style={styles.link} onPress={() => navigation.navigate('ProgramTable')}>
+              주차 · 레벨별 전체 세트 보기
             </Text>
           </View>
         </>
@@ -180,6 +186,9 @@ function ProgramScreen() {
         <Text style={styles.retest} onPress={handleRetest}>
           레벨 다시 재기
         </Text>
+        <Text style={styles.link} onPress={() => navigation.navigate('ProgramTable')}>
+          주차 · 레벨별 전체 세트 보기
+        </Text>
       </View>
     );
   };
@@ -223,6 +232,7 @@ const styles = StyleSheet.create({
   previewWeek: {fontSize: 12, color: colors.gray400},
   button: {marginTop: 8},
   retest: {textAlign: 'center', fontSize: 14, color: colors.primaryLight, paddingTop: 4},
+  link: {textAlign: 'center', fontSize: 14, color: colors.primaryLight, paddingTop: 8},
   abandon: {textAlign: 'center', fontSize: 14, color: colors.gray400, padding: 8},
 });
 

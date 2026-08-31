@@ -50,6 +50,13 @@ function ProgramScreen() {
     }
   }, [testReps, isLoading, programRow, user, navigation, createProgram, updateProgram]);
 
+  // 진행 중인 프로그램이 없으면(완료/중단 포함) 걸려 있던 운동 알림을 정리한다
+  useEffect(() => {
+    if (!isLoading && (!programRow || programRow.status !== 'active')) {
+      cancelWorkoutReminders().catch(() => {});
+    }
+  }, [isLoading, programRow]);
+
   const goTest = () => navigation.navigate('Challenge', {purpose: 'program-test'});
 
   const handleRetest = () => {

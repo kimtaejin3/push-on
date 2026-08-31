@@ -18,7 +18,7 @@ import {formatTime} from '../utils/time';
 import {generateUuid} from '../utils/id';
 import {savePushupSession} from '../remote/pushup';
 import {toProgramState} from '../remote/program';
-import {completeDay} from '../domain/hundredPushups';
+import {completeDay, shouldSuggestRepeat} from '../domain/hundredPushups';
 import {AppStackParamList} from '../navigations/AppNavigation';
 import {activeProgramQueryOptions, useUpdateProgramMutation} from '../tanstack-query';
 import {queryKeys} from '../tanstack-query/queryKeys';
@@ -80,9 +80,14 @@ function WorkoutScreen(): React.JSX.Element {
     }
   }, [state.results, elapsed, handleStopTracking, plan.sets, source.kind, workoutId, queryClient]);
 
-  // 프로그램: 운동이 끝나면 진행 상태 갱신 (한 번만)
-  useEffect(() => {
-    if (state.phase !== 'done' || source.kind !== 'program' || !programRow || programUpdated.current) {
+  // 프로그램: 목표를 충분히 채웠으면 자동으로 진행, 크게 못 미쳤으면 요약 화면에서 선택
+  const suggestRepeat =
+    source.kind === 'program' &&
+    state.phase === 'done' &&
+    shouldSuggestRepeat(plan.sets, state.results);
+
+  const completeProgramDay = React.useCallback(() => {
+    if (!programRow || programUpdated.current) {
       return;
     }
     programUpdated.current = true;
@@ -98,7 +103,14 @@ function WorkoutScreen(): React.JSX.Element {
       },
       existing: programRow.completed_days,
     });
-  }, [state.phase, state.results, source.kind, programRow, updateProgram]);
+  }, [programRow, updateProgram, state.results]);
+
+  useEffect(() => {
+    if (state.phase !== 'done' || source.kind !== 'program' || suggestRepeat) {
+      return;
+    }
+    completeProgramDay();
+  }, [state.phase, source.kind, suggestRepeat, completeProgramDay]);
 
   const handleStart = () => {
     start();
@@ -120,6 +132,26 @@ function WorkoutScreen(): React.JSX.Element {
   };
 
   if (state.phase === 'done') {
+    // 목표 미달(80% 미만): 완료 처리 여부를 사용자가 고른다 (원본 프로그램의 '힘들면 반복' 권장)
+    if (suggestRepeat) {
+      return (
+        <WorkoutSummary
+          plan={plan}
+          results={state.results}
+          totalSeconds={totalSeconds.current}
+          prompt={'목표에 조금 못 미쳤어요.\n이 날을 다시 하면 더 단단하게 넘어갈 수 있어요.'}
+          doneLabel="완료하고 다음으로"
+          onDone={() => {
+            completeProgramDay();
+            navigation.navigate('Program');
+          }}
+          secondaryAction={{
+            label: '이 날 다시 하기',
+            onPress: () => navigation.navigate('Program'),
+          }}
+        />
+      );
+    }
     return (
       <WorkoutSummary
         plan={plan}

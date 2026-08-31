@@ -12,9 +12,21 @@ interface WorkoutSummaryProps {
   totalSeconds: number;
   doneLabel: string;
   onDone: () => void;
+  /** 목표 미달 등 완료 전 안내문 */
+  prompt?: string;
+  /** 안내문과 함께 보여줄 보조 선택지 (예: 이 날 다시 하기) */
+  secondaryAction?: {label: string; onPress: () => void};
 }
 
-function WorkoutSummary({plan, results, totalSeconds, doneLabel, onDone}: WorkoutSummaryProps) {
+function WorkoutSummary({
+  plan,
+  results,
+  totalSeconds,
+  doneLabel,
+  onDone,
+  prompt,
+  secondaryAction,
+}: WorkoutSummaryProps) {
   const total = results.reduce((a, b) => a + b, 0);
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -44,7 +56,13 @@ function WorkoutSummary({plan, results, totalSeconds, doneLabel, onDone}: Workou
             );
           })}
         </View>
+        {prompt ? <Text style={styles.prompt}>{prompt}</Text> : null}
         <CustomButton title={doneLabel} variant="start" style={styles.button} onPress={onDone} />
+        {secondaryAction ? (
+          <Text style={styles.secondary} onPress={secondaryAction.onPress}>
+            {secondaryAction.label}
+          </Text>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
@@ -63,6 +81,8 @@ const styles = StyleSheet.create({
   rowLabel: {fontSize: 16, color: colors.textSecondary},
   rowValue: {fontSize: 16, fontWeight: '600', color: colors.textLight},
   button: {marginTop: 12},
+  prompt: {fontSize: 14, lineHeight: 20, color: colors.textSecondary, textAlign: 'center', marginTop: 4},
+  secondary: {fontSize: 14, color: colors.primaryLight, textAlign: 'center', padding: 8},
 });
 
 export default WorkoutSummary;

@@ -12,6 +12,26 @@ interface WorkoutGroupCardProps {
 function WorkoutGroupCard({group}: WorkoutGroupCardProps) {
   const totalReps = group.sets.reduce((a, s) => a + s.reps, 0);
   const isMulti = group.sets.length > 1;
+
+  // 세트 1개(챌린지/테스트)는 헤더 총합과 행이 같은 숫자라 한 줄로만 보여준다
+  if (!isMulti) {
+    const set = group.sets[0];
+    return (
+      <View style={styles.card}>
+        <View style={styles.singleRow}>
+          <Text style={styles.label}>{group.label}</Text>
+          <View style={styles.rowRight}>
+            <Text style={styles.rowReps}>
+              {set.reps}회
+              {set.target_reps ? <Text style={styles.rowTarget}> / {set.target_reps}</Text> : null}
+            </Text>
+            <Text style={styles.rowTime}>{formatTime(set.duration_seconds)}</Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -20,7 +40,7 @@ function WorkoutGroupCard({group}: WorkoutGroupCardProps) {
       </View>
       {group.sets.map((set, i) => (
         <View key={set.id} style={[styles.row, i === group.sets.length - 1 && styles.lastRow]}>
-          <Text style={styles.rowLabel}>{isMulti ? `세트 ${i + 1}` : '기록'}</Text>
+          <Text style={styles.rowLabel}>{`세트 ${i + 1}`}</Text>
           <View style={styles.rowRight}>
             <Text style={styles.rowReps}>
               {set.reps}회
@@ -41,6 +61,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginBottom: 10,
+  },
+  singleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
   },
   header: {
     flexDirection: 'row',

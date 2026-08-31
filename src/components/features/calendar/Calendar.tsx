@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
+import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import {colors} from '../../../constants/colors';
 import {useCalendarData} from '../../../hooks/useCalendarData';
 import {PushupDayData} from '../../../remote/pushup';
@@ -28,11 +29,6 @@ interface CalendarProps {
 }
 
 type ViewMode = 'month' | 'week';
-
-const VIEW_MODES: {key: ViewMode; label: string}[] = [
-  {key: 'month', label: '월'},
-  {key: 'week', label: '주'},
-];
 
 const Calendar: React.FC<CalendarProps> = ({selectedDate}) => {
   const [viewMode, setViewMode] = useState<ViewMode>('month');
@@ -167,23 +163,6 @@ const Calendar: React.FC<CalendarProps> = ({selectedDate}) => {
         </TouchableOpacity>
       </View>
 
-      {/* 월/주 전환 */}
-      <View style={styles.segments}>
-        {VIEW_MODES.map(mode => {
-          const active = viewMode === mode.key;
-          return (
-            <TouchableOpacity
-              key={mode.key}
-              style={[styles.segment, active && styles.segmentActive]}
-              onPress={() => setViewMode(mode.key)}>
-              <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
-                {mode.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
       <View style={styles.weekDaysContainer}>
         {weekDayNames.map((day, index) => (
           <Text key={index} style={styles.weekDayText}>
@@ -200,17 +179,29 @@ const Calendar: React.FC<CalendarProps> = ({selectedDate}) => {
             pushupData={getPushupDataForDate(day.date)}
           />
         ))}
-        <View style={styles.legend}>
-          <View style={styles.legendItem}>
-            <FontAwesome5
-              name="check-circle"
-              size={12}
-              color={colors.primary}
-              iconStyle="solid"
-            />
-            <Text style={styles.legendText}>운동 완료</Text>
-          </View>
+      </View>
+
+      <View style={styles.footerRow}>
+        <View style={styles.legendItem}>
+          <FontAwesome5
+            name="check-circle"
+            size={12}
+            color={colors.primary}
+            iconStyle="solid"
+          />
+          <Text style={styles.legendText}>운동 완료</Text>
         </View>
+        {/* 월/주 전환: 아이콘은 전환될 뷰를 나타낸다 */}
+        <TouchableOpacity
+          style={styles.viewToggle}
+          onPress={() => setViewMode(viewMode === 'month' ? 'week' : 'month')}>
+          <FontAwesome6
+            name={viewMode === 'month' ? 'calendar-week' : 'calendar-days'}
+            size={16}
+            color={colors.primary}
+            iconStyle="solid"
+          />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -257,31 +248,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.textLight,
   },
-  segments: {
-    flexDirection: 'row',
-    alignSelf: 'center',
-    backgroundColor: colors.overlayMedium,
-    borderRadius: 10,
-    padding: 3,
-    marginBottom: 14,
-  },
-  segment: {
-    paddingVertical: 6,
-    paddingHorizontal: 22,
-    borderRadius: 7,
-    alignItems: 'center',
-  },
-  segmentActive: {
-    backgroundColor: colors.primaryDark,
-  },
-  segmentText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.textSecondary,
-  },
-  segmentTextActive: {
-    color: colors.textLight,
-  },
   weekDaysContainer: {
     flexDirection: 'row',
     marginBottom: 8,
@@ -299,11 +265,19 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
-  legend: {
+  footerRow: {
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 14,
+  },
+  viewToggle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.overlayMedium,
+    alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 16,
-    gap: 20,
   },
   legendItem: {
     flexDirection: 'row',

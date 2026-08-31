@@ -108,19 +108,24 @@ function ProgramScreen() {
 
           <View style={styles.card}>
             <Text style={styles.previewTitle}>테스트 결과에 따라 이렇게 시작해요</Text>
+            <Text style={styles.hint}>
+              결과에 따라 시작 주차와 레벨이 정해져요.{'\n'}아래는 첫날(Day 1) 세트예요.
+            </Text>
             {initialTestPreview().map(row => (
               <View key={row.range} style={styles.previewRow}>
                 <Text style={styles.previewRange}>{row.range}</Text>
                 <View style={styles.previewRight}>
                   <Text style={styles.previewSets}>{row.sets}</Text>
                   <Text style={styles.previewWeek}>
-                    {row.week}주차부터 · 휴식 {row.restSeconds}초
+                    {row.week}주차 · 레벨 {row.level}
                   </Text>
                 </View>
               </View>
             ))}
             <Text style={styles.hint}>
-              마지막 세트는 최소 횟수 이상 가능한 만큼 해요.{'\n'}2 · 4 · 5주차 끝에 다시 테스트해서 다음 주차 세트를 정해요.
+              세트 사이 60초 휴식, 마지막 세트는 최소 횟수 이상 가능한 만큼.{'\n'}
+              Day 2 · Day 3 로 갈수록 횟수가 조금씩 늘어나요.{'\n'}
+              2 · 4 · 5주차 끝에 다시 테스트해서 다음 주차 레벨을 정해요.
             </Text>
           </View>
         </>

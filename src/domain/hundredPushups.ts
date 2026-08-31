@@ -129,6 +129,7 @@ export const shouldSuggestRepeat = (planSets: number[], results: number[]): bool
 export type InitialTestPreviewRow = {
   range: string;
   week: number;
+  level: Level;
   sets: string;
   restSeconds: number;
 };
@@ -149,6 +150,7 @@ export const initialTestPreview = (): InitialTestPreviewRow[] =>
     return {
       range,
       week: state.week,
+      level: state.level,
       sets: describeSets(plan.sets, plan.lastIsMax),
       restSeconds: plan.restSeconds,
     };

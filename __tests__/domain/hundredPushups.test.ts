@@ -148,10 +148,11 @@ describe('initialTestPreview', () => {
   it('테스트 구간 4개를 실제 프로그램 표에서 계산해 돌려준다', () => {
     const rows = initialTestPreview();
     expect(rows.map(r => r.range)).toEqual(['5개 이하', '6 ~ 10개', '11 ~ 20개', '21개 이상']);
-    expect(rows[0]).toMatchObject({week: 1, sets: '2 · 3 · 2 · 2 · 3+', restSeconds: 60});
-    expect(rows[1]).toMatchObject({week: 1, sets: '6 · 6 · 4 · 4 · 5+'});
-    expect(rows[2]).toMatchObject({week: 1, sets: '10 · 12 · 7 · 7 · 9+'});
+    // 같은 1주차라도 테스트 결과에 따라 레벨이 갈려 횟수가 달라진다
+    expect(rows[0]).toMatchObject({week: 1, level: 1, sets: '2 · 3 · 2 · 2 · 3+', restSeconds: 60});
+    expect(rows[1]).toMatchObject({week: 1, level: 2, sets: '6 · 6 · 4 · 4 · 5+'});
+    expect(rows[2]).toMatchObject({week: 1, level: 3, sets: '10 · 12 · 7 · 7 · 9+'});
     // 20개 초과는 1·2주차를 건너뛰고 3주차부터
-    expect(rows[3]).toMatchObject({week: 3, sets: '14 · 18 · 14 · 14 · 20+'});
+    expect(rows[3]).toMatchObject({week: 3, level: 3, sets: '14 · 18 · 14 · 14 · 20+'});
   });
 });

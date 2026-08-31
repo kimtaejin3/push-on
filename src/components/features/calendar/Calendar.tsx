@@ -21,75 +21,111 @@ import {useSession} from '../../../hooks/useSession';
 import {formatKSTDate} from '../../../utils/time';
 import {useQuery} from '@tanstack/react-query';
 import {pushupCalendarQueryOptions} from '../../../tanstack-query';
+import {addDays, buildWeekDays, startOfWeek, weekRangeLabel} from '../../../utils/calendar';
 
 interface CalendarProps {
   selectedDate: Date;
 }
 
+type ViewMode = 'month' | 'week';
+
+const VIEW_MODES: {key: ViewMode; label: string}[] = [
+  {key: 'month', label: '월'},
+  {key: 'week', label: '주'},
+];
+
 const Calendar: React.FC<CalendarProps> = ({selectedDate}) => {
+  const [viewMode, setViewMode] = useState<ViewMode>('month');
   const calendarData = useCalendarData({selectedDate});
   const {user} = useSession();
-  const {data: pushupData, isLoading} = useQuery(
-    pushupCalendarQueryOptions(
-      user?.id || '',
-      calendarData.year,
-      calendarData.month + 1,
-    ),
-  );
   const [, updateSelectedDate] = useAtom(updateSelectedDateAtom);
-  const [isExpanded, setIsExpanded] = useState(true);
 
-  const handleMonthChange = (year: number, month: number) => {
-    const newDate = new Date(year, month, 1);
-    updateSelectedDate(newDate);
+  const weekStart = startOfWeek(selectedDate);
+  const weekEnd = addDays(weekStart, 6);
+
+  // 월 뷰: 선택 월. 주 뷰: 주 시작일의 월 + (달이 걸치면) 끝일의 월까지
+  const primaryMonth =
+    viewMode === 'month'
+      ? {year: calendarData.year, month: calendarData.month + 1}
+      : {year: weekStart.getFullYear(), month: weekStart.getMonth() + 1};
+  const weekSpansTwoMonths =
+    viewMode === 'week' && weekStart.getMonth() !== weekEnd.getMonth();
+
+  const {data: pushupData, isLoading} = useQuery(
+    pushupCalendarQueryOptions(user?.id || '', primaryMonth.year, primaryMonth.month),
+  );
+  const {data: nextMonthData} = useQuery({
+    ...pushupCalendarQueryOptions(
+      user?.id || '',
+      weekEnd.getFullYear(),
+      weekEnd.getMonth() + 1,
+    ),
+    enabled: !!user?.id && weekSpansTwoMonths,
+  });
+
+  const getPushupDataForDate = (date: Date): PushupDayData | undefined => {
+    const dateStr = formatKSTDate(date);
+    return (
+      pushupData?.find(data => data.date === dateStr) ??
+      nextMonthData?.find(data => data.date === dateStr)
+    );
   };
 
-  const handlePreviousMonth = () => {
+  const handleMonthChange = (year: number, month: number) => {
+    updateSelectedDate(new Date(year, month, 1));
+  };
+
+  const handlePrevious = () => {
+    if (viewMode === 'week') {
+      updateSelectedDate(addDays(selectedDate, -7));
+      return;
+    }
     const newDate = new Date(selectedDate);
     newDate.setDate(1); // 날짜를 1일로 설정하여 월 오버플로우 방지
     newDate.setMonth(newDate.getMonth() - 1);
     handleMonthChange(newDate.getFullYear(), newDate.getMonth());
   };
 
-  const handleNextMonth = () => {
+  const handleNext = () => {
+    if (viewMode === 'week') {
+      updateSelectedDate(addDays(selectedDate, 7));
+      return;
+    }
     const newDate = new Date(selectedDate);
-    newDate.setDate(1); // 날짜를 1일로 설정하여 월 오버플로우 방지
+    newDate.setDate(1);
     newDate.setMonth(newDate.getMonth() + 1);
     handleMonthChange(newDate.getFullYear(), newDate.getMonth());
   };
 
-  const getPushupDataForDate = (date: Date): PushupDayData | undefined => {
-    if (!pushupData) {
-      return undefined;
-    }
+  const today = new Date();
+  const nextDisabled =
+    viewMode === 'week'
+      ? weekEnd >= today
+      : CURRENT_YEAR === selectedDate.getFullYear() &&
+        CURRENT_MONTH === selectedDate.getMonth() + 1;
 
-    const dateStr = formatKSTDate(date);
-    return pushupData.find(data => data.date === dateStr);
-  };
-
-  const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
-
-  const nextMonthDisabled =
-    CURRENT_YEAR === selectedDate.getFullYear() &&
-    CURRENT_MONTH === selectedDate.getMonth() + 1;
-
-  const previousMonthDisabled = (() => {
+  const previousDisabled = (() => {
     if (!user) {
       return true;
     }
-
-    const signedUpYear = new Date(user.created_at).getFullYear();
-    const signedUpMonth = new Date(user.created_at).getMonth() + 1;
-
-    if (
-      signedUpYear === selectedDate.getFullYear() &&
-      signedUpMonth === selectedDate.getMonth() + 1
-    ) {
-      return true;
+    const signedUp = new Date(user.created_at);
+    const signupMonthStart = new Date(signedUp.getFullYear(), signedUp.getMonth(), 1);
+    if (viewMode === 'week') {
+      // 이전 주 전체가 가입 월 이전이면 이동 불가
+      return addDays(weekStart, -1) < signupMonthStart;
     }
-
-    return false;
+    return (
+      signedUp.getFullYear() === selectedDate.getFullYear() &&
+      signedUp.getMonth() === selectedDate.getMonth()
+    );
   })();
+
+  const weekDayNames = ['일', '월', '화', '수', '목', '금', '토'];
+  const days = viewMode === 'month' ? calendarData.days : buildWeekDays(selectedDate);
+  const title =
+    viewMode === 'month'
+      ? `${calendarData.year}년 ${calendarData.monthName}`
+      : weekRangeLabel(weekStart);
 
   if (isLoading) {
     return (
@@ -102,86 +138,79 @@ const Calendar: React.FC<CalendarProps> = ({selectedDate}) => {
 
   return (
     <View style={styles.container}>
-      {/* 헤더 */}
+      {/* 헤더: 이전/다음 + 제목 */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.navButton}
-          disabled={previousMonthDisabled}
-          onPress={handlePreviousMonth}>
+          disabled={previousDisabled}
+          onPress={handlePrevious}>
           <FontAwesome5
             name="chevron-left"
             size={16}
-            color={previousMonthDisabled ? colors.gray400 : colors.primary}
+            color={previousDisabled ? colors.gray400 : colors.primary}
             iconStyle="solid"
           />
         </TouchableOpacity>
 
-        <Text style={styles.monthYearText}>
-          {calendarData.year}년 {calendarData.monthName}
-        </Text>
+        <Text style={styles.monthYearText}>{title}</Text>
 
         <TouchableOpacity
-          disabled={nextMonthDisabled}
+          disabled={nextDisabled}
           style={styles.navButton}
-          onPress={handleNextMonth}>
+          onPress={handleNext}>
           <FontAwesome5
             name="chevron-right"
             size={16}
-            color={nextMonthDisabled ? colors.gray400 : colors.primary}
+            color={nextDisabled ? colors.gray400 : colors.primary}
             iconStyle="solid"
           />
         </TouchableOpacity>
       </View>
 
-      {isExpanded && (
-        <>
-          <View style={styles.weekDaysContainer}>
-            {weekDays.map((day, index) => (
-              <Text key={index} style={styles.weekDayText}>
-                {day}
+      {/* 월/주 전환 */}
+      <View style={styles.segments}>
+        {VIEW_MODES.map(mode => {
+          const active = viewMode === mode.key;
+          return (
+            <TouchableOpacity
+              key={mode.key}
+              style={[styles.segment, active && styles.segmentActive]}
+              onPress={() => setViewMode(mode.key)}>
+              <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
+                {mode.label}
               </Text>
-            ))}
-          </View>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
 
-          <View style={styles.calendarGrid}>
-            {calendarData.days.map((day, index) => {
-              return (
-                <CalendarDay
-                  key={index}
-                  day={day}
-                  pushupData={getPushupDataForDate(day.date)}
-                />
-              );
-            })}
-            <View style={styles.legend}>
-              <View style={styles.legendItem}>
-                <FontAwesome5
-                  name="check-circle"
-                  size={12}
-                  color={colors.primary}
-                  iconStyle="solid"
-                />
-                <Text style={styles.legendText}>운동 완료</Text>
-              </View>
-            </View>
-          </View>
-        </>
-      )}
-
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.footerButton}
-          onPress={() => setIsExpanded(!isExpanded)}>
-          <Text style={styles.footerButtonText}>
-            {isExpanded ? '달력 접기' : '달력 펴기'}
+      <View style={styles.weekDaysContainer}>
+        {weekDayNames.map((day, index) => (
+          <Text key={index} style={styles.weekDayText}>
+            {day}
           </Text>
-          <FontAwesome5
-            name={isExpanded ? 'chevron-up' : 'chevron-down'}
-            size={16}
-            color={colors.primary}
-            iconStyle="solid"
+        ))}
+      </View>
+
+      <View style={styles.calendarGrid}>
+        {days.map((day, index) => (
+          <CalendarDay
+            key={index}
+            day={day}
+            pushupData={getPushupDataForDate(day.date)}
           />
-        </TouchableOpacity>
+        ))}
+        <View style={styles.legend}>
+          <View style={styles.legendItem}>
+            <FontAwesome5
+              name="check-circle"
+              size={12}
+              color={colors.primary}
+              iconStyle="solid"
+            />
+            <Text style={styles.legendText}>운동 완료</Text>
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -213,7 +242,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   navButton: {
     width: 32,
@@ -226,6 +255,31 @@ const styles = StyleSheet.create({
   monthYearText: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: colors.textLight,
+  },
+  segments: {
+    flexDirection: 'row',
+    alignSelf: 'center',
+    backgroundColor: colors.overlayMedium,
+    borderRadius: 10,
+    padding: 3,
+    marginBottom: 14,
+  },
+  segment: {
+    paddingVertical: 6,
+    paddingHorizontal: 22,
+    borderRadius: 7,
+    alignItems: 'center',
+  },
+  segmentActive: {
+    backgroundColor: colors.primaryDark,
+  },
+  segmentText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  segmentTextActive: {
     color: colors.textLight,
   },
   weekDaysContainer: {
@@ -256,34 +310,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
-  legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
   legendText: {
     fontSize: 12,
     color: colors.textSecondary,
-  },
-  footer: {
-    marginTop: 10,
-  },
-  footerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: colors.overlayLight,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.primaryBorder,
-  },
-  footerButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.primary,
   },
 });
 

@@ -15,6 +15,8 @@ import {
 } from '../tanstack-query';
 import {toProgramState} from '../remote/program';
 import {applyTest, describeSets, retestLevel, startProgram, todayPlan} from '../domain/hundredPushups';
+import ReminderSettingsCard from '../components/features/program/ReminderSettingsCard';
+import {cancelWorkoutReminders} from '../services/workoutReminder';
 import {WEEKS} from '../constants/hundredPushups';
 
 function ProgramScreen() {
@@ -63,7 +65,14 @@ function ProgramScreen() {
     }
     Alert.alert('프로그램 그만두기', '진행 상황이 사라져요. 다시 시작하면 초기 테스트부터예요.', [
       {text: '취소', style: 'cancel'},
-      {text: '그만두기', style: 'destructive', onPress: () => abandonProgram.mutate(programRow.id)},
+      {
+        text: '그만두기',
+        style: 'destructive',
+        onPress: () => {
+          abandonProgram.mutate(programRow.id);
+          cancelWorkoutReminders().catch(() => {});
+        },
+      },
     ]);
   };
 
@@ -78,7 +87,7 @@ function ProgramScreen() {
           <Text style={styles.body}>
             주 3일, 하루 5세트.{'\n'}오늘 할 세트는 앱이 정해줘요.{'\n'}먼저 지금 몇 개까지 되는지 테스트해요.
           </Text>
-          <Text style={styles.hint}>운동하는 날 원하는 시간에 알림을 보내드릴게요 (준비 중)</Text>
+          <Text style={styles.hint}>시작하면 운동하는 날 알림을 설정할 수 있어요</Text>
           <CustomButton title="초기 테스트 시작" variant="start" style={styles.button} onPress={goTest} />
         </View>
       );
@@ -120,9 +129,7 @@ function ProgramScreen() {
         </Text>
         <Text style={styles.sets}>{describeSets(plan.sets, plan.lastIsMax)}</Text>
         <Text style={styles.body}>세트 사이 휴식 {plan.restSeconds}초 · 마지막 세트는 가능한 만큼</Text>
-        <Text style={styles.hint}>
-          하루 쉬고 다음 운동을 권장해요{'\n'}원하는 시간에 운동 알림을 보내드릴게요 (준비 중)
-        </Text>
+        <Text style={styles.hint}>하루 쉬고 다음 운동을 권장해요</Text>
         <CustomButton
           title="오늘 운동 시작"
           variant="start"
@@ -143,6 +150,7 @@ function ProgramScreen() {
       <Header title="100개 챌린지" onBackPress={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         {renderBody()}
+        {programRow && programRow.status === 'active' && <ReminderSettingsCard />}
         {programRow && programRow.status === 'active' && (
           <Text style={styles.abandon} onPress={handleAbandon}>
             그만두기

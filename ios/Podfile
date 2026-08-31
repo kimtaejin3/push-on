@@ -33,5 +33,16 @@ target 'pushupApp' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # fmt 11.0.2's FMT_CONSTEVAL codepath fails to compile with newer Xcode/Clang
+    # ("call to consteval function ... is not a constant expression"). Forcing
+    # C++17 for this pod keeps fmt off that codepath.
+    installer.pods_project.targets.each do |target|
+      if target.name == 'fmt'
+        target.build_configurations.each do |config|
+          config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'gnu++17'
+        end
+      end
+    end
   end
 end

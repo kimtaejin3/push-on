@@ -14,7 +14,8 @@ export const generateRandomNickname = (): string => {
 };
 
 export const NICKNAME_MIN_LENGTH = 2;
-export const NICKNAME_MAX_LENGTH = 10;
+// 자동 생성 닉네임(user- + 8자 = 13자)이 그대로 들어와도 수정할 수 있어야 한다
+export const NICKNAME_MAX_LENGTH = 16;
 
 /**
  * 닉네임 입력 규칙 검사. 통과하면 null, 아니면 사용자에게 보여줄 메시지.

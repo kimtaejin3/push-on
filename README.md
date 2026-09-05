@@ -6,6 +6,13 @@
 - [구글 플레이 스토어](https://play.google.com/store/apps/details?id=com.pushupapp)
 - 앱스토어 출시 예정
 
+## 스크린샷
+
+<img width="200" alt="홈 - 운동 모드 선택" src="docs/screenshots/home.png" />
+<img width="200" alt="챌린지 - 자동 카운팅" src="docs/screenshots/challenge.png" />
+<img width="200" alt="100개 챌린지 - 오늘의 세트와 알림" src="docs/screenshots/program.png" />
+<img width="200" alt="히스토리 - 달력과 세트별 기록" src="docs/screenshots/history.png" />
+
 ## 데모
 
 https://github.com/user-attachments/assets/d6d2975c-e237-4113-a955-a2bb034417e9

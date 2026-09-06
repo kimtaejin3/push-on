@@ -1,0 +1,24 @@
+-- 1.7.1 버전 정보 추가
+-- 100개 챌린지 안내 보강 + 알림 개선 + 닉네임 수정 버그 해결
+-- 이 SQL을 Supabase SQL Editor에서 실행하세요 (추가 스키마 변경 없음)
+
+INSERT INTO app_versions (version, force_update, release_notes)
+VALUES (
+  '1.7.1',
+  false,
+  '🎯 개선 및 버그 수정
+
+• 100개 챌린지
+  - 시작하기 전에 테스트 결과별로 첫 운동이 어떻게 정해지는지 미리 볼 수 있어요
+  - 주차·레벨별 전체 세트를 한눈에 확인할 수 있어요
+
+• 운동 알림
+  - 요일은 주 3일까지 선택할 수 있어요
+  - 앱을 열면 알림 예약이 자동으로 복구돼요
+
+• 버그 수정
+  - 프로필에서 닉네임을 바꿀 수 없던 문제를 해결했어요'
+) ON CONFLICT (version) DO UPDATE SET
+  force_update = EXCLUDED.force_update,
+  release_notes = EXCLUDED.release_notes,
+  created_at = NOW();

@@ -62,7 +62,9 @@ const ConditionalNavigation = () => {
   const {ready: profileReady, loading: profileLoading, retry: retryProfile} =
     useEnsureProfile();
 
-  if (loading || profileLoading) {
+  // 한 번 준비된 뒤에는 재확인이 있어도 네비게이터를 유지한다
+  // (스플래시로 바뀌면 스택 전체가 언마운트되어 운동 중 화면이 날아간다)
+  if ((loading || profileLoading) && !profileReady) {
     return (
       <View style={styles.splashContainer}>
         <ActivityIndicator size="large" color={colors.primary} />

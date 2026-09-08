@@ -21,10 +21,16 @@ async function renderHook<T>(hook: () => T) {
     result.current = hook();
     return null;
   }
+  let renderer!: ReturnType<typeof create>;
   await act(async () => {
-    create(<Probe />);
+    renderer = create(<Probe />);
   });
-  return result;
+  const rerender = async () => {
+    await act(async () => {
+      renderer.update(<Probe />);
+    });
+  };
+  return Object.assign(result, {rerender});
 }
 
 describe('useEnsureProfile', () => {
@@ -64,6 +70,36 @@ describe('useEnsureProfile', () => {
     expect(mockCreateDefaultProfile).toHaveBeenCalledWith('u1');
     expect(result.current.ready).toBe(true);
     expect(result.current.error).toBeNull();
+  });
+
+  it('토큰 갱신처럼 user 객체만 새로 와도 프로필을 다시 조회하지 않는다', async () => {
+    mockUseSession.mockReturnValue({user: {id: 'u1'}});
+    mockFindProfile.mockResolvedValue({id: 'u1', nickname: 'user-abc'});
+
+    const result = await renderHook(() => useEnsureProfile());
+    expect(mockFindProfile).toHaveBeenCalledTimes(1);
+
+    // Supabase 가 토큰을 갱신하면 같은 유저라도 새 session/user 객체가 온다
+    mockUseSession.mockReturnValue({user: {id: 'u1'}});
+    await result.rerender();
+
+    expect(mockFindProfile).toHaveBeenCalledTimes(1);
+    expect(result.current.loading).toBe(false);
+    expect(result.current.ready).toBe(true);
+  });
+
+  it('유저가 바뀌면 다시 확인한다', async () => {
+    mockUseSession.mockReturnValue({user: {id: 'u1'}});
+    mockFindProfile.mockResolvedValue({id: 'u1', nickname: 'a'});
+    const result = await renderHook(() => useEnsureProfile());
+    expect(mockFindProfile).toHaveBeenCalledTimes(1);
+
+    mockUseSession.mockReturnValue({user: {id: 'u2'}});
+    mockFindProfile.mockResolvedValue({id: 'u2', nickname: 'b'});
+    await result.rerender();
+
+    expect(mockFindProfile).toHaveBeenCalledTimes(2);
+    expect(mockFindProfile).toHaveBeenLastCalledWith('u2');
   });
 
   it('생성에 실패하면 error 를 노출하고 retry 로 다시 시도할 수 있다', async () => {

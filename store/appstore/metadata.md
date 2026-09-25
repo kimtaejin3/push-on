@@ -119,8 +119,12 @@ Sign in with Google or Kakao only (Sign in with Apple: see note in submission).
 
 ## 제출 전 프로젝트 체크리스트
 
-- [ ] Sign in with Apple 추가 (가이드라인 4.8 — 소셜 로그인 제공 시 필수)
-- [ ] 개인정보 처리방침 공개 URL 준비
-- [ ] `Info.plist` 의 빈 `NSLocationWhenInUseUsageDescription` 제거 (위치 미사용)
-- [ ] `MARKETING_VERSION` 1.6.0 / `CURRENT_PROJECT_VERSION` 1 로 맞추기
+- [x] Apple Developer Program 멤버십 (개인, 팀 ID `K88WFRU2SJ`, 2027-09-23 갱신)
+- [x] 번들 ID 를 `com.pushon` 으로 통일 (이전엔 시뮬레이터만 RN 템플릿 기본값이라 카카오 로그인이 실패했다)
+- [x] `MARKETING_VERSION` 1.7.1 / `CURRENT_PROJECT_VERSION` 1 로 맞추기
+- [x] `Info.plist` 의 빈 `NSLocationWhenInUseUsageDescription` 제거, 카메라 사용 문구를 심사용으로 구체화
+- [ ] **Sign in with Apple 추가** (가이드라인 4.8 — 소셜 로그인만 제공하면 리젝) ← 가장 큰 남은 작업
+- [ ] 개인정보 처리방침 공개 URL 준비 (앱 내 PrivacyPolicyScreen 내용을 GitHub Pages 등에 게시)
+- [ ] Xcode 에서 Apple Distribution 인증서 발급 + 자동 서명 활성화
+- [ ] App Store Connect 에 앱 등록 (이름 "푸쉬온", 번들 ID `com.pushon`, SKU `pushon`)
 - [ ] ARKit 얼굴 추적 필수이므로 `UIRequiredDeviceCapabilities` 에 `arkit` 추가 검토 (미지원 기기에 노출 안 되게)

@@ -6,7 +6,9 @@ import {
 import {supabase} from '../lib/supabase';
 import {Alert} from 'react-native';
 import {login, logout} from '@react-native-seoul/kakao-login';
-import { providers } from '../types/auth';
+import {appleAuth} from '@invertase/react-native-apple-authentication';
+import {Provider} from '../types/auth';
+import {linkAppleToken} from '../remote/apple';
 
 export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -104,9 +106,54 @@ export const useAuth = () => {
     }
   };
 
-  const signOut = async (provider: typeof providers[number]) => {
+  const signInWithApple = async () => {
+    try {
+      setIsLoading(true);
+
+      // nonce 는 넘기지 않는다 — Supabase 의 React Native 애플 로그인 예제와 동일한 방식
+      const credential = await appleAuth.performRequest({
+        requestedOperation: appleAuth.Operation.LOGIN,
+        requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
+      });
+
+      if (!credential.identityToken) {
+        throw new Error('Apple ID 토큰을 받지 못했습니다.');
+      }
+
+      const {data, error} = await supabase.auth.signInWithIdToken({
+        provider: 'apple',
+        token: credential.identityToken,
+      });
+
+      if (error) {
+        console.error('Supabase 애플 로그인 에러:', error);
+        Alert.alert('로그인 실패', error.message);
+        return {data, error};
+      }
+
+      // 회원 탈퇴 시 애플 토큰을 revoke 하려면 authorizationCode 가 필요하다.
+      // 실패해도 로그인 자체는 성공으로 둔다 (다음 로그인 때 다시 시도된다).
+      if (credential.authorizationCode) {
+        await linkAppleToken(credential.authorizationCode);
+      }
+
+      return {data, error};
+    } catch (error: any) {
+      // 사용자가 취소한 경우는 조용히 넘어간다
+      if (error?.code === appleAuth.Error?.CANCELED) {
+        return;
+      }
+      console.error('애플 로그인 에러:', error);
+      Alert.alert('로그인 실패', 'Apple 로그인 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signOut = async (provider: Provider) => {
     // provider SDK 로그아웃은 best-effort. 카카오는 자체 토큰이 만료돼 있으면
     // 서버 호출이 실패하는데, 그것 때문에 Supabase 세션 제거를 건너뛰면 안 된다.
+    // 애플은 SDK 로그아웃 개념이 없어 Supabase 세션만 정리하면 된다.
     try {
       if (provider === 'google') {
         await GoogleSignin.signOut();
@@ -124,8 +171,19 @@ export const useAuth = () => {
     }
   };
 
+  const signInWithProvider = (provider: Provider) => {
+    switch (provider) {
+      case 'google':
+        return signInWithGoogle();
+      case 'apple':
+        return signInWithApple();
+      default:
+        return signInWithKakao();
+    }
+  };
+
   return {
-    signInWithProvider: (provider: typeof providers[number]) => provider === 'google' ? signInWithGoogle() : signInWithKakao(),
+    signInWithProvider,
     signOut,
     isLoading,
   };

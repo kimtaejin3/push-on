@@ -153,12 +153,21 @@ const UserInfo = ({user}: {user: User}) => {
 
               <View style={styles.infoItem}>
                 <View style={styles.infoItemLeft}>
-                  <Fontawesome5
-                    name={providerInfo.icon as 'comment' | 'search' | 'envelope'}
-                    size={16}
-                    iconStyle="solid"
-                    color={providerInfo.color}
-                  />
+                  {providerInfo.iconStyle === 'brand' ? (
+                    <Fontawesome5
+                      name="apple"
+                      size={16}
+                      iconStyle="brand"
+                      color={providerInfo.color}
+                    />
+                  ) : (
+                    <Fontawesome5
+                      name={providerInfo.icon as 'comment' | 'search' | 'envelope'}
+                      size={16}
+                      iconStyle="solid"
+                      color={providerInfo.color}
+                    />
+                  )}
                   <Text style={styles.infoLabel}>가입 방법</Text>
                 </View>
                 <Text style={styles.infoValue}>{providerInfo.name}</Text>

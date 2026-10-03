@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
 import {colors} from '../constants/colors';
@@ -62,6 +63,28 @@ function AuthScreen() {
 
         {/* 로그인 버튼들 */}
         <View style={styles.loginContainer}>
+          {/* 애플 가이드라인상 다른 소셜 로그인과 동등하게, 목록 맨 위에 둔다 (iOS 전용) */}
+          {Platform.OS === 'ios' && (
+            <TouchableOpacity
+              style={[styles.appleButton, isLoading && styles.disabledButton]}
+              onPress={() => signInWithProvider('apple')}
+              disabled={isLoading}>
+              {isLoading ? (
+                <ActivityIndicator size="small" color={colors.textLight} />
+              ) : (
+                <Fontawesome5
+                  name="apple"
+                  size={20}
+                  iconStyle="brand"
+                  color={colors.textLight}
+                />
+              )}
+              <Text style={styles.appleButtonText}>
+                {isLoading ? '로그인 중...' : 'Apple로 계속하기'}
+              </Text>
+            </TouchableOpacity>
+          )}
+
           <TouchableOpacity
             style={[
               styles.kakaoButton,
@@ -178,6 +201,20 @@ const styles = StyleSheet.create({
   },
   loginContainer: {
     gap: 16,
+  },
+  appleButton: {
+    backgroundColor: colors.textBlack,
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+  },
+  appleButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.textLight,
   },
   kakaoButton: {
     backgroundColor: colors.warning,

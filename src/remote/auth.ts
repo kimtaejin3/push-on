@@ -1,4 +1,5 @@
 import {supabase} from '../lib/supabase';
+import {revokeAppleToken} from './apple';
 
 /**
  * 회원 탈퇴 API
@@ -26,6 +27,14 @@ export const deleteUserAccount = async (): Promise<void> => {
 
     if (!accessToken) {
       throw new Error('인증 토큰이 없습니다.');
+    }
+
+    // 애플 로그인 사용자는 계정 삭제 전에 애플 토큰을 revoke 해야 한다
+    // (App Store 가이드라인 5.1.1(v)). 실패해도 삭제는 계속 진행한다.
+    try {
+      await revokeAppleToken();
+    } catch (revokeError) {
+      console.warn('애플 토큰 revoke 실패 (삭제는 계속 진행):', revokeError);
     }
 
     // Edge Function 직접 호출

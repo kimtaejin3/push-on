@@ -292,6 +292,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				CODE_SIGN_ENTITLEMENTS = pushupApp/pushupApp.entitlements;
 				PRODUCT_BUNDLE_IDENTIFIER = com.pushon;
 				PRODUCT_NAME = pushupApp;
 				SWIFT_OBJC_BRIDGING_HEADER = "pushupApp-Bridging-Header.h";
@@ -321,6 +322,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				CODE_SIGN_ENTITLEMENTS = pushupApp/pushupApp.entitlements;
 				PRODUCT_BUNDLE_IDENTIFIER = com.pushon;
 				PRODUCT_NAME = pushupApp;
 				SWIFT_OBJC_BRIDGING_HEADER = "pushupApp-Bridging-Header.h";

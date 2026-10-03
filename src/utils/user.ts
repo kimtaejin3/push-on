@@ -8,18 +8,28 @@ export const getProviderInfo = (providerType: string): ProviderInfo => {
       return {
         name: '카카오',
         icon: 'comment',
+        iconStyle: 'solid',
         color: '#FEE500',
       };
     case 'google':
       return {
         name: '구글',
         icon: 'search',
+        iconStyle: 'solid',
         color: colors.primary,
+      };
+    case 'apple':
+      return {
+        name: 'Apple',
+        icon: 'apple',
+        iconStyle: 'brand',
+        color: colors.textLight,
       };
     default:
       return {
         name: '이메일',
         icon: 'envelope',
+        iconStyle: 'solid',
         color: colors.primary,
       };
   }

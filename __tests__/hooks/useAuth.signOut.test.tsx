@@ -8,6 +8,15 @@ import {GoogleSignin} from '@react-native-google-signin/google-signin';
 jest.mock('../../src/lib/supabase', () => ({
   supabase: {auth: {signOut: jest.fn()}},
 }));
+jest.mock('@invertase/react-native-apple-authentication', () => ({
+  appleAuth: {
+    performRequest: jest.fn(),
+    Operation: {LOGIN: 1},
+    Scope: {EMAIL: 0, FULL_NAME: 1},
+    Error: {CANCELED: '1001'},
+  },
+}));
+jest.mock('../../src/remote/apple', () => ({linkAppleToken: jest.fn()}));
 jest.mock('@react-native-seoul/kakao-login', () => ({
   login: jest.fn(),
   logout: jest.fn(),

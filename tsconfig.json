@@ -1,3 +1,5 @@
 {
-  "extends": "@react-native/typescript-config/tsconfig.json"
+  "extends": "@react-native/typescript-config/tsconfig.json",
+  // supabase/functions 는 Deno 런타임용이라 앱 타입체크 대상에서 제외한다
+  "exclude": ["supabase", "node_modules", "ios", "android"]
 }

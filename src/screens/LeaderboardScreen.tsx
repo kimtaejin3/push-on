@@ -30,6 +30,20 @@ type LeaderItem = {
 
 type LeaderBoardType = 'daily' | 'monthly' | 'yearly';
 
+// 1~3등 아바타 테두리 색. 1등은 여기에 왕관 뱃지까지 붙는다.
+function medalColor(rank: number): string | null {
+  switch (rank) {
+    case 1:
+      return colors.gold;
+    case 2:
+      return colors.silver;
+    case 3:
+      return colors.bronze;
+    default:
+      return null;
+  }
+}
+
 const LEADERBOARD_MODES: {key: LeaderBoardType; label: string}[] = [
   {key: 'daily', label: '오늘'},
   {key: 'monthly', label: '이번 달'},
@@ -237,29 +251,51 @@ export default function LeaderboardScreen() {
               colors={[colors.primary]}
             />
           }
-          renderItem={({item}) => (
-            <View style={[styles.row, item.isMe && styles.rowMe]}>
-              <Text style={[styles.cell, styles.cellRank, item.isMe && styles.cellMe]}>
-                {item.rank}
-              </Text>
-              <View style={styles.cellUser}>
-                <View style={styles.avatar}>
-                  <FontAwesome5
-                    name="user"
-                    size={16}
-                    color={colors.overlayMedium}
-                  />
+          renderItem={({item}) => {
+            const medal = medalColor(item.rank);
+            return (
+              <View style={[styles.row, item.isMe && styles.rowMe]}>
+                <Text
+                  style={[styles.cell, styles.cellRank, item.isMe && styles.cellMe]}>
+                  {item.rank}
+                </Text>
+                <View style={styles.cellUser}>
+                  <View style={styles.avatarWrap}>
+                    <View
+                      style={[
+                        styles.avatar,
+                        medal !== null && styles.avatarMedal,
+                        medal !== null && {borderColor: medal},
+                      ]}>
+                      <FontAwesome5
+                        name="user"
+                        size={16}
+                        color={colors.overlayMedium}
+                      />
+                    </View>
+                    {item.rank === 1 && (
+                      <View style={styles.crownBadge}>
+                        <FontAwesome5
+                          name="crown"
+                          iconStyle="solid"
+                          size={11}
+                          color={colors.gold}
+                        />
+                      </View>
+                    )}
+                  </View>
+                  <Text style={[styles.username, item.isMe && styles.cellMe]}>
+                    {item.username}
+                    {item.isMe ? ' (나)' : ''}
+                  </Text>
                 </View>
-                <Text style={[styles.username, item.isMe && styles.cellMe]}>
-                  {item.username}
-                  {item.isMe ? ' (나)' : ''}
+                <Text
+                  style={[styles.cell, styles.cellReps, item.isMe && styles.cellMe]}>
+                  {item.reps.toLocaleString()}
                 </Text>
               </View>
-              <Text style={[styles.cell, styles.cellReps, item.isMe && styles.cellMe]}>
-                {item.reps.toLocaleString()}
-              </Text>
-            </View>
-          )}
+            );
+          }}
         />
       )}
     </SafeAreaView>
@@ -316,6 +352,19 @@ const styles = StyleSheet.create({
   cellRank: {width: 50, fontWeight: '700'},
   cellUser: {flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10},
   cellReps: {width: 110, textAlign: 'right', fontWeight: '700'},
+  // 왕관 뮩지를 아바타 모서리에 걸치게 놓기 위한 기준 박스
+  avatarWrap: {
+    width: 40,
+    height: 40,
+  },
+  avatarMedal: {
+    borderWidth: 2,
+  },
+  crownBadge: {
+    position: 'absolute',
+    top: -7,
+    right: -5,
+  },
   avatar: {
     width: 40,
     height: 40,

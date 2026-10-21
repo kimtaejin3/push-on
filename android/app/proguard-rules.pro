@@ -52,3 +52,36 @@
 -keep class com.reactnativeseoul.** { *; }
 -keep class com.reactnativeseoul.kakaologin.** { *; }
 
+
+# ──────────────────────────────────────────────────────────────
+# R8 활성화(1.7.3)에 따라 추가한 보호 규칙
+# ──────────────────────────────────────────────────────────────
+
+# 앱 자체 네이티브 모듈. 구 브릿지(@ReactMethod)는 리플렉션으로 호출된다.
+-keep class com.pushupapp.** { *; }
+
+# React Native 브릿지가 리플렉션으로 찾는 것들
+-keepclassmembers class * { @com.facebook.react.bridge.ReactMethod <methods>; }
+-keepclassmembers class * { @com.facebook.proguard.annotations.DoNotStrip *; }
+-keepclassmembers class * { @com.facebook.common.internal.DoNotStrip *; }
+-keep @com.facebook.proguard.annotations.DoNotStrip class *
+-keep class com.facebook.react.** { *; }
+-keep class com.facebook.jni.** { *; }
+-keep class com.facebook.hermes.** { *; }
+
+# ARCore / Sceneform / filament — JNI 가 클래스를 이름으로 찾는다
+-keep class com.google.ar.** { *; }
+-keep class com.google.android.filament.** { *; }
+-dontwarn com.google.ar.**
+-dontwarn com.google.android.filament.**
+
+# Google 로그인
+-keep class com.google.android.gms.auth.** { *; }
+-keep class com.google.android.gms.common.** { *; }
+
+# notifee 로컬 알림
+-keep class app.notifee.** { *; }
+-dontwarn app.notifee.**
+
+# 네이티브 메서드 전반
+-keepclasseswithmembernames class * { native <methods>; }

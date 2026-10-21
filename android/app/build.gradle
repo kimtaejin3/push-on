@@ -132,7 +132,7 @@ android {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
             signingConfig signingConfigs.release
-            minifyEnabled false  // R8 최적화 비활성화 (카카오 SDK 호환성)
+            minifyEnabled true   // R8 활성화 (Play DEX 최적화 경고 해소). 보호 규칙은 proguard-rules.pro 참고
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }

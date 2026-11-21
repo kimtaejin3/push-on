@@ -34,6 +34,8 @@ type CelebrationContextValue = {celebrateThen: (next: () => void) => void};
 
 /** 축하 화면 준비(폰 저장소 읽기)를 기다리는 최대 시간 */
 const PREPARE_TIMEOUT_MS = 1500;
+// iOS 에서 축하 모달의 닫힘 신호를 기다리는 최대 시간 (fade 애니메이션보다 넉넉히)
+const IOS_DISMISS_FALLBACK_MS = 800;
 
 const CelebrationContext = createContext<CelebrationContextValue | null>(null);
 
@@ -162,6 +164,9 @@ export function StreakCelebrationProvider({
     // iOS 에서는 축하 모달이 닫혀야 추적 안내 모달을 열 수 있다
     if (Platform.OS !== 'ios') {
       celebration.next();
+    } else {
+      // 닫힘 신호(onDismiss)가 오지 않아도 결과 화면에 갇히지 않게 한다. next 는 한 번만 실행된다
+      setTimeout(celebration.next, IOS_DISMISS_FALLBACK_MS);
     }
   };
 

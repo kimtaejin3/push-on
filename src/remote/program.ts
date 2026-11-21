@@ -1,12 +1,8 @@
 import {supabase} from '../lib/supabase';
-import {ProgramState, Level} from '../domain/hundredPushups';
+import {ProgramState, ProgramRecord, Level} from '../domain/hundredPushups';
 
-export interface CompletedDay {
-  week: number;
-  day: number;
-  reps: number[];
-  completed_at: string;
-}
+/** completed_days 의 한 건: 시도(통과/실패) 또는 이동 표시 */
+export type CompletedDay = ProgramRecord;
 
 export interface ProgramRow {
   id: string;
@@ -40,17 +36,22 @@ export const toProgramState = (row: ProgramRow): ProgramState => ({
   status: row.status === 'completed' ? 'completed' : 'active',
 });
 
-export const getActiveProgram = async (userId: string): Promise<ProgramRow | null> => {
+/**
+ * 가장 최근에 만든 프로그램 한 건. active 면 진행 중, completed 면 완료 화면을 보여준다.
+ * 최신이 그만둔(abandoned) 것이면 프로그램이 없는 것으로 본다.
+ */
+export const getCurrentProgram = async (userId: string): Promise<ProgramRow | null> => {
   const {data, error} = await supabase
     .from('pushup_programs')
     .select('*')
     .eq('user_id', userId)
-    .eq('status', 'active')
+    .order('created_at', {ascending: false})
+    .limit(1)
     .maybeSingle();
   if (error) {
     throw error;
   }
-  return data;
+  return data && data.status !== 'abandoned' ? data : null;
 };
 
 export const createProgram = async (userId: string, state: ProgramState): Promise<ProgramRow> => {

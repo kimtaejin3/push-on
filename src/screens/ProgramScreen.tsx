@@ -8,7 +8,7 @@ import {colors} from '../constants/colors';
 import {useSession} from '../hooks/useSession';
 import {AppStackParamList} from '../navigations/AppNavigation';
 import {
-  activeProgramQueryOptions,
+  currentProgramQueryOptions,
   useAbandonProgramMutation,
   useCreateProgramMutation,
   useUpdateProgramMutation,
@@ -32,7 +32,7 @@ function ProgramScreen() {
   const testReps = route.params?.testReps;
   const {user} = useSession();
 
-  const {data: programRow, isLoading} = useQuery(activeProgramQueryOptions(user?.id ?? ''));
+  const {data: programRow, isLoading} = useQuery(currentProgramQueryOptions(user?.id ?? ''));
   const createProgram = useCreateProgramMutation();
   const updateProgram = useUpdateProgramMutation();
   const abandonProgram = useAbandonProgramMutation();

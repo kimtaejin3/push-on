@@ -8,7 +8,7 @@ import Logo from '../assets/svgs/logo.svg';
 import ModeCard from '../components/features/home/ModeCard';
 import LinkRow from '../components/features/home/LinkRow';
 import {useSession} from '../hooks/useSession';
-import {activeProgramQueryOptions} from '../tanstack-query';
+import {currentProgramQueryOptions} from '../tanstack-query';
 import {toProgramState} from '../remote/program';
 import {ProgramState} from '../domain/hundredPushups';
 
@@ -25,7 +25,7 @@ const programStatusText = (program: ProgramState | null): string => {
 function HomeScreen(): React.JSX.Element {
   const navigation = useNavigation();
   const {user} = useSession();
-  const {data: programRow} = useQuery(activeProgramQueryOptions(user?.id ?? ''));
+  const {data: programRow} = useQuery(currentProgramQueryOptions(user?.id ?? ''));
   const program = programRow ? toProgramState(programRow) : null;
 
   return (

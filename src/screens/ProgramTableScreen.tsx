@@ -5,7 +5,7 @@ import {useQuery} from '@tanstack/react-query';
 import Header from '../components/common/Header';
 import {colors} from '../constants/colors';
 import {useSession} from '../hooks/useSession';
-import {activeProgramQueryOptions} from '../tanstack-query';
+import {currentProgramQueryOptions} from '../tanstack-query';
 import {toProgramState} from '../remote/program';
 import {Level, programTable} from '../domain/hundredPushups';
 
@@ -15,7 +15,7 @@ const LEVELS: Level[] = [1, 2, 3];
 function ProgramTableScreen() {
   const navigation = useNavigation();
   const {user} = useSession();
-  const {data: programRow} = useQuery(activeProgramQueryOptions(user?.id ?? ''));
+  const {data: programRow} = useQuery(currentProgramQueryOptions(user?.id ?? ''));
   const current = programRow ? toProgramState(programRow) : null;
 
   const [level, setLevel] = useState<Level>(current?.level ?? 1);

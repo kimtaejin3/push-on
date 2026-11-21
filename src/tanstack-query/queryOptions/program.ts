@@ -1,8 +1,8 @@
-import {getActiveProgram} from '../../remote/program';
+import {getCurrentProgram} from '../../remote/program';
 import {queryKeys} from '../queryKeys';
 
-export const activeProgramQueryOptions = (userId: string) => ({
-  queryKey: queryKeys.program.active,
-  queryFn: () => getActiveProgram(userId),
+export const currentProgramQueryOptions = (userId: string) => ({
+  queryKey: queryKeys.program.current,
+  queryFn: () => getCurrentProgram(userId),
   enabled: !!userId,
 });

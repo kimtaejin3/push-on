@@ -31,6 +31,6 @@ export const queryKeys = {
   // 100개 챌린지 프로그램
   program: {
     all: ['program'] as const,
-    active: ['program', 'active'] as const,
+    current: ['program', 'current'] as const,
   },
 } as const;

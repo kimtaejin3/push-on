@@ -20,7 +20,7 @@ import {savePushupSession} from '../remote/pushup';
 import {toProgramState} from '../remote/program';
 import {completeDay, shouldSuggestRepeat} from '../domain/hundredPushups';
 import {AppStackParamList} from '../navigations/AppNavigation';
-import {activeProgramQueryOptions, useUpdateProgramMutation} from '../tanstack-query';
+import {currentProgramQueryOptions, useUpdateProgramMutation} from '../tanstack-query';
 import {queryKeys} from '../tanstack-query/queryKeys';
 
 /**
@@ -44,7 +44,7 @@ function WorkoutScreen(): React.JSX.Element {
   const [saveError, setSaveError] = useState(false);
 
   const {data: programRow} = useQuery({
-    ...activeProgramQueryOptions(user?.id ?? ''),
+    ...currentProgramQueryOptions(user?.id ?? ''),
     enabled: source.kind === 'program' && !!user?.id,
   });
   const updateProgram = useUpdateProgramMutation();

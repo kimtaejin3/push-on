@@ -17,7 +17,7 @@ export {profileQueryOptions} from './queryOptions/profile';
 
 export {useSavePushupSessionMutation} from './mutationHooks/pushup.ts';
 
-export {activeProgramQueryOptions} from './queryOptions/program';
+export {currentProgramQueryOptions} from './queryOptions/program';
 export {
   useCreateProgramMutation,
   useUpdateProgramMutation,

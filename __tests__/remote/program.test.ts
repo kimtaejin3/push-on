@@ -1,4 +1,4 @@
-import {getActiveProgram, createProgram, updateProgram, toProgramState, ProgramRow} from '../../src/remote/program';
+import {getCurrentProgram, createProgram, updateProgram, toProgramState, ProgramRow} from '../../src/remote/program';
 import {supabase} from '../../src/lib/supabase';
 
 jest.mock('../../src/lib/supabase', () => ({supabase: {from: jest.fn()}}));
@@ -12,17 +12,23 @@ const row: ProgramRow = {
 describe('remote/program', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('getActiveProgram 은 active 행을 돌려주고 없으면 null', async () => {
+  it('getCurrentProgram 은 가장 최근에 만든 프로그램 한 건을 돌려준다', async () => {
     const maybeSingle = jest.fn().mockResolvedValue({data: row, error: null});
-    const eq2 = jest.fn(() => ({maybeSingle}));
-    const eq1 = jest.fn(() => ({eq: eq2}));
-    mockFrom.mockReturnValue({select: () => ({eq: eq1})});
-    await expect(getActiveProgram('u1')).resolves.toEqual(row);
-    expect(eq1).toHaveBeenCalledWith('user_id', 'u1');
-    expect(eq2).toHaveBeenCalledWith('status', 'active');
+    const limit = jest.fn(() => ({maybeSingle}));
+    const order = jest.fn(() => ({limit}));
+    const eq = jest.fn(() => ({order}));
+    mockFrom.mockReturnValue({select: () => ({eq})});
+    await expect(getCurrentProgram('u1')).resolves.toEqual(row);
+    expect(eq).toHaveBeenCalledWith('user_id', 'u1');
+    expect(order).toHaveBeenCalledWith('created_at', {ascending: false});
+    expect(limit).toHaveBeenCalledWith(1);
 
+    maybeSingle.mockResolvedValue({data: {...row, status: 'completed'}, error: null});
+    await expect(getCurrentProgram('u1')).resolves.toMatchObject({status: 'completed'});
+    maybeSingle.mockResolvedValue({data: {...row, status: 'abandoned'}, error: null});
+    await expect(getCurrentProgram('u1')).resolves.toBeNull(); // 최신이 그만둔 것이면 없는 것
     maybeSingle.mockResolvedValue({data: null, error: null});
-    await expect(getActiveProgram('u1')).resolves.toBeNull();
+    await expect(getCurrentProgram('u1')).resolves.toBeNull();
   });
 
   it('createProgram 은 상태를 컬럼으로 바꿔 insert 한다', async () => {

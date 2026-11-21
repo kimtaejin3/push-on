@@ -1,14 +1,17 @@
-import React, {type ReactNode} from 'react';
+import React, {useEffect, useRef, type ReactNode} from 'react';
 import {ScrollView, StatusBar, StyleSheet, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useQuery} from '@tanstack/react-query';
+import {NATIVE_RESULT_AD_UNIT_ID} from '../../../constants/ads';
 import {resultFacts} from '../../../domain/resultFacts';
+import {useAds} from '../../../hooks/useAds';
 import {useSession} from '../../../hooks/useSession';
 import type {WorkoutMode} from '../../../remote/pushup';
 import {getBestSetBefore, getPreviousWorkoutTotal} from '../../../remote/workoutHistory';
 import {queryKeys} from '../../../tanstack-query/queryKeys';
 import {color, layout, radius, space} from '../../../theme';
 import {formatTimeKorean} from '../../../utils/time';
+import {NativeAdCard} from '../../ads/NativeAdCard';
 import {Button} from '../../ui/Button';
 import {Card} from '../../ui/Card';
 import {Chip} from '../../ui/Chip';
@@ -74,6 +77,15 @@ export function ResultLayout({
 }: ResultLayoutProps) {
   const {user} = useSession();
   const singleSet = mode === 'challenge' || mode === 'program_test';
+  const {prepareInterstitial} = useAds();
+  // 처음 그릴 때의 함수만 쓴다. 다시 그려질 때마다 전면을 또 불러오지 않게
+  const prepareRef = useRef(prepareInterstitial);
+  useEffect(() => {
+    // 한 번에 몇 개?·100개 챌린지 테스트는 그날 전면 면제라 미리 불러오지 않는다
+    if (!singleSet) {
+      prepareRef.current();
+    }
+  }, [singleSet]);
   const hasReps = results.some(reps => reps > 0);
   const enabled = !!user?.id && hasReps;
   // 한 번에 몇 개(챌린지·테스트)는 같은 모드끼리, 세트 운동은 모든 운동의 한 세트와 비교한다 — 운동 중 축하와 같은 기준
@@ -220,6 +232,8 @@ export function ResultLayout({
             </Text>
           </Card>
         )}
+        {/* 광고가 꺼졌거나 실패하면 null 이라 위아래 간격도 함께 사라진다 */}
+        <NativeAdCard unitId={NATIVE_RESULT_AD_UNIT_ID} style={styles.ad} />
         <View style={styles.footer}>
           {warning && (
             <Text color="alert" variant="label" style={styles.centered}>
@@ -284,6 +298,8 @@ const styles = StyleSheet.create({
   totalLine: {flexDirection: 'row', alignItems: 'flex-end', gap: 6},
   total: {fontSize: 128, lineHeight: 109, flexShrink: 1},
   centered: {textAlign: 'center'},
+  // 위 28 (gap 20 + 8), 버튼과 44 (24 + gap 20)
+  ad: {marginTop: space[8], marginBottom: space[24]},
   footer: {marginTop: 'auto', gap: space[12]},
   history: {alignItems: 'center'},
   next: {flexDirection: 'row', alignItems: 'center', padding: space[16]},

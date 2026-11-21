@@ -10,6 +10,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
 import {useQuery} from '@tanstack/react-query';
 import {Crown} from 'lucide-react-native';
+import {NativeAdCard} from '../components/ads/NativeAdCard';
 import {Button} from '../components/ui/Button';
 import {Icon} from '../components/ui/Icon';
 import {ScreenHeader} from '../components/ui/ScreenHeader';
@@ -19,6 +20,7 @@ import {BottomSheet} from '../components/ui/feedback/BottomSheet';
 import {EmptyState} from '../components/ui/feedback/EmptyState';
 import {ErrorState} from '../components/ui/feedback/ErrorState';
 import {Skeleton} from '../components/ui/feedback/Skeleton';
+import {NATIVE_LEADERBOARD_AD_UNIT_ID} from '../constants/ads';
 import {useNow} from '../hooks/useNow';
 import {useSession} from '../hooks/useSession';
 import type {LeaderboardItem} from '../remote/pushup';
@@ -36,6 +38,8 @@ const modes = [
 ];
 // 1~3위 메달 색은 기존 화면 그대로 둔다(테마 토큰에 메달 색이 없어 여기서만 쓴다)
 const medals = ['#FFD700', '#C0C0C0', '#CD7F32'];
+// 이 순위 다음에 광고를 끼운다. 순위가 이보다 많을 때만 (목록 끝에는 붙이지 않는다)
+const AD_AFTER_RANK = 10;
 const kstDate = new Intl.DateTimeFormat('ko-KR', {
   timeZone: 'Asia/Seoul',
   year: 'numeric',
@@ -178,7 +182,9 @@ export default function LeaderboardScreen() {
           const initial = Array.from(name)[0].toUpperCase();
           const isMe = item.user_id === user?.id;
           const medal = medals[index];
-          return (
+          const adAfter =
+            rank === AD_AFTER_RANK && items.length > AD_AFTER_RANK;
+          const row = (
             <View style={[styles.row, isMe && styles.ownRow]}>
               <Text
                 numeric
@@ -218,6 +224,19 @@ export default function LeaderboardScreen() {
                 </Text>
               </View>
             </View>
+          );
+          if (!adAfter) {
+            return row;
+          }
+          // 10위 다음, 11위 앞. 광고가 꺼졌거나 실패하면 null 이라 간격 없이 11위가 바로 이어진다
+          return (
+            <>
+              {row}
+              <NativeAdCard
+                unitId={NATIVE_LEADERBOARD_AD_UNIT_ID}
+                style={styles.ad}
+              />
+            </>
           );
         }}
       />
@@ -289,4 +308,5 @@ const styles = StyleSheet.create({
   },
   reps: {fontSize: 24, lineHeight: 28},
   rules: {marginBottom: space[12]},
+  ad: {marginVertical: space[32]},
 });

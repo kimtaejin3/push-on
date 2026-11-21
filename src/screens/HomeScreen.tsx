@@ -3,6 +3,7 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {useQuery} from '@tanstack/react-query';
 import {Alert, ScrollView, StyleSheet, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {NativeAdCard} from '../components/ads/NativeAdCard';
 import {OtherWorkoutRow} from '../components/features/home/OtherWorkoutRow';
 import {StreakRow} from '../components/features/home/StreakRow';
 import {TodayHero} from '../components/features/home/TodayHero';
@@ -10,6 +11,7 @@ import {Card, Row, Text} from '../components/ui';
 import {useTabBarInset} from '../components/ui/TabBar';
 import {ErrorState} from '../components/ui/feedback/ErrorState';
 import {Skeleton} from '../components/ui/feedback/Skeleton';
+import {NATIVE_HOME_AD_UNIT_ID} from '../constants/ads';
 import {WEEKS} from '../constants/hundredPushups';
 import {
   describeSets,
@@ -204,6 +206,8 @@ function HomeScreen(): React.JSX.Element {
             onPress={() => navigation.navigate('Leaderboard')}
           />
         </View>
+        {/* 광고가 꺼졌거나 실패하면 null 이라 간격도 함께 사라진다. 탭바와는 paddingBottom(tabBarInset)으로 40 이상 떨어진다 */}
+        <NativeAdCard unitId={NATIVE_HOME_AD_UNIT_ID} style={styles.ad} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -217,6 +221,8 @@ const styles = StyleSheet.create({
     gap: space[20],
   },
   header: {gap: 2},
+  // '다른 운동'과 28 (content gap 20 + 8)
+  ad: {marginTop: space[8]},
 });
 
 export default HomeScreen;

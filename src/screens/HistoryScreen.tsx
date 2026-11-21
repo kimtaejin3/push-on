@@ -15,6 +15,7 @@ import {
   historyKey,
 } from '../components/features/history/PeriodStats';
 import {WeeklyBars} from '../components/features/history/WeeklyBars';
+import {InlineAdBanner} from '../components/ads/InlineAdBanner';
 import {Card} from '../components/ui/Card';
 import {MonthSummaryCard} from '../components/features/history/MonthSummaryCard';
 import {Icon} from '../components/ui/Icon';
@@ -297,6 +298,8 @@ export default function HistoryScreen() {
               bestDate={bestDate}
               onSelectDate={selectDate}
             />
+            {/* 달력과 주간 총합 사이. 위아래 28 은 content gap 이라, 광고가 null 이면 간격도 생기지 않는다 */}
+            <InlineAdBanner />
             {!firstVisit ? (
               recent.isPending ? (
                 <Skeleton width="fill" height={192} />

@@ -43,8 +43,8 @@ describe('shouldShowInterstitial', () => {
 
 describe('rollDate', () => {
   it('날짜가 바뀌면 shownToday 와 lastShownAt 을 초기화한다', () => {
-    const next = rollDate({date: '2026-10-18', shownToday: 2, lastShownAt: 1, completedWorkouts: 5},
-                          new Date('2026-10-19T00:10:00+09:00'));
+    // 정오로 둬 기기 시간대(UTC−3…UTC+14)와 관계없이 10월 19일이 되게 한다
+    const next = rollDate({date: '2026-10-18', shownToday: 2, lastShownAt: 1, completedWorkouts: 5}, now);
     expect(next).toEqual({date: '2026-10-19', shownToday: 0, lastShownAt: null, completedWorkouts: 5});
   });
   it('같은 날이면 상태를 그대로 돌려준다', () => {

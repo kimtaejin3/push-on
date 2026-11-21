@@ -9,7 +9,13 @@ const mockGet = AsyncStorage.getItem as jest.Mock;
 const mockSet = AsyncStorage.setItem as jest.Mock;
 
 const now = new Date('2026-10-19T12:00:00+09:00');
-const state: AdState = {date: '2026-10-19', shownToday: 1, lastShownAt: 100, completedWorkouts: 3};
+const state: AdState = {
+  date: '2026-10-19',
+  shownToday: 1,
+  lastShownAt: 100,
+  completedWorkouts: 3,
+  testDate: null,
+};
 
 describe('adState', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -20,7 +26,7 @@ describe('adState', () => {
   it('저장값이 없으면 초기 상태를 돌려준다', async () => {
     mockGet.mockResolvedValue(null);
     await expect(loadAdState(now)).resolves.toEqual(
-      {date: '2026-10-19', shownToday: 0, lastShownAt: null, completedWorkouts: 0});
+      {date: '2026-10-19', shownToday: 0, lastShownAt: null, completedWorkouts: 0, testDate: null});
   });
   it('깨진 JSON 이면 초기 상태로 복구한다', async () => {
     mockGet.mockResolvedValue('{not json');
@@ -34,7 +40,17 @@ describe('adState', () => {
     mockGet.mockResolvedValue(JSON.stringify(
       {date: '2026-10-18', shownToday: 2, lastShownAt: 123, completedWorkouts: 7}));
     await expect(loadAdState(now)).resolves.toEqual(
-      {date: '2026-10-19', shownToday: 0, lastShownAt: 123, completedWorkouts: 7});
+      {date: '2026-10-19', shownToday: 0, lastShownAt: 123, completedWorkouts: 7, testDate: null});
+  });
+  it('testDate 가 없는 옛 저장값은 testDate: null 로 채워 돌려준다', async () => {
+    mockGet.mockResolvedValue(JSON.stringify(
+      {date: '2026-10-19', shownToday: 1, lastShownAt: 100, completedWorkouts: 3}));
+    await expect(loadAdState(now)).resolves.toEqual(
+      {date: '2026-10-19', shownToday: 1, lastShownAt: 100, completedWorkouts: 3, testDate: null});
+  });
+  it('저장된 testDate 는 그대로 읽는다', async () => {
+    mockGet.mockResolvedValue(JSON.stringify({...state, testDate: '2026-10-19'}));
+    await expect(loadAdState(now)).resolves.toMatchObject({testDate: '2026-10-19'});
   });
   it('saveAdState 는 JSON 으로 저장한다', async () => {
     await saveAdState(state);

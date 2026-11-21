@@ -80,6 +80,7 @@ const READY_STATE: AdState = {
   shownToday: 0,
   lastShownAt: null,
   completedWorkouts: 2,
+  testDate: null,
 };
 
 const emit = (type: string, payload?: unknown) =>

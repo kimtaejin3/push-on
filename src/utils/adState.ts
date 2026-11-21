@@ -21,7 +21,12 @@ export const loadAdState = async (now: Date = new Date()): Promise<AdState> => {
     ) {
       return createAdState(now);
     }
-    return rollDate(parsed as AdState, now);
+    // testDate 가 없는 옛 저장값(이 필드를 넣기 전 버전)은 테스트 기록 없음으로 채운다
+    const state: AdState = {
+      ...(parsed as AdState),
+      testDate: typeof parsed.testDate === 'string' ? parsed.testDate : null,
+    };
+    return rollDate(state, now);
   } catch {
     return createAdState(now);
   }

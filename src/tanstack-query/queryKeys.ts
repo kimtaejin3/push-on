@@ -31,6 +31,12 @@ export const queryKeys = {
     me: ['profile', 'me'] as const,
   },
 
+  // 스트릭 알림 설정 (폰에 저장). 설정 화면이 저장 뒤 무효화하면 알림을 다시 건다
+  streak: {
+    all: ['streak'] as const,
+    reminder: ['streak', 'reminder'] as const,
+  },
+
   // 100개 챌린지 프로그램
   program: {
     all: ['program'] as const,

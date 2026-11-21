@@ -17,7 +17,6 @@ import AccountSettingsScreen from '../screens/AccountSettingsScreen';
 import ProfileEditScreen from '../screens/ProfileEditScreen';
 import SetsSetupScreen from '../screens/SetsSetupScreen';
 import WorkoutScreen from '../screens/WorkoutScreen';
-import StatisticScreen from '../screens/StatisticScreen';
 import ProgramTableScreen from '../screens/ProgramTableScreen';
 import StreakScreen from '../screens/StreakScreen';
 import {WorkoutPlan} from '../domain/workoutSession';
@@ -47,7 +46,6 @@ const AppStack = createNativeStackNavigator({
     Challenge: ChallengeScreen,
     SetsSetup: SetsSetupScreen,
     Workout: WorkoutScreen,
-    Statistic: StatisticScreen,
     ProgramTable: ProgramTableScreen,
     Streak: StreakScreen,
     Setting: SettingScreen,
@@ -194,7 +192,6 @@ export type AppStackParamList = {
   Challenge: {purpose?: 'program-test'} | undefined;
   SetsSetup: undefined;
   Workout: {plan: WorkoutPlan; source: WorkoutSource};
-  Statistic: undefined;
   ProgramTable: undefined;
   Streak: undefined;
   Setting: undefined;

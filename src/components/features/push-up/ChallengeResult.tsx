@@ -6,6 +6,7 @@ import {colors} from '../../../constants/colors';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
 import {StackActions, useNavigation} from '@react-navigation/native';
 import {useSavePushupSessionMutation} from '../../../tanstack-query';
+import {useStreakCelebration} from '../streak/StreakCelebrationProvider';
 import {
   useSequentialAnimation,
   createScaleRotateStyle,
@@ -26,8 +27,11 @@ function ChallengeResult({pushUpCount, duration}: ChallengeResultProps): React.J
 
   // navigate 는 기존 화면으로 돌아가지 않고 새로 쌓으므로(React Navigation 7) popTo 로 돌아간다
   const goNext = () => navigation.dispatch(StackActions.popTo('Tabs'));
+  const {celebrateThen} = useStreakCelebration();
 
-  const savePushupMutation = useSavePushupSessionMutation(goNext, error => {
+  // 저장(또는 폰에 보관)됐으면 오늘 운동한 것이다 → 그날 첫 운동이면 축하 화면을 거친다.
+  // 저장하지 않는 0개 결과와 저장 실패(로그인 안 됨)는 바로 이동한다
+  const savePushupMutation = useSavePushupSessionMutation(() => celebrateThen(goNext), error => {
     console.error('푸쉬업 세션 저장 실패:', error);
     goNext();
   });

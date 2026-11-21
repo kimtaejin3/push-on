@@ -26,6 +26,7 @@ import {
 import {testOutcomeMessage} from '../../../domain/programMessages';
 import {canStartNewProgram, resolveProgramView} from '../../../domain/programView';
 import {formatTime} from '../../../utils/time';
+import {useStreakCelebration} from '../streak/StreakCelebrationProvider';
 
 interface ProgramTestResultProps {
   reps: number;
@@ -74,6 +75,9 @@ function ProgramTestResult({reps, duration}: ProgramTestResultProps): React.JSX.
   const result = resolved.current;
 
   const goProgram = () => navigation.dispatch(StackActions.popTo('Program'));
+  const {celebrateThen} = useStreakCelebration();
+  // 반영에 성공해 프로그램으로 돌아갈 때만 축하 화면을 거친다 (0개 결과는 goProgram 으로 바로 간다)
+  const finish = () => celebrateThen(goProgram);
 
   const handleSave = async () => {
     if (saving || !result || !user) {
@@ -98,7 +102,7 @@ function ProgramTestResult({reps, duration}: ProgramTestResultProps): React.JSX.
         if (saveFailed) {
           const {data: latest} = await query.refetch();
           if (latest?.status === 'active') {
-            goProgram();
+            finish();
             return;
           }
         }
@@ -112,7 +116,7 @@ function ProgramTestResult({reps, duration}: ProgramTestResultProps): React.JSX.
           existing: result.row.completed_days,
         });
       }
-      goProgram();
+      finish();
     } catch {
       setSaveFailed(true);
       setSaving(false);

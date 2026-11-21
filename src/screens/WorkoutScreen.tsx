@@ -35,6 +35,7 @@ import {shouldConfirmLeave} from '../domain/workoutSession';
 import {AppStackParamList} from '../navigations/AppNavigation';
 import {currentProgramQueryOptions, useUpdateProgramMutation} from '../tanstack-query';
 import {queryKeys} from '../tanstack-query/queryKeys';
+import {useStreakCelebration} from '../components/features/streak/StreakCelebrationProvider';
 
 /** 프로그램 운동 한 번의 판정 결과. 운동이 끝난 순간의 상태로 한 번만 정한다 */
 type DayOutcome = {
@@ -191,6 +192,19 @@ function WorkoutScreen(): React.JSX.Element {
         : StackActions.popTo('Tabs'),
     );
 
+  // 운동을 마친 요약 화면을 떠날 때: 1개라도 했으면 그날 첫 운동일 때 축하 화면을 거친다.
+  // 운동 중 그만두기(usePreventRemove)·반영 못 한 화면은 이걸 거치지 않는다
+  const {celebrateThen} = useStreakCelebration();
+  const didAny = state.results.some(reps => reps > 0);
+  const leaveSummary = (notice?: string) => {
+    const go = () => goBackToStart(notice);
+    if (didAny) {
+      celebrateThen(go);
+    } else {
+      go();
+    }
+  };
+
   const handleDowngrade = () => {
     // 방금 저장한 기록이 들어 있는 최신 행을 캐시에서 읽는다 (낡은 completed_days 로 덮어쓰지 않도록)
     const row = queryClient.getQueryData<ProgramRow | null>(queryKeys.program.current);
@@ -207,7 +221,7 @@ function WorkoutScreen(): React.JSX.Element {
         completedDay: moveRecord(moved, new Date().toISOString()),
         existing: row.completed_days,
       },
-      {onSuccess: () => goBackToStart(downgradeNotice(from, to))},
+      {onSuccess: () => leaveSummary(downgradeNotice(from, to))},
     );
   };
 
@@ -219,7 +233,7 @@ function WorkoutScreen(): React.JSX.Element {
           results={state.results}
           totalSeconds={totalSeconds.current}
           doneLabel="홈으로"
-          onDone={() => goBackToStart()}
+          onDone={() => leaveSummary()}
         />
       );
     }
@@ -271,7 +285,7 @@ function WorkoutScreen(): React.JSX.Element {
         downgrade={outcome.downgrade}
         save={{pending: recordMutation.isPending, error: recordMutation.isError, onRetry: retrySave}}
         move={{pending: moveMutation.isPending, error: moveMutation.isError}}
-        onDone={() => goBackToStart()}
+        onDone={() => leaveSummary()}
         onDowngrade={handleDowngrade}
       />
     );

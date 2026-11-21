@@ -7,6 +7,7 @@ import {getLatestAppVersion} from './src/remote/app';
 import {getCurrentAppVersion, isVersionNewer} from './src/utils/version';
 import {UpdateModal} from './src/components/common/UpdateModal';
 import {useReminderSync} from './src/hooks/useReminderSync';
+import {StreakCelebrationProvider} from './src/components/features/streak/StreakCelebrationProvider';
 
 export const queryClient = new QueryClient();
 
@@ -96,7 +97,10 @@ function App(): React.JSX.Element {
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
-        <AppNavigation />
+        {/* 축하 화면이 내비게이션 위에 뜨도록 감싼다 */}
+        <StreakCelebrationProvider>
+          <AppNavigation />
+        </StreakCelebrationProvider>
 
         {/* 업데이트 알림 모달 */}
         <UpdateModal

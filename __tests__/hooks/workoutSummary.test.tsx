@@ -18,6 +18,14 @@ jest.mock('../../src/remote/workoutHistory', () => ({
 jest.mock('../../src/components/ui/Icon', () => ({
   Icon: () => null,
 }));
+// 결과 화면의 광고 자리는 네이티브 모듈이 필요하다 → 이 테스트에서는 비운다
+jest.mock('../../src/constants/ads', () => ({NATIVE_RESULT_AD_UNIT_ID: 'test'}));
+jest.mock('../../src/hooks/useAds', () => ({
+  useAds: () => ({prepareInterstitial: () => {}}),
+}));
+jest.mock('../../src/components/ads/NativeAdCard', () => ({
+  NativeAdCard: () => null,
+}));
 
 const BEFORE = '2026-11-21T11:00:00.000Z';
 

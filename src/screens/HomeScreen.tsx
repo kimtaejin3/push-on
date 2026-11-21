@@ -11,12 +11,20 @@ import {useSession} from '../hooks/useSession';
 import {currentProgramQueryOptions} from '../tanstack-query';
 import {toProgramState} from '../remote/program';
 import {resolveProgramView} from '../domain/programView';
+import StreakBadge from '../components/features/streak/StreakBadge';
+import {useStreak} from '../hooks/useStreak';
+import {useNow} from '../hooks/useNow';
+import {streakBanner} from '../domain/streakMessages';
 
 function HomeScreen(): React.JSX.Element {
   const navigation = useNavigation();
   const {user} = useSession();
   const programQuery = useQuery(currentProgramQueryOptions(user?.id ?? ''));
   const programRow = programQuery.data;
+  // 스트릭 정보를 못 불러왔으면(null) 불꽃도 배너도 그리지 않는다
+  const streak = useStreak();
+  // 배너는 시각(18시 전후)에 따라 바뀐다 — 앱으로 돌아올 때 다시 읽는다
+  const {now} = useNow();
 
   // 조회 전·조회 실패일 때는 "시작 전"이라고 말하지 않는다 (진행 중인 사람에게 틀린 정보)
   const programStatusText = (): string | undefined => {
@@ -38,9 +46,21 @@ function HomeScreen(): React.JSX.Element {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.titleRow}>
-        <Logo width={26} height={26} fill={colors.primary} />
-        <Text style={styles.title}>PushOn</Text>
+      <View style={styles.top}>
+        <View style={styles.titleRow}>
+          <Logo width={26} height={26} fill={colors.primary} />
+          <Text style={styles.title}>PushOn</Text>
+          {streak && (
+            <View style={styles.badge}>
+              <StreakBadge
+                current={streak.current}
+                todayDone={streak.todayDone}
+                onPress={() => navigation.navigate('Streak')}
+              />
+            </View>
+          )}
+        </View>
+        {streak && <Text style={styles.banner}>{streakBanner(streak, now.getHours())}</Text>}
       </View>
 
       <Text style={styles.sectionTitle}>운동 모드</Text>
@@ -83,11 +103,22 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: colors.backgroundDark,
   },
+  top: {
+    gap: 8,
+    marginBottom: 32,
+  },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 32,
+  },
+  badge: {
+    marginLeft: 'auto',
+  },
+  banner: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.primaryLight,
   },
   title: {
     fontSize: 18,

@@ -18,6 +18,7 @@ import SetsSetupScreen from '../screens/SetsSetupScreen';
 import WorkoutScreen from '../screens/WorkoutScreen';
 import ProgramScreen from '../screens/ProgramScreen';
 import ProgramTableScreen from '../screens/ProgramTableScreen';
+import StreakScreen from '../screens/StreakScreen';
 import {WorkoutPlan} from '../domain/workoutSession';
 import {useSession} from '../hooks/useSession';
 import {colors} from '../constants/colors';
@@ -46,6 +47,7 @@ const AppStack = createNativeStackNavigator({
     Workout: WorkoutScreen,
     Program: ProgramScreen,
     ProgramTable: ProgramTableScreen,
+    Streak: StreakScreen,
     Setting: SettingScreen,
     TermsOfService: TermsOfServiceScreen,
     PrivacyPolicy: PrivacyPolicyScreen,
@@ -127,6 +129,7 @@ export type AppStackParamList = {
   /** notice: 하향·주차 변경 직후 한 번 보여줄 안내 */
   Program: {notice?: string} | undefined;
   ProgramTable: undefined;
+  Streak: undefined;
   Setting: undefined;
   TermsOfService: undefined;
   PrivacyPolicy: undefined;

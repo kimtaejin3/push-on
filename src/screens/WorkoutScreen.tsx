@@ -17,7 +17,7 @@ import ProgramDaySummary from '../components/features/program/ProgramDaySummary'
 import {colors} from '../constants/colors';
 import {formatTime} from '../utils/time';
 import {generateUuid} from '../utils/id';
-import {savePushupSession} from '../remote/pushup';
+import {saveWorkout} from '../remote/pushup';
 import {ProgramRow, toProgramState} from '../remote/program';
 import {
   attemptRecord,
@@ -93,7 +93,8 @@ function WorkoutScreen(): React.JSX.Element {
     totalSeconds.current += elapsed;
     handleStopTracking();
     if (reps > 0) {
-      savePushupSession({
+      // 실패하면 폰에 보관했다가 다시 보낸다('queued') — 운동은 그대로 이어간다
+      saveWorkout({
         reps,
         duration_seconds: elapsed,
         mode: isProgram ? 'program' : 'sets',
@@ -101,7 +102,12 @@ function WorkoutScreen(): React.JSX.Element {
         set_index: index + 1,
         target_reps: plan.sets[index],
       })
-        .then(() => queryClient.invalidateQueries({queryKey: queryKeys.pushup.all}))
+        .then(result => {
+          if (result === 'queued') {
+            setSaveError(true);
+          }
+          queryClient.invalidateQueries({queryKey: queryKeys.pushup.all});
+        })
         .catch(() => setSaveError(true));
     }
   }, [state.results, elapsed, handleStopTracking, plan.sets, isProgram, workoutId, queryClient]);
@@ -325,7 +331,7 @@ function WorkoutScreen(): React.JSX.Element {
         )}
 
         {saveError && (
-          <Text style={styles.warning}>세트 저장에 실패했어요. 네트워크를 확인해 주세요.</Text>
+          <Text style={styles.warning}>저장이 지연되고 있어요. 연결되면 자동으로 다시 보내요</Text>
         )}
 
         <View style={styles.footer}>

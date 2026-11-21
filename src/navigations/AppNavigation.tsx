@@ -23,6 +23,7 @@ import {useSession} from '../hooks/useSession';
 import {colors} from '../constants/colors';
 import Text from '../components/common/Text';
 import CustomButton from '../components/common/CustomButton';
+import StreakRuntime from '../components/features/streak/StreakRuntime';
 import {useEnsureProfile} from '../hooks/useEnsureProfile';
 
 const AppStack = createNativeStackNavigator({
@@ -89,7 +90,13 @@ const ConditionalNavigation = () => {
     );
   }
 
-  return <AppNavigation />;
+  // 보관 중인 운동 재전송은 로그인된 동안에만 돈다
+  return (
+    <>
+      <AppNavigation />
+      <StreakRuntime />
+    </>
+  );
 };
 
 const styles = StyleSheet.create({

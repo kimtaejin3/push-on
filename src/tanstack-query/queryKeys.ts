@@ -6,6 +6,9 @@ export const queryKeys = {
       ['pushup', 'sets', year, month, day] as const,
     calendar: (year: number, month: number) =>
       ['pushup', 'calendar', year, month] as const,
+    // 스트릭용. pushup 아래에 둬 운동 저장 뒤 pushup.all 무효화에 함께 묶인다
+    workoutDates: ['pushup', 'workoutDates'] as const,
+    pendingDates: ['pushup', 'pendingDates'] as const,
     stats: {
       all: ['pushup', 'stats'] as const,
       raw: (days: number) => ['pushup', 'stats', 'raw', days] as const,

@@ -13,7 +13,7 @@ import {
   useUpdateProgramMutation,
 } from '../../../tanstack-query';
 import {queryKeys} from '../../../tanstack-query/queryKeys';
-import {savePushupSession} from '../../../remote/pushup';
+import {saveWorkout} from '../../../remote/pushup';
 import {ProgramRow, toProgramState} from '../../../remote/program';
 import {
   describeSets,
@@ -81,11 +81,12 @@ function ProgramTestResult({reps, duration}: ProgramTestResultProps): React.JSX.
     }
     setSaving(true);
     setSaveFailed(false);
-    // 히스토리 기록은 한 번만 시도한다. 실패해도 프로그램 반영은 막지 않는다
+    // 히스토리 기록은 한 번만 보낸다. 실패하면 saveWorkout 이 폰에 보관했다가 다시 보내고,
+    // 프로그램 반영은 막지 않는다
     if (!sessionSaved.current) {
       sessionSaved.current = true;
       try {
-        await savePushupSession({reps, duration_seconds: duration, mode: 'program_test'});
+        await saveWorkout({reps, duration_seconds: duration, mode: 'program_test'});
         queryClient.invalidateQueries({queryKey: queryKeys.pushup.all});
       } catch (error) {
         console.error('테스트 기록 저장 실패:', error);

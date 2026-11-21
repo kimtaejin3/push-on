@@ -1,5 +1,10 @@
 import {supabase} from '../lib/supabase';
 import {formatKSTDate} from '../utils/time';
+import {
+  addPendingSave,
+  loadPendingSaves,
+  removePendingSave,
+} from '../utils/pendingSaves';
 
 export type WorkoutMode = 'challenge' | 'sets' | 'program' | 'program_test';
 
@@ -271,8 +276,12 @@ export const getMonthlyPushupStats = async (): Promise<MonthlyStatsData[]> => {
   }
 };
 
+export type WorkoutStamp = {workout_date: string; created_at: string};
+
+/** stamp 가 없으면 지금 날짜·시각으로 기록한다. 보관했다 다시 보낼 때는 원래 값을 넘긴다. */
 export const savePushupSession = async (
   data: SavePushupSessionData,
+  stamp?: WorkoutStamp,
 ): Promise<void> => {
   try {
     const {data: user} = await supabase.auth.getUser();
@@ -283,10 +292,10 @@ export const savePushupSession = async (
 
     const {error} = await supabase.from('pushup_sets').insert({
       user_id: user.user.id,
-      workout_date: formatKSTDate(new Date()),
+      workout_date: stamp?.workout_date ?? formatKSTDate(new Date()),
       reps: data.reps,
       duration_seconds: data.duration_seconds,
-      created_at: new Date().toISOString(),
+      created_at: stamp?.created_at ?? new Date().toISOString(),
       mode: data.mode ?? 'challenge',
       ...(data.workout_id !== undefined && {workout_id: data.workout_id}),
       ...(data.set_index !== undefined && {set_index: data.set_index}),
@@ -308,6 +317,104 @@ export const savePushupSession = async (
     console.error('푸쉬업 세션 저장 실패:', error);
     throw error;
   }
+};
+
+// 보관·재전송의 계정 확인은 저장된 세션으로 한다.
+// getUser 는 서버에 묻기 때문에 오프라인이면 "로그인 안 됨"이 되어, 정작 보관해야 할 때 운동을 잃는다.
+const currentUserId = async (): Promise<string | null> => {
+  const {
+    data: {session},
+  } = await supabase.auth.getSession();
+  return session?.user.id ?? null;
+};
+
+/**
+ * 운동 저장의 진입점. 저장에 실패하면 폰에 보관했다가 나중에 다시 보낸다
+ * (네트워크가 잠깐 끊긴 날 스트릭 하루를 잃지 않도록). 로그인 안 됨 외에는 throw 하지 않는다.
+ */
+export const saveWorkout = async (
+  data: SavePushupSessionData,
+): Promise<'saved' | 'queued'> => {
+  const userId = await currentUserId();
+  if (!userId) {
+    throw new Error('사용자가 로그인되지 않았습니다.');
+  }
+  // 날짜·시각을 먼저 정해 둬야 다시 보낼 때 원래 운동한 날로 기록되고, 중복 확인 키로도 쓴다
+  const stamp: WorkoutStamp = {
+    workout_date: formatKSTDate(new Date()),
+    created_at: new Date().toISOString(),
+  };
+  try {
+    await savePushupSession(data, stamp);
+  } catch {
+    try {
+      await addPendingSave({userId, ...stamp, data});
+    } catch (error) {
+      console.error('운동 보관 실패:', error);
+    }
+    return 'queued';
+  }
+  // 저장이 됐다면 연결이 살아 있으니, 보관 중인 운동도 이참에 보낸다
+  try {
+    await flushPendingSaves();
+  } catch (error) {
+    console.warn('보관 중인 운동 재전송 실패:', error);
+  }
+  return 'saved';
+};
+
+// 앱 시작·포그라운드 복귀·저장 성공이 겹쳐 동시에 돌면 같은 운동을 두 번 넣을 수 있어 하나만 돌린다
+let flushing: Promise<number> | null = null;
+
+/**
+ * 지금 로그인한 사용자의 보관분을 오래된 것부터 다시 보낸다. 보낸(또는 이미 있어 정리한) 개수를 돌려준다.
+ * 첫 시도가 실제로는 성공했을 수 있으므로, 같은 user_id + created_at 행이 있으면 지우기만 한다.
+ */
+export const flushPendingSaves = (): Promise<number> => {
+  if (!flushing) {
+    flushing = flushOnce().finally(() => {
+      flushing = null;
+    });
+  }
+  return flushing;
+};
+
+const flushOnce = async (): Promise<number> => {
+  const userId = await currentUserId();
+  if (!userId) {
+    return 0;
+  }
+  const mine = (await loadPendingSaves())
+    .filter(item => item.userId === userId)
+    .sort((a, b) => a.created_at.localeCompare(b.created_at));
+
+  let done = 0;
+  for (const item of mine) {
+    try {
+      const {data: found, error} = await supabase
+        .from('pushup_sets')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('created_at', item.created_at)
+        .limit(1)
+        .maybeSingle();
+      if (error) {
+        throw error;
+      }
+      if (!found) {
+        await savePushupSession(item.data, {
+          workout_date: item.workout_date,
+          created_at: item.created_at,
+        });
+      }
+      await removePendingSave(item.created_at);
+      done += 1;
+    } catch {
+      // 아직 연결이 안 되는 것 — 남은 것도 실패할 테니 다음 기회에 다시 보낸다
+      break;
+    }
+  }
+  return done;
 };
 
 /**

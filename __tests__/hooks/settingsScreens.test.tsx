@@ -16,6 +16,19 @@ import {queryKeys} from '../../src/tanstack-query/queryKeys';
 import {DEFAULT_REMINDER_SETTINGS} from '../../src/utils/reminder';
 
 jest.mock('../../src/components/ui/Icon', () => ({Icon: () => null}));
+// 설정의 광고 섹션은 네이티브 광고 모듈이 필요하다 → 이 테스트에서는 서버 광고 꺼짐으로 둔다
+jest.mock('../../src/hooks/useAds', () => ({
+  useAds: () => ({serverAdsEnabled: false}),
+}));
+jest.mock('../../src/utils/adsConsent', () => ({
+  canShowPrivacyOptions: jest.fn().mockResolvedValue(false),
+  getTrackingStatus: jest.fn().mockResolvedValue('unavailable'),
+  requestTracking: jest.fn(),
+  showPrivacyOptions: jest.fn(),
+}));
+jest.mock('../../src/components/features/ads/AdExitFlowProvider', () => ({
+  useTrackingPrePrompt: () => jest.fn(),
+}));
 
 const mockToast = jest.fn();
 jest.mock('../../src/components/ui/feedback/ToastProvider', () => ({

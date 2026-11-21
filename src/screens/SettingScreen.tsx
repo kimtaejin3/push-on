@@ -1,9 +1,11 @@
-import React from 'react';
-import {Linking, ScrollView, StyleSheet, View} from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {AppState, Linking, ScrollView, StyleSheet, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
+import {AdReportSheet} from '../components/features/ads/AdReportSheet';
+import {useTrackingPrePrompt} from '../components/features/ads/AdExitFlowProvider';
 import {Row} from '../components/ui/Row';
 import {Text} from '../components/ui/Text';
 import {Toggle} from '../components/ui/Toggle';
@@ -12,6 +14,14 @@ import {useToast} from '../components/ui/feedback/ToastProvider';
 import type {AppStackParamList} from '../navigations/AppNavigation';
 import {queryKeys} from '../tanstack-query/queryKeys';
 import {color, layout, space} from '../theme';
+import {useAds} from '../hooks/useAds';
+import {
+  canShowPrivacyOptions,
+  getTrackingStatus,
+  requestTracking,
+  showPrivacyOptions,
+  type TrackingStatus,
+} from '../utils/adsConsent';
 import {getCurrentAppVersion} from '../utils/version';
 import {
   DEFAULT_WORKOUT_PREFS,
@@ -31,6 +41,92 @@ function Section({title, children}: {title: string; children: React.ReactNode}) 
       </Text>
       <View>{children}</View>
     </View>
+  );
+}
+
+const TRACKING_STATUS_LABEL: Record<Exclude<TrackingStatus, 'unavailable'>, string> = {
+  authorized: '허용',
+  denied: '허용 안 함',
+  'not-determined': '아직 안 물어봄',
+  restricted: '제한됨',
+};
+
+/** 광고 동의·추적 허용·신고 방법. 서버에서 광고를 끈 동안에는 섹션 전체를 그리지 않는다 */
+function AdsPrivacySection() {
+  const {serverAdsEnabled} = useAds();
+  const showPrePrompt = useTrackingPrePrompt();
+  const [privacyOptions, setPrivacyOptions] = useState(false);
+  const [tracking, setTracking] = useState<TrackingStatus>('unavailable');
+  const [reportVisible, setReportVisible] = useState(false);
+  const requesting = useRef(false);
+
+  const refresh = useCallback(async () => {
+    const [canShow, status] = await Promise.all([
+      canShowPrivacyOptions(),
+      getTrackingStatus(),
+    ]);
+    setPrivacyOptions(canShow);
+    setTracking(status);
+  }, []);
+
+  useEffect(() => {
+    if (!serverAdsEnabled) {
+      return;
+    }
+    refresh();
+    // 시스템 설정에서 추적 허용을 바꾸고 돌아오면 다시 읽는다
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'active') {
+        refresh();
+      }
+    });
+    return () => subscription.remove();
+  }, [serverAdsEnabled, refresh]);
+
+  const handleTrackingPress = async () => {
+    if (tracking !== 'not-determined') {
+      // 한 번 정한 뒤에는 앱에서 다시 물을 수 없어 시스템 설정으로 보낸다
+      Linking.openSettings().catch(error => {
+        console.warn('[광고] 설정 앱 열기 실패:', error);
+      });
+      return;
+    }
+    // 연타로 사전 안내·ATT 창이 두 번 뜨지 않게 막는다
+    if (requesting.current) {
+      return;
+    }
+    requesting.current = true;
+    try {
+      setTracking(await requestTracking(showPrePrompt));
+    } finally {
+      requesting.current = false;
+    }
+  };
+
+  if (!serverAdsEnabled) {
+    return null;
+  }
+
+  return (
+    <Section title="광고와 개인정보">
+      {privacyOptions ? (
+        <Row icon="settings" title="맞춤 광고 동의 변경" onPress={showPrivacyOptions} />
+      ) : null}
+      {tracking !== 'unavailable' ? (
+        <Row
+          icon="lock"
+          title="앱 추적 허용"
+          value={TRACKING_STATUS_LABEL[tracking]}
+          onPress={handleTrackingPress}
+        />
+      ) : null}
+      <Row icon="flag" title="광고 신고하기" onPress={() => setReportVisible(true)} />
+      <Text variant="caption" color="textMuted" style={styles.sectionFoot}>
+        운동 기록·카메라 영상·건강 데이터는 광고에 쓰지 않아요. 운동 중에는 광고가
+        나오지 않아요.
+      </Text>
+      <AdReportSheet visible={reportVisible} onClose={() => setReportVisible(false)} />
+    </Section>
   );
 }
 
@@ -114,6 +210,8 @@ function SettingScreen() {
           />
         </Section>
 
+        <AdsPrivacySection />
+
         <Section title="정보">
           <Row
             icon="file-text"
@@ -144,4 +242,5 @@ const styles = StyleSheet.create({
   },
   title: {fontSize: 32, lineHeight: 40},
   section: {gap: space[4]},
+  sectionFoot: {paddingTop: 10},
 });

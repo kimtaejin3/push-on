@@ -8,21 +8,39 @@ import {
   View,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {Apple, CircleAlert, Info, MessageCircle} from 'lucide-react-native';
+import {CircleAlert, Info} from 'lucide-react-native';
+// 소셜 로그인 로고는 각 사의 브랜드 정책 때문에 디자인 시안 대신 기존 로고를 쓴다
+// (apple.svg·kakao.svg 는 Font Awesome Free 5 아이콘, CC BY 4.0)
+import AppleLogo from '../assets/svgs/apple.svg';
+import KakaoLogo from '../assets/svgs/kakao.svg';
+import GoogleLogo from '../assets/svgs/google.svg';
 import {Text} from '../components/ui/Text';
 import {useAuth} from '../hooks/useAuth';
 import {color, layout, radius, space} from '../theme';
 import type {Provider} from '../types/auth';
 
 const buttons = [
-  {provider: 'apple', name: 'Apple', title: 'Apple로 계속하기', icon: Apple},
+  {
+    provider: 'apple',
+    name: 'Apple',
+    title: 'Apple로 계속하기',
+    logo: AppleLogo,
+    logoColor: '#000000',
+  },
   {
     provider: 'kakao',
     name: '카카오',
     title: '카카오로 시작하기',
-    icon: MessageCircle,
+    logo: KakaoLogo,
+    logoColor: '#000000',
   },
-  {provider: 'google', name: 'Google', title: 'Google로 시작하기', icon: null},
+  {
+    provider: 'google',
+    name: 'Google',
+    title: 'Google로 시작하기',
+    logo: GoogleLogo,
+    logoColor: undefined,
+  },
 ] as const;
 
 export default function AuthScreen() {
@@ -76,8 +94,8 @@ export default function AuthScreen() {
             weight={500}
             color="textMuted"
             style={styles.subtitle}>
-            폰을 바닥에 두면 얼굴로 개수를 세요.{'\n'}
-            기록은 계정에 안전하게 남아요.
+            PT 받으러 헬스장 가기 전에,{'\n'}
+            100개 먼저 만들고 가세요.
           </Text>
         </View>
 
@@ -103,7 +121,7 @@ export default function AuthScreen() {
               </Text>
             </View>
           )}
-          {buttons.map(({provider, name, title, icon: Glyph}) => {
+          {buttons.map(({provider, name, title, logo: Logo, logoColor}) => {
             if (provider === 'apple' && Platform.OS !== 'ios') {
               return null;
             }
@@ -128,12 +146,8 @@ export default function AuthScreen() {
                 ]}>
                 {busy ? (
                   <ActivityIndicator size="small" color={color[tint]} />
-                ) : Glyph ? (
-                  <Glyph size={18} color={color[tint]} accessible={false} />
                 ) : (
-                  <Text color={tint} weight={800}>
-                    G
-                  </Text>
+                  <Logo width={20} height={20} color={logoColor} />
                 )}
                 <Text color={tint} weight={700}>
                   {busy ? `${name}로 로그인 중…` : title}

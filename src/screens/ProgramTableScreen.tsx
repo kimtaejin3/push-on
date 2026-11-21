@@ -13,8 +13,12 @@ import {resolveProgramView} from '../domain/programView';
 
 const LEVELS: Level[] = [1, 2, 3];
 
+// 1주차 레벨 1 처럼 min 이 0 이면 "0~5개" 대신 "5개 이하"로 읽히게 한다
 const rangeText = ({min, max}: {min: number; max: number | null}): string =>
-  max === null ? `${min}개 이상` : `${min}~${max}개`;
+  max === null ? `${min}개 이상` : min === 0 ? `${max}개 이하` : `${min}~${max}개`;
+
+const inRange = (reps: number, {min, max}: {min: number; max: number | null}): boolean =>
+  reps >= min && (max === null || reps <= max);
 
 /**
  * 주차·레벨별 전체 세트 표.
@@ -96,17 +100,24 @@ function ProgramTableScreen() {
           })}
         </View>
         <Text style={styles.caption}>
-          테스트 결과로 레벨이 정해져요.{'\n'}마지막 세트(+)는 최소 횟수 이상 가능한 만큼 해요.
+          매일 한 Day 씩, 한 주는 7일이에요.{'\n'}테스트 결과로 레벨이 정해져요.{'\n'}마지막 세트(+)는 최소 횟수 이상 가능한 만큼 해요.
           {canJump ? '\n‘여기서부터’를 누르면 그 주차·레벨의 Day 1부터 다시 진행할 수 있어요.' : ''}
         </Text>
 
         {table.map(week => {
           const isCurrentWeek = isCurrentLevel && current?.week === week.week;
+          const range = levelRange(week.week, level);
+          // 주차마다 레벨 범위가 겹치지 않아 최근 기록은 한 레벨 탭에만 표시된다
+          const myRecord = current && inRange(current.lastTestReps, range) ? current.lastTestReps : null;
           return (
             <View key={week.week} style={[styles.weekCard, isCurrentWeek && styles.weekCardCurrent]}>
               <View style={styles.weekHeader}>
                 <View style={styles.weekTitleRow}>
                   <Text style={styles.weekTitle}>{week.week}주차</Text>
+                  <Text style={styles.weekRange}>
+                    최대 {rangeText(range)} 기준
+                    {myRecord !== null && <Text style={styles.myRecord}> · 내 기록 {myRecord}개</Text>}
+                  </Text>
                   {week.hasTest && <Text style={styles.testBadge}>끝나면 테스트</Text>}
                 </View>
                 {isCurrentWeek && current ? (
@@ -135,7 +146,9 @@ function ProgramTableScreen() {
                       <Text style={[styles.daySets, isCurrentDay && styles.currentText]}>
                         {day.sets}
                       </Text>
-                      <Text style={styles.dayRest}>휴식 {day.restSeconds}초</Text>
+                      <Text style={styles.dayRest}>
+                        합 {day.total} · 휴식 {day.restSeconds}초
+                      </Text>
                     </View>
                   </View>
                 );
@@ -180,8 +193,19 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     minHeight: 32,
   },
-  weekTitleRow: {flexDirection: 'row', alignItems: 'baseline', gap: 8},
+  // 기준·내 기록·테스트 표시가 길어지면 오른쪽 버튼을 밀지 않고 다음 줄로 넘긴다
+  weekTitleRow: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'baseline',
+    columnGap: 8,
+    rowGap: 2,
+    marginRight: 8,
+  },
   weekTitle: {fontSize: 16, fontWeight: '600', color: colors.textLight},
+  weekRange: {fontSize: 12, color: colors.gray400},
+  myRecord: {color: colors.primaryLight, fontWeight: '600'},
   testBadge: {fontSize: 12, color: colors.primaryLight},
   here: {fontSize: 13, fontWeight: '600', color: colors.primaryLight},
   jump: {
@@ -199,9 +223,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 8,
   },
-  dayLabel: {fontSize: 14, color: colors.textSecondary},
-  dayRight: {alignItems: 'flex-end', gap: 2},
-  daySets: {fontSize: 15, fontWeight: '600', color: colors.textLight},
+  dayLabel: {fontSize: 14, color: colors.textSecondary, marginRight: 12},
+  // 5·6주차는 8~9세트라 세트 문자열이 좁은 화면에서 줄바꿈되도록 남은 폭을 준다
+  dayRight: {flex: 1, alignItems: 'flex-end', gap: 2},
+  daySets: {fontSize: 15, fontWeight: '600', color: colors.textLight, textAlign: 'right'},
   dayRest: {fontSize: 12, color: colors.gray400},
   currentText: {color: colors.primaryLight},
 });

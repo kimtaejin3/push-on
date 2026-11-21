@@ -10,6 +10,7 @@ import {useReminderSync} from './src/hooks/useReminderSync';
 import {StreakCelebrationProvider} from './src/components/features/streak/StreakCelebrationProvider';
 import {useAds} from './src/hooks/useAds';
 import {useAdConfigRefresh} from './src/hooks/useAdConfigRefresh';
+import {loadConsentFlowDone} from './src/utils/adsConsent';
 import {OfflineBar} from './src/components/ui/feedback/OfflineBar';
 import {ToastProvider} from './src/components/ui/feedback/ToastProvider';
 
@@ -22,6 +23,10 @@ export const queryClient = new QueryClient();
  * 서버에서 광고를 끄면 바로 반영되도록 포그라운드 복귀 때와 5분마다 설정을 다시 읽는다.
  */
 function AdsBootstrap() {
+  // 지난 실행에서 동의 흐름(ATT·UMP)을 끝냈는지 읽어 둔다. 끝나기 전에는 SDK 초기화·광고 요청을 하지 않는다
+  useEffect(() => {
+    loadConsentFlowDone();
+  }, []);
   useAds();
   useAdConfigRefresh();
   return null;

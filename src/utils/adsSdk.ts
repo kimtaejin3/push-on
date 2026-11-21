@@ -1,28 +1,28 @@
 import mobileAds, {AdsConsent, MaxAdContentRating} from 'react-native-google-mobile-ads';
+import {isConsentFlowDone} from './adsConsent';
 
 // 앱 실행 중 한 번만 초기화한다. 여러 화면의 useAds 가 동시에 불러도 같은 프라미스를 기다린다
 let initPromise: Promise<boolean> | null = null;
 let ready = false;
 
-/** 동의 확인과 SDK 초기화가 끝나 광고를 요청해도 되는지 */
+/** 동의 흐름과 SDK 초기화가 끝나 광고를 요청해도 되는지 */
 export const isAdsSdkReady = (): boolean => ready;
 
 /**
- * UMP 동의를 확인하고 AdMob SDK 를 초기화한다. 서버 설정에서 광고가 켜졌을 때만 부른다
- * (꺼져 있는 동안에는 SDK 를 깨우지도, 동의를 묻지도 않는다).
+ * AdMob SDK 를 초기화한다. 서버 설정에서 광고가 켜졌을 때만 부른다
+ * (꺼져 있는 동안에는 SDK 를 깨우지 않는다).
+ * 동의 흐름(adsConsent.runConsentFlow — ATT·UMP)이 끝나기 전에는 초기화하지 않고 false 를 돌려준다.
+ * 이때는 결과를 기억하지 않아, 동의가 끝난 뒤 다시 부르면 초기화한다.
  * 어떤 실패도 밖으로 던지지 않고 false 를 돌려준다 → 광고 비노출, 앱은 정상 동작.
  */
 export const initializeAdsSdk = (): Promise<boolean> => {
+  if (!isConsentFlowDone()) {
+    return Promise.resolve(false);
+  }
   if (!initPromise) {
     initPromise = (async () => {
       try {
-        try {
-          // EEA 등 동의가 필요한 지역에서만 폼이 뜬다. 한국 사용자에게는 표시되지 않는다
-          await AdsConsent.gatherConsent();
-        } catch (error) {
-          // 문서 권장대로, 실패해도 이전 세션의 동의 상태로 요청 가능 여부를 판단한다
-          console.warn('[광고] 동의 확인 실패:', error);
-        }
+        // UMP 양식은 동의 흐름에서 이미 돌았다. 그 결과(또는 이전 세션의 동의)로 요청 가능 여부만 본다
         const {canRequestAds} = await AdsConsent.getConsentInfo();
         if (!canRequestAds) {
           return false;

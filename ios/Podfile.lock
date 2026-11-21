@@ -1940,6 +1940,30 @@ PODS:
     - RNNotifee/NotifeeCore (= 9.1.8)
   - RNNotifee/NotifeeCore (9.1.8):
     - React-Core
+  - RNPermissions (5.6.3):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNReactNativeHapticFeedback (2.3.3):
     - DoubleConversion
     - glog
@@ -2150,6 +2174,7 @@ DEPENDENCIES:
   - RNGoogleMobileAds (from `../node_modules/react-native-google-mobile-ads`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
   - "RNNotifee (from `../node_modules/@notifee/react-native`)"
+  - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSVG (from `../node_modules/react-native-svg`)
@@ -2340,6 +2365,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-google-signin/google-signin"
   RNNotifee:
     :path: "../node_modules/@notifee/react-native"
+  RNPermissions:
+    :path: "../node_modules/react-native-permissions"
   RNReactNativeHapticFeedback:
     :path: "../node_modules/react-native-haptic-feedback"
   RNScreens:
@@ -2450,12 +2477,13 @@ SPEC CHECKSUMS:
   RNGoogleMobileAds: 8000476b3764d40a80362aec81edb32b099c796d
   RNGoogleSignin: 5250b56fb94c80cba216bac1f3f57bb7eb076be8
   RNNotifee: 5e3b271e8ea7456a36eec994085543c9adca9168
+  RNPermissions: 1e19a38fd842068cd2afdaf3fe76a60c2a59ff5b
   RNReactNativeHapticFeedback: 851adf794e1fcdc0664d80820fa3272ee8a6a538
   RNScreens: 824a29c178e253fe8b08fb0b2903195d35f724f2
   RNSVG: ba22deba00b123dd9bca2e5540b6fbc0d3f858cb
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: a6cb833e04fb8c59a012b49fb1d040fcb0cbb633
 
-PODFILE CHECKSUM: 8b0d1b8dfad4bc8c033623e85b20cdae9d01ca63
+PODFILE CHECKSUM: f19def11653c6ee6a16fa9e65967b26111c91ba9
 
 COCOAPODS: 1.16.2

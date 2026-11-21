@@ -43,4 +43,10 @@ export const queryKeys = {
     all: ['program'] as const,
     current: ['program', 'current'] as const,
   },
+
+  // 서버 앱 설정 (광고 on/off 등)
+  appConfig: {
+    all: ['appConfig'] as const,
+    ads: ['appConfig', 'ads'] as const,
+  },
 } as const;

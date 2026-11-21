@@ -1,7 +1,7 @@
 import {
   assignLevel, startProgram, todayPlan, completeDay, applyTest, describeSets, retestLevel, dayAchievementRate, shouldSuggestRepeat, initialTestPreview, programTable,
   isDayPassed, missedSets, attemptRecord, moveRecord, failStreak, lastFailure, passedDayCount,
-  downgradeTarget, moveTo, levelRange, testThreshold,
+  downgradeTarget, moveTo, levelRange, testThreshold, resolveTest,
 } from '../../src/domain/hundredPushups';
 import {PROGRAM} from '../../src/constants/hundredPushups';
 
@@ -282,5 +282,41 @@ describe('levelRange / testThreshold', () => {
   });
   it('테스트 통과 기준', () => {
     expect([1, 2, 3, 4, 5, 6].map(testThreshold)).toEqual([null, 16, null, 31, 46, 100]);
+  });
+});
+
+describe('resolveTest', () => {
+  const s = (week: number, day: number, level: 1 | 2 | 3, testDue: boolean) =>
+    ({week, day, level, lastTestReps: 0, testDue, status: 'active' as const});
+  it('프로그램이 없으면 새로 시작', () => {
+    const r = resolveTest(null, 8);
+    expect(r.next).toEqual(startProgram(8));
+    expect(r.outcome).toEqual({kind: 'start', week: 1, level: 2});
+  });
+  it('완료된 프로그램에서 재면 새로 시작', () => {
+    const done = {...s(6, 3, 3, false), status: 'completed' as const};
+    expect(resolveTest(done, 23).outcome).toEqual({kind: 'start', week: 3, level: 2});
+  });
+  it('주차 테스트 통과 → advance', () => {
+    const r = resolveTest(s(2, 3, 1, true), 23);
+    expect(r.next).toMatchObject({week: 3, day: 1, level: 2});
+    expect(r.outcome).toEqual({kind: 'advance', week: 3, level: 2});
+  });
+  it('주차 테스트 미달 → repeat (기준·부족 개수·레벨 변화 포함)', () => {
+    expect(resolveTest(s(2, 3, 2, true), 14).outcome)
+      .toEqual({kind: 'repeat', week: 2, level: 3, prevLevel: 2, threshold: 16, short: 2});
+    expect(resolveTest(s(2, 3, 3, true), 8).outcome)
+      .toEqual({kind: 'repeat', week: 2, level: 2, prevLevel: 3, threshold: 16, short: 8});
+  });
+  it('최종 테스트 미달 → finalMiss, 100개 이상 → completed', () => {
+    expect(resolveTest(s(6, 3, 3, true), 87).outcome).toEqual({kind: 'finalMiss', level: 3, prevLevel: 3, short: 13});
+    const r = resolveTest(s(6, 3, 3, true), 100);
+    expect(r.outcome).toEqual({kind: 'completed'});
+    expect(r.next.status).toBe('completed');
+  });
+  it('테스트 차례가 아니면 레벨 다시 재기', () => {
+    const r = resolveTest(s(3, 2, 3, false), 17);
+    expect(r.next).toMatchObject({week: 3, day: 2, level: 1, lastTestReps: 17});
+    expect(r.outcome).toEqual({kind: 'retest', week: 3, level: 1, prevLevel: 3});
   });
 });

@@ -297,3 +297,55 @@ export const testThreshold = (week: number): number | null => {
   }
   return week === WEEKS ? FINAL_GOAL : THRESHOLDS[week + 1][0];
 };
+
+/** 테스트 결과가 무엇을 뜻하는지 (결과 화면 안내용) */
+export type TestOutcome =
+  | {kind: 'start'; week: number; level: Level}
+  | {kind: 'advance'; week: number; level: Level}
+  | {kind: 'repeat'; week: number; level: Level; prevLevel: Level; threshold: number; short: number}
+  | {kind: 'finalMiss'; level: Level; prevLevel: Level; short: number}
+  | {kind: 'completed'}
+  | {kind: 'retest'; week: number; level: Level; prevLevel: Level};
+
+/**
+ * 최대 횟수 테스트 결과를 프로그램에 반영한 다음 상태와, 그 의미.
+ * 프로그램이 없거나 완료 상태면 새로 시작, 테스트 차례면 주차 테스트, 아니면 레벨 다시 재기.
+ */
+export const resolveTest = (
+  state: ProgramState | null,
+  reps: number,
+): {next: ProgramState; outcome: TestOutcome} => {
+  if (!state || state.status === 'completed') {
+    const next = startProgram(reps);
+    return {next, outcome: {kind: 'start', week: next.week, level: next.level}};
+  }
+  if (!state.testDue) {
+    const next = retestLevel(state, reps);
+    return {next, outcome: {kind: 'retest', week: next.week, level: next.level, prevLevel: state.level}};
+  }
+  const next = applyTest(state, reps);
+  if (next.status === 'completed') {
+    return {next, outcome: {kind: 'completed'}};
+  }
+  if (state.week === WEEKS) {
+    return {
+      next,
+      outcome: {kind: 'finalMiss', level: next.level, prevLevel: state.level, short: FINAL_GOAL - reps},
+    };
+  }
+  if (next.week > state.week) {
+    return {next, outcome: {kind: 'advance', week: next.week, level: next.level}};
+  }
+  const threshold = testThreshold(state.week) ?? 0;
+  return {
+    next,
+    outcome: {
+      kind: 'repeat',
+      week: next.week,
+      level: next.level,
+      prevLevel: state.level,
+      threshold,
+      short: threshold - reps,
+    },
+  };
+};

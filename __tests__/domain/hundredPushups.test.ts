@@ -1,6 +1,6 @@
 import {
   assignLevel, startProgram, todayPlan, completeDay, applyTest, describeSets, retestLevel, initialTestPreview, programTable,
-  isDayPassed, missedSets, attemptRecord, moveRecord, failStreak, lastFailure, passedDayCount,
+  isDayPassed, missedSets, attemptRecord, moveRecord, testRecord, todayProgress, failStreak, lastFailure, passedDayCount,
   downgradeTarget, moveTo, levelRange, testThreshold, resolveTest, describeSetsAt, planMatches,
 } from '../../src/domain/hundredPushups';
 import {PROGRAM} from '../../src/constants/hundredPushups';
@@ -169,8 +169,11 @@ describe('programTable', () => {
 const pos = (week: number, day: number, level: 1 | 2 | 3) =>
   ({week, day, level, lastTestReps: 12, testDue: false, status: 'active' as const});
 const at = '2026-11-19T10:00:00.000Z';
-const fail = (s: ReturnType<typeof pos>) => attemptRecord(s, [14, 16, 12, 12, 17], [14, 13, 12, 10, 17], at);
-const pass = (s: ReturnType<typeof pos>) => attemptRecord(s, [14, 16, 12, 12, 17], [14, 16, 12, 12, 19], at);
+const fail = (s: ReturnType<typeof pos>) => {
+  const targets = todayPlan(s).sets;
+  return attemptRecord(s, targets, targets.map((n, i) => (i === 1 ? n - 1 : n)), at); // 세트 2 만 1개 부족
+};
+const pass = (s: ReturnType<typeof pos>) => attemptRecord(s, todayPlan(s).sets, todayPlan(s).sets, at);
 
 describe('isDayPassed / missedSets', () => {
   it('모든 세트가 목표 이상이어야 통과', () => {
@@ -193,7 +196,7 @@ describe('isDayPassed / missedSets', () => {
 describe('attemptRecord / moveRecord', () => {
   it('시도 기록은 위치·목표·결과·통과 여부를 담는다', () => {
     expect(fail(pos(2, 2, 3))).toEqual({
-      week: 2, day: 2, level: 3, targets: [14, 16, 12, 12, 17], reps: [14, 13, 12, 10, 17], passed: false, completed_at: at,
+      week: 2, day: 2, level: 3, targets: [8, 9, 6, 6, 9], reps: [8, 8, 6, 6, 9], passed: false, completed_at: at,
     });
     expect(pass(pos(2, 2, 3)).passed).toBe(true);
   });
@@ -225,6 +228,63 @@ describe('failStreak / lastFailure / passedDayCount', () => {
   it('passedDayCount 는 통과한 시도만 센다 (예전 기록 포함, 실패·이동 제외)', () => {
     const legacy = {week: 1, day: 1, reps: [6, 6, 4, 4, 5], completed_at: at};
     expect(passedDayCount([legacy, pass(s), fail(s), moveRecord(s, at)])).toBe(2);
+  });
+});
+
+describe('옛 표에서 남긴 실패는 세지 않는다', () => {
+  const s = pos(2, 2, 3);
+  const oldFail = attemptRecord(s, [14, 16, 12, 12, 17], [14, 13, 12, 10, 17], at); // 3일 표 시절의 목표
+  it('목표가 지금 세트와 다르면 연속 실패·지난 실패에서 뺀다', () => {
+    expect(failStreak([oldFail, oldFail], s)).toBe(0);
+    expect(lastFailure([oldFail], s)).toBeNull();
+  });
+  it('옛 실패 뒤에 지금 표로 실패하면 그것만 센다', () => {
+    expect(failStreak([oldFail, fail(s)], s)).toBe(1);
+  });
+});
+
+describe('testRecord / passedDayCount', () => {
+  it('테스트 표시는 kind: test 이고 시도가 아니다', () => {
+    const s = pos(3, 1, 2);
+    expect(testRecord(s, at)).toEqual({kind: 'test', week: 3, day: 1, level: 2, reps: [], completed_at: at});
+    expect(passedDayCount([pass(s), testRecord(s, at), moveRecord(s, at)])).toBe(1);
+  });
+  it('테스트 표시에서 연속 실패가 끊긴다', () => {
+    const s = pos(2, 2, 3);
+    expect(failStreak([fail(s), fail(s), testRecord(s, at)], s)).toBe(0);
+  });
+});
+
+describe('todayProgress (오늘 할 일을 했는가)', () => {
+  const s = pos(3, 2, 2);
+  const now = new Date(2026, 10, 21, 15, 0);                       // 기기 날짜 11월 21일
+  const today = new Date(2026, 10, 21, 9, 0).toISOString();
+  const yesterday = new Date(2026, 10, 20, 23, 50).toISOString();
+  const longAgo = new Date(2026, 10, 1, 9, 0).toISOString();
+  const passAt = (state: ReturnType<typeof pos>, when: string) =>
+    attemptRecord(state, todayPlan(state).sets, todayPlan(state).sets, when);
+  const failAt = (state: ReturnType<typeof pos>, when: string) =>
+    attemptRecord(state, todayPlan(state).sets, todayPlan(state).sets.map(() => 0), when);
+
+  it('오늘 기록이 없으면 open', () => {
+    expect(todayProgress([], s, longAgo, now)).toBe('open');
+    expect(todayProgress([passAt(pos(3, 1, 2), yesterday)], s, longAgo, now)).toBe('open'); // 어제 통과는 오늘이 아니다
+  });
+  it('오늘 통과했으면 doneWorkout', () => {
+    expect(todayProgress([passAt(pos(3, 1, 2), today)], s, longAgo, now)).toBe('doneWorkout');
+  });
+  it('오늘 테스트를 했으면 doneTest', () => {
+    expect(todayProgress([testRecord(s, today)], s, longAgo, now)).toBe('doneTest');
+  });
+  it('초기 테스트로 오늘 프로그램을 만들었으면 doneTest', () => {
+    expect(todayProgress([], pos(1, 1, 2), today, now)).toBe('doneTest');
+  });
+  it('마지막 기록이 지금 위치의 실패면 오늘 통과가 있어도 open (미리 하다 실패)', () => {
+    expect(todayProgress([passAt(pos(3, 1, 2), today), failAt(s, today)], s, longAgo, now)).toBe('open');
+  });
+  it('이동 표시만으로는 완료가 아니고, 오늘 통과 뒤의 이동은 완료를 지우지 않는다', () => {
+    expect(todayProgress([moveRecord(s, today)], s, longAgo, now)).toBe('open');
+    expect(todayProgress([passAt(pos(3, 1, 2), today), moveRecord(s, today)], s, longAgo, now)).toBe('doneWorkout');
   });
 });
 

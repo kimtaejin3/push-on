@@ -20,6 +20,7 @@ import {
   ProgramState,
   resolveTest,
   TestOutcome,
+  testRecord,
   todayPlan,
 } from '../../../domain/hundredPushups';
 import {testOutcomeMessage} from '../../../domain/programMessages';
@@ -102,7 +103,13 @@ function ProgramTestResult({reps, duration}: ProgramTestResultProps): React.JSX.
         }
         await createProgram.mutateAsync({userId: user.id, state: result.next});
       } else if (result.row) {
-        await updateProgram.mutateAsync({id: result.row.id, state: result.next});
+        // 테스트를 한 날로 남긴다: 오늘 할 일을 했는지 판단하고 연속 실패를 끊는 데 쓴다
+        await updateProgram.mutateAsync({
+          id: result.row.id,
+          state: result.next,
+          completedDay: testRecord(result.next, new Date().toISOString()),
+          existing: result.row.completed_days,
+        });
       }
       goProgram();
     } catch {

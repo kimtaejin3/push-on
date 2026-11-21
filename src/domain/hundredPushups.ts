@@ -162,7 +162,7 @@ export const programTable = (level: Level): ProgramTableWeek[] =>
   }));
 
 /**
- * completed_days 에 쌓이는 기록. 시도(통과/실패) 또는 이동 표시.
+ * completed_days 에 쌓이는 기록. 시도(통과/실패), 이동 표시 또는 테스트 표시.
  * 구버전 앱이 남긴 기록에는 level/targets/passed 가 없다 — passed 가 없으면 통과로 본다.
  */
 export type ProgramRecord = {
@@ -173,8 +173,8 @@ export type ProgramRecord = {
   level?: Level;
   targets?: number[];
   passed?: boolean;
-  /** 하향·주차 변경 표시. 시도가 아니다 */
-  kind?: 'move';
+  /** 하향·주차 변경(move) 또는 최대 횟수 테스트(test) 표시. 시도가 아니다 */
+  kind?: 'move' | 'test';
 };
 
 export type Position = {week: number; day: number; level: Level};
@@ -220,12 +220,30 @@ export const moveRecord = (state: ProgramState, at: string): ProgramRecord => ({
   completed_at: at,
 });
 
+/** 최대 횟수 테스트 표시. 테스트를 반영한 "뒤"의 상태를 받는다 */
+export const testRecord = (state: ProgramState, at: string): ProgramRecord => ({
+  kind: 'test',
+  week: state.week,
+  day: state.day,
+  level: state.level,
+  reps: [],
+  completed_at: at,
+});
+
+const sameSets = (a: number[] | undefined, b: number[]): boolean =>
+  !!a && a.length === b.length && a.every((n, i) => n === b[i]);
+
+/**
+ * 현재 위치의 실패인가. 3일 표 시절에 남긴 실패는 위치가 같아도 목표가 달라
+ * 지금 세트로는 실패한 적이 없는 것이므로 세지 않는다.
+ */
 const isFailureAt = (record: ProgramRecord, state: ProgramState): boolean =>
-  record.kind !== 'move' &&
+  record.kind === undefined &&
   record.passed === false &&
   record.week === state.week &&
   record.day === state.day &&
-  record.level === state.level;
+  record.level === state.level &&
+  sameSets(record.targets, todayPlan(state).sets);
 
 /** 현재 위치(주차·Day·레벨)의 실패가 기록 끝에서부터 이어진 개수 */
 export const failStreak = (records: ProgramRecord[], state: ProgramState): number => {
@@ -242,9 +260,48 @@ export const lastFailure = (records: ProgramRecord[], state: ProgramState): Prog
   return last && isFailureAt(last, state) ? last : null;
 };
 
-/** 통과한 운동 일수 (예전 기록 포함, 실패·이동 표시 제외) */
+/** 통과한 운동 일수 (예전 기록 포함, 실패·이동·테스트 표시 제외) */
 export const passedDayCount = (records: ProgramRecord[]): number =>
-  records.filter(r => r.kind !== 'move' && r.passed !== false).length;
+  records.filter(r => r.kind === undefined && r.passed !== false).length;
+
+export type TodayProgress = 'open' | 'doneWorkout' | 'doneTest';
+
+/** "오늘"은 기기 날짜 기준이라 UTC 가 아닌 로컬 연·월·일을 비교한다 */
+const isSameLocalDay = (iso: string, now: Date): boolean => {
+  const d = new Date(iso);
+  return (
+    d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()
+  );
+};
+
+/**
+ * 오늘 할 일을 했는가. 지금 위치에서 방금 실패했다면 오늘 앞서 통과했어도 다시 할 일이 남은 것이다.
+ * 이동 표시는 할 일을 한 것도, 한 것을 지우는 것도 아니어서 건너뛴다.
+ * createdAt 이 오늘이면 초기 테스트를 오늘 한 것으로 본다.
+ */
+export const todayProgress = (
+  records: ProgramRecord[],
+  state: ProgramState,
+  createdAt: string,
+  now: Date,
+): TodayProgress => {
+  if (lastFailure(records, state)) {
+    return 'open';
+  }
+  for (let i = records.length - 1; i >= 0; i--) {
+    const r = records[i];
+    if (!isSameLocalDay(r.completed_at, now)) {
+      continue;
+    }
+    if (r.kind === 'test') {
+      return 'doneTest';
+    }
+    if (r.kind === undefined && r.passed !== false) {
+      return 'doneWorkout';
+    }
+  }
+  return isSameLocalDay(createdAt, now) ? 'doneTest' : 'open';
+};
 
 /**
  * 하향 대상. 레벨 2·3 은 같은 주차·Day 의 한 레벨 아래,

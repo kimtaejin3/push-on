@@ -1,7 +1,7 @@
 import {supabase} from '../lib/supabase';
 import {ProgramState, ProgramRecord, Level} from '../domain/hundredPushups';
 
-/** completed_days 의 한 건: 시도(통과/실패) 또는 이동 표시 */
+/** completed_days 의 한 건: 시도(통과/실패), 이동 표시 또는 테스트 표시 */
 export type CompletedDay = ProgramRecord;
 
 export interface ProgramRow {

@@ -65,7 +65,7 @@ function ProgramDaySummary({
     if (passed) {
       return nextLabel.endsWith('테스트')
         ? `다음은 ${nextLabel}예요. 충분히 쉰 날에 재는 걸 권해요.`
-        : `다음은 ${nextLabel} · 하루 쉬고 하는 걸 권해요.`;
+        : `다음은 ${nextLabel} · 내일 이어서 해요.`;
     }
     const rule = `모든 세트를 채워야 다음(${nextLabel})으로 넘어가요.`;
     if (offerDowngrade && downgrade) {

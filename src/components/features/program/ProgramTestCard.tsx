@@ -12,13 +12,13 @@ interface ProgramTestCardProps {
   onOpenTable: () => void;
 }
 
-/** 마지막 운동(이동 표시 제외)이 오늘(기기 날짜)인지 */
+/** 마지막 운동 시도(이동·테스트 표시 제외)가 오늘(기기 날짜)인지 */
 const workedOutToday = (records: ProgramRecord[]): boolean => {
-  const last = [...records].reverse().find(r => r.kind !== 'move');
+  const last = [...records].reverse().find(r => r.kind === undefined);
   return !!last && new Date(last.completed_at).toDateString() === new Date().toDateString();
 };
 
-/** 테스트 차례 카드: 통과 기준과, 충분히 쉬고 재라는 권고를 보여준다 (막지는 않는다) */
+/** 테스트 차례 카드: 통과 기준과, 오늘 이미 운동했으면 내일 이후에 재라는 권고를 보여준다 (막지는 않는다) */
 function ProgramTestCard({state, records, onTest, onOpenTable}: ProgramTestCardProps) {
   const isFinal = state.week === WEEKS;
   const threshold = testThreshold(state.week);
@@ -38,7 +38,7 @@ function ProgramTestCard({state, records, onTest, onOpenTable}: ProgramTestCardP
           </Text>
         </View>
       ) : (
-        <Text style={styles.hint}>충분히 쉰 날에 재는 걸 권해요.</Text>
+        <Text style={styles.hint}>오늘은 운동 대신 테스트하는 날이에요.</Text>
       )}
       <CustomButton title="최대 횟수 테스트" variant="start" style={styles.button} onPress={onTest} />
       <Text style={styles.link} onPress={onOpenTable}>

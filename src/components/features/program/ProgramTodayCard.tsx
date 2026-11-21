@@ -76,7 +76,6 @@ function ProgramTodayCard({
       <Text style={styles.sets}>{describeSets(plan.sets, plan.lastIsMax)}</Text>
       <Text style={styles.body}>세트 사이 휴식 {plan.restSeconds}초 · 마지막 세트는 가능한 만큼</Text>
       <Text style={styles.emphasis}>모든 세트를 채우면 다음({nextStepLabel(state)})으로 넘어가요</Text>
-      <Text style={styles.hint}>하루 쉬고 다음 운동을 권장해요</Text>
 
       {offer && target ? (
         <>

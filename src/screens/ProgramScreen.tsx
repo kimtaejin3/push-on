@@ -29,11 +29,13 @@ import {
   moveTo,
   passedDayCount,
   todayPlan,
+  todayProgress,
 } from '../domain/hundredPushups';
 import {downgradeNotice} from '../domain/programMessages';
 import {resolveProgramView} from '../domain/programView';
 import ReminderSettingsCard from '../components/features/program/ReminderSettingsCard';
 import ProgramTodayCard from '../components/features/program/ProgramTodayCard';
+import ProgramDoneTodayCard from '../components/features/program/ProgramDoneTodayCard';
 import ProgramTestCard from '../components/features/program/ProgramTestCard';
 import ProgramCompletedCard from '../components/features/program/ProgramCompletedCard';
 import {cancelWorkoutReminders} from '../services/workoutReminder';
@@ -132,7 +134,7 @@ function ProgramScreen() {
       <View style={styles.card}>
         <Text style={styles.heading}>연속 100개 챌린지</Text>
         <Text style={styles.body}>
-          주 3일, 하루 5세트.{'\n'}오늘 할 세트는 앱이 정해줘요.{'\n'}먼저 지금 몇 개까지 되는지 테스트해요.
+          매일, 하루 5세트 안팎.{'\n'}오늘 할 세트는 앱이 정해줘요.{'\n'}먼저 지금 몇 개까지 되는지 테스트해요.
         </Text>
         <Text style={styles.hint}>
           6주 프로그램이지만, 테스트 결과에 따라 시작 주차가 다르고{'\n'}같은 주차를 반복하기도 해서 기간은 사람마다 달라요.
@@ -159,7 +161,7 @@ function ProgramScreen() {
         ))}
         <Text style={styles.hint}>
           세트 사이 60초 휴식, 마지막 세트는 최소 횟수 이상 가능한 만큼.{'\n'}
-          Day 2 · Day 3 로 갈수록 횟수가 조금씩 늘어나요.{'\n'}
+          Day 가 지날수록 횟수가 조금씩 늘어나요.{'\n'}
           모든 세트를 채워야 다음 Day 로 넘어가요.{'\n'}
           2 · 4 · 5주차 끝에 다시 테스트해서 다음 주차 레벨을 정해요.
         </Text>
@@ -213,16 +215,23 @@ function ProgramScreen() {
         />
       );
     }
+    const startWorkout = () =>
+      navigation.navigate('Workout', {
+        plan: todayPlan(state),
+        source: {kind: 'program', programId: programRow.id},
+      });
+    // 오늘 할 일을 마쳤으면 다음 Day 는 내일로 안내한다 (미리 하기는 막지 않는다)
+    const progress = todayProgress(programRow.completed_days, state, programRow.created_at, new Date());
+    if (progress !== 'open') {
+      return (
+        <ProgramDoneTodayCard kind={progress} next={state} onStartEarly={startWorkout} onOpenTable={openTable} />
+      );
+    }
     return (
       <ProgramTodayCard
         state={state}
         records={programRow.completed_days}
-        onStart={() =>
-          navigation.navigate('Workout', {
-            plan: todayPlan(state),
-            source: {kind: 'program', programId: programRow.id},
-          })
-        }
+        onStart={startWorkout}
         onRetest={handleRetest}
         onOpenTable={openTable}
         onDowngrade={handleDowngrade}

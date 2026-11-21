@@ -19,6 +19,7 @@ import SetsSetupScreen from '../screens/SetsSetupScreen';
 import WorkoutScreen from '../screens/WorkoutScreen';
 import ProgramTableScreen from '../screens/ProgramTableScreen';
 import StreakScreen from '../screens/StreakScreen';
+import WorkoutReminderScreen from '../screens/WorkoutReminderScreen';
 import {WorkoutPlan} from '../domain/workoutSession';
 import {useSession} from '../hooks/useSession';
 import {Button} from '../components/ui/Button';
@@ -54,6 +55,7 @@ const AppStack = createNativeStackNavigator({
     Leaderboard: LeaderboardScreen,
     AccountSettings: AccountSettingsScreen,
     ProfileEdit: ProfileEditScreen,
+    WorkoutReminder: WorkoutReminderScreen,
   },
 });
 
@@ -200,6 +202,7 @@ export type AppStackParamList = {
   Leaderboard: undefined;
   AccountSettings: undefined;
   ProfileEdit: undefined;
+  WorkoutReminder: undefined;
 };
 
 declare global {

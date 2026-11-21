@@ -1,105 +1,133 @@
 import React from 'react';
+import {Linking, ScrollView, StyleSheet, View} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useQuery, useQueryClient} from '@tanstack/react-query';
+import {Row} from '../components/ui/Row';
+import {Text} from '../components/ui/Text';
+import {Toggle} from '../components/ui/Toggle';
+import {useTabBarInset} from '../components/ui/TabBar';
+import {useToast} from '../components/ui/feedback/ToastProvider';
+import type {AppStackParamList} from '../navigations/AppNavigation';
+import {queryKeys} from '../tanstack-query/queryKeys';
+import {color, layout, space} from '../theme';
+import {getCurrentAppVersion} from '../utils/version';
 import {
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-  ScrollView,
-  Alert,
-  Linking,
-} from 'react-native';
-import {colors} from '../constants/colors';
-import SettingItem from '../components/common/SettingItem';
+  DEFAULT_WORKOUT_PREFS,
+  loadWorkoutPrefs,
+  saveWorkoutPrefs,
+  type WorkoutPrefs,
+} from '../utils/workoutPrefs';
+import {reminderSettingsQuery, reminderSummary} from './WorkoutReminderScreen';
 
-interface SettingScreenProps {
-  navigation: any;
+const CONTACT_EMAIL = 'rlaxowls1316@naver.com';
+
+function Section({title, children}: {title: string; children: React.ReactNode}) {
+  return (
+    <View style={styles.section}>
+      <Text variant="caption" color="textMuted" weight={600}>
+        {title}
+      </Text>
+      <View>{children}</View>
+    </View>
+  );
 }
 
-function SettingScreen({navigation}: SettingScreenProps) {
-  const handlePrivacyPolicy = () => {
-    navigation.navigate('PrivacyPolicy');
+function SettingScreen() {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<AppStackParamList>>();
+  const toast = useToast();
+  const tabInset = useTabBarInset();
+  const queryClient = useQueryClient();
+  const reminder = useQuery(reminderSettingsQuery);
+  // 운동 화면과 같은 캐시를 써서, 여기서 바꾸면 다음 운동부터 바로 반영된다
+  const prefs = useQuery({
+    queryKey: queryKeys.workoutPrefs,
+    queryFn: loadWorkoutPrefs,
+    networkMode: 'always',
+  });
+
+  const setAutoNextSet = async (autoNextSet: boolean) => {
+    const next: WorkoutPrefs = {...(prefs.data ?? DEFAULT_WORKOUT_PREFS), autoNextSet};
+    try {
+      await saveWorkoutPrefs(next);
+      queryClient.setQueryData(queryKeys.workoutPrefs, next);
+    } catch {
+      toast.show('설정을 저장하지 못했어요', {tone: 'alert'});
+    }
   };
 
-  const handleTermsOfService = () => {
-    navigation.navigate('TermsOfService');
-  };
-
-  const handleAccountSettings = () => {
-    navigation.navigate('AccountSettings');
-  };
-
-  const handleContactUs = () => {
-    Alert.alert(
-      '문의하기',
-      '버그 신고나 기능 제안이 있으시면 아래 이메일로 문의해주세요.\n\nrlaxowls1316@naver.com',
-      [
-        {text: '닫기', style: 'cancel'},
-        {
-          text: '이메일 보내기',
-          onPress: () => {
-            Linking.openURL(
-              'mailto:rlaxowls1316@naver.com?subject=PushOn 문의',
-            );
-          },
-        },
-      ],
-    );
+  const handleContactUs = async () => {
+    try {
+      await Linking.openURL(`mailto:${CONTACT_EMAIL}?subject=PushOn 문의`);
+    } catch {
+      // 메일 앱이 없으면 주소라도 알려 준다
+      toast.show(`메일 앱이 없어요. ${CONTACT_EMAIL} 로 보내 주세요`, {
+        tone: 'alert',
+      });
+    }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView}>
-        {/* 헤더 */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>설정</Text>
-        </View>
+    <SafeAreaView edges={['top', 'left', 'right']} style={styles.screen}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          {paddingBottom: tabInset + space[32]},
+        ]}>
+        <Text variant="title" style={styles.title}>
+          설정
+        </Text>
 
-        {/* 계정 섹션 */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>계정</Text>
-          <View style={styles.sectionContent}>
-            <SettingItem
-              icon="user"
-              title="프로필 수정"
-              onPress={() => navigation.navigate('ProfileEdit')}
-            />
-            <SettingItem
-              icon="user-cog"
-              title="계정 설정"
-              onPress={handleAccountSettings}
-            />
-          </View>
-        </View>
+        <Section title="운동">
+          <Row
+            icon="bell"
+            title="운동 알림"
+            value={reminder.data ? reminderSummary(reminder.data) : undefined}
+            onPress={() => navigation.navigate('WorkoutReminder')}
+          />
+          <Row
+            icon="play"
+            title="휴식 뒤 자동으로 다음 세트"
+            subtitle="휴식이 끝나면 3·2·1 뒤 바로 시작해요"
+            right={
+              <Toggle
+                value={(prefs.data ?? DEFAULT_WORKOUT_PREFS).autoNextSet}
+                onChange={setAutoNextSet}
+                disabled={!prefs.data}
+              />
+            }
+          />
+        </Section>
 
-        {/* 정보 섹션 */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>정보</Text>
-          <View style={styles.sectionContent}>
-            <SettingItem
-              icon="file-contract"
-              title="이용약관"
-              onPress={handleTermsOfService}
-            />
-            <SettingItem
-              icon="shield-alt"
-              title="개인정보처리방침"
-              onPress={handlePrivacyPolicy}
-            />
-            <SettingItem
-              icon="question-circle"
-              title="문의하기"
-              onPress={handleContactUs}
-            />
-          </View>
-        </View>
+        <Section title="계정">
+          <Row
+            icon="lock"
+            title="계정"
+            onPress={() => navigation.navigate('AccountSettings')}
+          />
+          <Row
+            icon="settings"
+            title="프로필"
+            onPress={() => navigation.navigate('ProfileEdit')}
+          />
+        </Section>
 
-        {/* 앱 버전 정보 */}
-        <View style={styles.footer}>
-          <Text style={styles.versionText}>PushOn v1.2.0</Text>
-          <Text style={styles.copyrightText}>
-            © 2025 PushOn. All rights reserved.
-          </Text>
-        </View>
+        <Section title="정보">
+          <Row
+            icon="file-text"
+            title="이용약관"
+            onPress={() => navigation.navigate('TermsOfService')}
+          />
+          <Row
+            icon="file-text"
+            title="개인정보 처리방침"
+            onPress={() => navigation.navigate('PrivacyPolicy')}
+          />
+          <Row icon="inbox" title="문의하기" onPress={handleContactUs} />
+          <Row icon="info" title="버전" value={getCurrentAppVersion()} />
+        </Section>
       </ScrollView>
     </SafeAreaView>
   );
@@ -108,49 +136,12 @@ function SettingScreen({navigation}: SettingScreenProps) {
 export default SettingScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.backgroundDark,
+  screen: {flex: 1, backgroundColor: color.bg},
+  content: {
+    paddingHorizontal: layout.screenPadding,
+    paddingTop: space[12],
+    gap: 28,
   },
-  scrollView: {
-    flex: 1,
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.primary,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.textLight,
-  },
-  section: {
-    marginTop: 20,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    paddingHorizontal: 20,
-    marginBottom: 10,
-  },
-  sectionContent: {
-    backgroundColor: colors.overlayLight,
-  },
-  footer: {
-    alignItems: 'center',
-    paddingVertical: 30,
-    paddingHorizontal: 20,
-  },
-  versionText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: 8,
-  },
-  copyrightText: {
-    fontSize: 12,
-    color: colors.gray400,
-  },
+  title: {fontSize: 32, lineHeight: 40},
+  section: {gap: space[4]},
 });

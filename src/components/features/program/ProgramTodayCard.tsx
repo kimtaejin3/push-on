@@ -1,12 +1,13 @@
 import React from 'react';
-import {Text, View} from 'react-native';
-import CustomButton from '../../common/CustomButton';
+import {View} from 'react-native';
+import {Button} from '../../ui/Button';
+import {Card} from '../../ui/Card';
+import {Text} from '../../ui/Text';
 import {
   describeSets,
   describeSetsAt,
   DOWNGRADE_AFTER,
-  downgradeTarget,
-  failStreak,
+  Position,
   lastFailure,
   missedSets,
   ProgramRecord,
@@ -19,12 +20,12 @@ import {cardStyles as styles} from './cardStyles';
 interface ProgramTodayCardProps {
   state: ProgramState;
   records: ProgramRecord[];
-  onStart: () => void;
-  onRetest: () => void;
-  onOpenTable: () => void;
+  streak: number;
+  downgrade: Position | null;
   onDowngrade: () => void;
   downgradePending: boolean;
   downgradeError: boolean;
+  disabled: boolean;
 }
 
 const monthDay = (iso: string): string => {
@@ -39,98 +40,97 @@ const monthDay = (iso: string): string => {
 function ProgramTodayCard({
   state,
   records,
-  onStart,
-  onRetest,
-  onOpenTable,
+  streak,
+  downgrade,
   onDowngrade,
   downgradePending,
   downgradeError,
+  disabled,
 }: ProgramTodayCardProps) {
   const plan = todayPlan(state);
   const failure = lastFailure(records, state);
-  const streak = failStreak(records, state);
-  const target = downgradeTarget(state);
   const stuck = streak >= DOWNGRADE_AFTER;
-  const offer = stuck && target !== null;
-  const missed = failure ? missedSets(failure.targets ?? plan.sets, failure.reps) : [];
+  const missed = failure
+    ? missedSets(failure.targets ?? plan.sets, failure.reps)
+    : [];
 
   return (
-    <View style={styles.card}>
+    <Card>
       {failure ? (
         <View style={styles.callout}>
-          <Text style={styles.calloutTitle}>
-            지난번({monthDay(failure.completed_at)})에 세트 {missed.map(m => m.set).join('·')}에서 목표를 못
-            채워서 Day {withJosa(state.day, '을')} 다시 해요
+          <Text variant="label" weight={700}>
+            지난번({monthDay(failure.completed_at)})에 세트{' '}
+            {missed.map(m => m.set).join('·')}에서 목표를 못 채워서 Day{' '}
+            {withJosa(state.day, '을')} 다시 해요
           </Text>
           {missed.map(m => (
-            <Text key={m.set} style={styles.calloutRow}>
+            <Text key={m.set} variant="label" color="record">
               세트 {m.set} · {m.reps} / {m.target} ({m.short}개 부족)
             </Text>
           ))}
         </View>
       ) : null}
 
-      <Text style={styles.heading}>
+      <Text variant="headline">
         {state.week}주차 · Day {state.day} · 레벨 {state.level}
       </Text>
-      <Text style={styles.sets}>{describeSets(plan.sets, plan.lastIsMax)}</Text>
-      <Text style={styles.body}>세트 사이 휴식 {plan.restSeconds}초 · 마지막 세트는 가능한 만큼</Text>
-      <Text style={styles.emphasis}>모든 세트를 채우면 다음({nextStepLabel(state)})으로 넘어가요</Text>
+      <Text weight={800} style={styles.sets}>
+        {describeSets(plan.sets, plan.lastIsMax)}
+      </Text>
+      <Text color="textMuted">
+        세트 사이 휴식 {plan.restSeconds}초 · 마지막 세트는 가능한 만큼
+      </Text>
+      <Text variant="label">
+        모든 세트를 채우면 다음({nextStepLabel(state)})으로 넘어가요
+      </Text>
 
-      {offer && target ? (
+      {downgrade ? (
         <>
           <View style={styles.callout}>
-            <Text style={styles.calloutTitle}>
-              Day {withJosa(state.day, '을')} {streak === 2 ? '두 ' : streak}번 연속 못 채웠어요.{' '}
-              {target.week === state.week
+            <Text variant="label" weight={700}>
+              Day {withJosa(state.day, '을')} {streak === 2 ? '두 ' : streak}번
+              연속 못 채웠어요.{' '}
+              {downgrade.week === state.week
                 ? `지금 레벨(${state.level})이 조금 버거울 수 있어요.`
                 : `${state.week}주차가 지금은 조금 버거울 수 있어요.`}
             </Text>
-            <Text style={styles.hint}>
-              {target.week === state.week
-                ? `레벨 ${withJosa(target.level, '으로')} 낮추면 오늘 세트는 ${describeSetsAt(target)} 예요`
-                : `${target.week}주차 Day ${target.day}부터 다시 하면 ${describeSetsAt(target)} 예요`}
+            <Text variant="caption" color="textMuted">
+              {downgrade.week === state.week
+                ? `레벨 ${withJosa(
+                    downgrade.level,
+                    '으로',
+                  )} 낮추면 오늘 세트는 ${describeSetsAt(downgrade)} 예요`
+                : `${downgrade.week}주차 Day ${
+                    downgrade.day
+                  }부터 다시 하면 ${describeSetsAt(downgrade)} 예요`}
             </Text>
           </View>
           {downgradeError ? (
-            <Text style={styles.warning}>레벨을 바꾸지 못했어요. 네트워크를 확인해 주세요.</Text>
+            <Text variant="caption" color="alert">
+              레벨을 바꾸지 못했어요. 네트워크를 확인해 주세요.
+            </Text>
           ) : null}
-          <CustomButton
+          <Button
             title={
               downgradePending
                 ? '바꾸는 중…'
-                : target.week === state.week
-                ? `레벨 ${withJosa(target.level, '으로')} 낮추기`
+                : downgrade.week === state.week
+                ? `레벨 ${withJosa(downgrade.level, '으로')} 낮추기`
                 : '이전 주차로 돌아가기'
             }
-            variant="start"
-            disabled={downgradePending}
-            style={[styles.button, downgradePending && styles.disabled]}
+            variant="secondary"
+            disabled={disabled}
+            loading={downgradePending}
             onPress={onDowngrade}
           />
-          <Text style={styles.link} onPress={downgradePending ? undefined : onStart}>
-            이 레벨로 한 번 더
-          </Text>
         </>
-      ) : (
-        <>
-          {stuck ? (
-            <Text style={styles.hint}>
-              Day {withJosa(state.day, '을')} {streak === 2 ? '두 ' : streak}번 연속 못 채웠어요. 지금이 가장 쉬운
-              단계라 같은 Day를 다시 해요.
-            </Text>
-          ) : null}
-          <CustomButton title="오늘 운동 시작" variant="start" style={styles.button} onPress={onStart} />
-        </>
-      )}
-
-      <Text style={styles.link} onPress={onRetest}>
-        레벨 다시 재기
-      </Text>
-      <Text style={styles.link} onPress={onOpenTable}>
-        전체 세트 보기 · 주차 바꾸기
-      </Text>
-    </View>
+      ) : stuck ? (
+        <Text variant="caption" color="textMuted">
+          Day {withJosa(state.day, '을')} {streak === 2 ? '두 ' : streak}번 연속
+          못 채웠어요. 지금이 가장 쉬운 단계라 같은 Day를 다시 해요.
+        </Text>
+      ) : null}
+    </Card>
   );
 }
 

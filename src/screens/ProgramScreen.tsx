@@ -1,14 +1,13 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ComponentProps,
+  type ReactNode,
+} from 'react';
+import {Pressable, ScrollView, StyleSheet, View} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {
   useFocusEffect,
   useNavigation,
@@ -18,10 +17,21 @@ import {
 } from '@react-navigation/native';
 import type {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {useQuery} from '@tanstack/react-query';
-import Header from '../components/common/Header';
-import CustomButton from '../components/common/CustomButton';
-import {colors} from '../constants/colors';
+import {skipToken, useQuery} from '@tanstack/react-query';
+import {List} from 'lucide-react-native';
+import ProgramTodayCard from '../components/features/program/ProgramTodayCard';
+import ProgramDoneTodayCard from '../components/features/program/ProgramDoneTodayCard';
+import ProgramTestCard from '../components/features/program/ProgramTestCard';
+import ProgramCompletedCard from '../components/features/program/ProgramCompletedCard';
+import ProgramPathView from '../components/features/program/ProgramPathView';
+import {Button} from '../components/ui/Button';
+import {Card} from '../components/ui/Card';
+import {Icon, type LucideName} from '../components/ui/Icon';
+import {ScreenHeader} from '../components/ui/ScreenHeader';
+import {Text} from '../components/ui/Text';
+import {ConfirmDialog} from '../components/ui/feedback/ConfirmDialog';
+import {ErrorState} from '../components/ui/feedback/ErrorState';
+import {Skeleton} from '../components/ui/feedback/Skeleton';
 import {useSession} from '../hooks/useSession';
 import {useNow} from '../hooks/useNow';
 import type {AppStackParamList} from '../navigations/AppNavigation';
@@ -31,41 +41,132 @@ import {
   useAbandonProgramMutation,
   useUpdateProgramMutation,
 } from '../tanstack-query';
+import {queryKeys} from '../tanstack-query/queryKeys';
 import {toProgramState} from '../remote/program';
+import {getInitialTestReps} from '../remote/programTests';
 import {
+  DOWNGRADE_AFTER,
   downgradeTarget,
+  failStreak,
   initialTestPreview,
   moveRecord,
   moveTo,
-  passedDayCount,
   todayPlan,
   todayProgress,
+  type Position,
 } from '../domain/hundredPushups';
-import {downgradeNotice} from '../domain/programMessages';
+import {downgradeNotice, jumpNotice} from '../domain/programMessages';
 import {resolveProgramView} from '../domain/programView';
-import ReminderSettingsCard from '../components/features/program/ReminderSettingsCard';
-import ProgramTodayCard from '../components/features/program/ProgramTodayCard';
-import ProgramDoneTodayCard from '../components/features/program/ProgramDoneTodayCard';
-import ProgramTestCard from '../components/features/program/ProgramTestCard';
-import ProgramCompletedCard from '../components/features/program/ProgramCompletedCard';
 import {cancelWorkoutReminders} from '../services/workoutReminder';
+import {color, layout, radius, space} from '../theme';
+import {weekJumpConfirmation} from './ProgramTableScreen';
+
+type Dialog = Omit<
+  ComponentProps<typeof ConfirmDialog>,
+  'visible' | 'onCancel'
+>;
+
+function ProgramIntro({onOpenTable}: {onOpenTable: () => void}) {
+  return (
+    <>
+      <Card>
+        <Text variant="title">연속 100개 챌린지</Text>
+        <Text>
+          매일, 하루 5세트 안팎.{'\n'}
+          오늘 할 세트는 앱이 정해줘요.{'\n'}
+          먼저 지금 몇 개까지 되는지 테스트해요.
+        </Text>
+        <Text variant="caption" color="textMuted">
+          6주 프로그램이지만, 테스트 결과에 따라 시작 주차가 다르고 같은 주차를
+          반복하기도 해서 기간은 사람마다 달라요.
+        </Text>
+        <Text variant="caption" color="textMuted">
+          설정에서 운동 알림을 켤 수 있어요.
+        </Text>
+      </Card>
+
+      <Card>
+        <Text variant="headline">테스트 결과에 따라 이렇게 시작해요</Text>
+        <Text variant="caption" color="textMuted">
+          아래는 첫날(Day 1) 세트예요.
+        </Text>
+        {initialTestPreview().map(row => (
+          <View key={row.range} style={styles.previewRow}>
+            <Text variant="label">{row.range}</Text>
+            <View style={styles.previewValues}>
+              <Text variant="label" weight={700} style={styles.previewSets}>
+                {row.sets}
+              </Text>
+              <Text variant="caption" color="textMuted">
+                {row.week}주차 · 레벨 {row.level}
+              </Text>
+            </View>
+          </View>
+        ))}
+        <Text variant="caption" color="textMuted">
+          세트 사이 60초 휴식, 마지막 세트는 최소 횟수 이상 가능한 만큼.{'\n'}
+          Day가 지날수록 횟수가 조금씩 늘어나요.{'\n'}
+          모든 세트를 채워야 다음 Day로 넘어가요.{'\n'}2 · 4 · 5주차 끝에 다시
+          테스트해서 다음 주차 레벨을 정해요.
+        </Text>
+        <Button
+          variant="text"
+          title="주차 · 레벨별 전체 세트 보기"
+          icon="chevron-right"
+          onPress={onOpenTable}
+        />
+      </Card>
+    </>
+  );
+}
+
+function PathAction({
+  title,
+  icon,
+  disabled,
+  onPress,
+}: {
+  title: string;
+  icon: LucideName;
+  disabled: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{disabled}}
+      disabled={disabled}
+      onPress={onPress}
+      style={({pressed}) => [
+        styles.pathAction,
+        (pressed || disabled) && styles.dimmed,
+      ]}>
+      <Icon name={icon} size={18} />
+      <Text variant="label" weight={800} style={styles.pathActionLabel}>
+        {title}
+      </Text>
+    </Pressable>
+  );
+}
 
 function ProgramScreen() {
-  const navigation = useNavigation<
-    CompositeNavigationProp<
-      BottomTabNavigationProp<BottomTabParamList, 'Program'>,
-      NativeStackNavigationProp<AppStackParamList>
-    >
-  >();
+  const navigation =
+    useNavigation<
+      CompositeNavigationProp<
+        BottomTabNavigationProp<BottomTabParamList, 'Program'>,
+        NativeStackNavigationProp<AppStackParamList>
+      >
+    >();
   const route = useRoute<RouteProp<BottomTabParamList, 'Program'>>();
   const {user} = useSession();
-  // "오늘 완료" 판단은 지금 날짜를 따른다: 자정을 넘겨 다른 화면이나 앱 밖에서 돌아오면 다시 판단한다
+  // 자정을 넘겨 다른 화면이나 앱 밖에서 돌아오면 오늘 상태를 다시 판단한다
   const {now, refresh: refreshNow} = useNow();
   useFocusEffect(useCallback(() => refreshNow(), [refreshNow]));
 
-  // 하향·주차 변경 직후의 안내는 한 번만 보여준다:
-  // 파라미터로 받으면 화면 상태로 옮기고, 닫거나 다른 화면으로 가면 사라진다.
   const [notice, setNotice] = useState<string>();
+  const [dialog, setDialog] = useState<Dialog>();
+  const [moveKind, setMoveKind] = useState<'week' | 'downgrade'>();
+  const scroll = useRef<ScrollView>(null);
   const paramNotice = route.params?.notice;
   useEffect(() => {
     if (paramNotice) {
@@ -73,251 +174,419 @@ function ProgramScreen() {
       navigation.setParams({notice: undefined});
     }
   }, [paramNotice, navigation]);
-  useEffect(() => navigation.addListener('blur', () => setNotice(undefined)), [navigation]);
+  useEffect(
+    () =>
+      navigation.addListener('blur', () => {
+        setNotice(undefined);
+        setDialog(undefined);
+      }),
+    [navigation],
+  );
+
+  useEffect(() => {
+    if (notice) {
+      scroll.current?.scrollTo({y: 0, animated: true});
+    }
+  }, [notice]);
 
   const programQuery = useQuery(currentProgramQueryOptions(user?.id ?? ''));
   const programRow = programQuery.data ?? null;
-  // 조회 전(loading)·조회 실패(error)는 "프로그램 없음(none)"과 다르다 — 소개 화면을 보여주면 안 된다
   const view = resolveProgramView(programQuery);
+  const programCreatedAt =
+    programRow?.user_id === user?.id ? programRow?.created_at : undefined;
+  const {data: initialTestReps = null} = useQuery({
+    queryKey: [
+      ...queryKeys.pushup.all,
+      'programInitialTest',
+      user?.id,
+      programCreatedAt,
+    ],
+    queryFn: programCreatedAt
+      ? () => getInitialTestReps(programCreatedAt)
+      : skipToken,
+  });
   const abandonProgram = useAbandonProgramMutation();
   const moveProgram = useUpdateProgramMutation();
+  const busy = abandonProgram.isPending || moveProgram.isPending;
+  const inProgress = view === 'active' || view === 'testDue';
 
-  // 진행 중인 프로그램이 없다는 게 확인됐을 때만(없음·완료) 걸려 있던 운동 알림을 정리한다
+  // 진행 중인 프로그램이 없다는 게 확인됐을 때만 걸려 있던 운동 알림을 정리한다
   useEffect(() => {
     if (view === 'none' || view === 'completed') {
       cancelWorkoutReminders().catch(() => {});
     }
   }, [view]);
 
-  const goTest = () => navigation.navigate('Challenge', {purpose: 'program-test'});
+  const goTest = () =>
+    navigation.navigate('Challenge', {purpose: 'program-test'});
   const openTable = () => navigation.navigate('ProgramTable');
 
-  const handleRetest = () => {
-    Alert.alert('레벨 다시 재기', '최대 횟수를 다시 재서 이번 주 세트를 다시 정해요.\n주차와 일차는 그대로예요.', [
-      {text: '취소', style: 'cancel'},
-      {text: '테스트 하기', onPress: goTest},
-    ]);
-  };
+  const confirmRetest = () =>
+    setDialog({
+      title: '레벨 다시 재기',
+      message:
+        '최대 횟수를 다시 재서 이번 주 세트를 다시 정해요.\n주차와 일차는 그대로예요.',
+      confirmLabel: '테스트 하기',
+      cancelLabel: '취소',
+      onConfirm: goTest,
+    });
 
-  const handleRestart = () => {
-    Alert.alert('다시 시작', '초기 테스트부터 새로 시작해요.\n완료 기록은 그대로 남아요.', [
-      {text: '취소', style: 'cancel'},
-      {text: '테스트 하기', onPress: goTest},
-    ]);
-  };
+  const confirmRestart = () =>
+    setDialog({
+      title: '다시 시작',
+      message: '초기 테스트부터 새로 시작해요.\n완료 기록은 그대로 남아요.',
+      confirmLabel: '테스트 하기',
+      cancelLabel: '취소',
+      onConfirm: goTest,
+    });
 
-  const handleAbandon = () => {
-    if (!programRow) {
-      return;
-    }
-    Alert.alert('프로그램 그만두기', '진행 상황이 사라져요. 다시 시작하면 초기 테스트부터예요.', [
-      {text: '취소', style: 'cancel'},
-      {
-        text: '그만두기',
-        style: 'destructive',
-        onPress: () => {
-          setNotice(undefined);
-          abandonProgram.mutate(programRow.id);
-          cancelWorkoutReminders().catch(() => {});
-        },
-      },
-    ]);
-  };
+  let body: ReactNode;
+  let footer: ReactNode;
 
-  // 하향은 권유를 받고 사용자가 직접 누를 때만 일어난다
-  const handleDowngrade = () => {
-    if (!programRow) {
-      return;
-    }
-    const state = toProgramState(programRow);
-    const to = downgradeTarget(state);
-    if (!to) {
-      return;
-    }
-    const from = {week: state.week, day: state.day, level: state.level};
-    const moved = moveTo(state, to);
-    moveProgram.mutate(
-      {
-        id: programRow.id,
-        state: moved,
-        completedDay: moveRecord(moved, new Date().toISOString()),
-        existing: programRow.completed_days,
-      },
-      {onSuccess: () => setNotice(downgradeNotice(from, to))},
+  if (view === 'loading') {
+    body = (
+      <View
+        accessible
+        accessibilityLabel="프로그램 불러오는 중"
+        style={styles.loading}>
+        <Skeleton width={220} height={56} />
+        <Skeleton width="fill" height={8} />
+        <Skeleton width="fill" height={136} radius={radius.l} />
+      </View>
     );
-  };
-
-  const renderIntro = () => (
-    <>
-      <View style={styles.card}>
-        <Text style={styles.heading}>연속 100개 챌린지</Text>
-        <Text style={styles.body}>
-          매일, 하루 5세트 안팎.{'\n'}오늘 할 세트는 앱이 정해줘요.{'\n'}먼저 지금 몇 개까지 되는지 테스트해요.
-        </Text>
-        <Text style={styles.hint}>
-          6주 프로그램이지만, 테스트 결과에 따라 시작 주차가 다르고{'\n'}같은 주차를 반복하기도 해서 기간은 사람마다 달라요.
-        </Text>
-        <Text style={styles.hint}>시작하면 운동하는 날 알림을 설정할 수 있어요</Text>
-        <CustomButton title="초기 테스트 시작" variant="start" style={styles.button} onPress={goTest} />
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.previewTitle}>테스트 결과에 따라 이렇게 시작해요</Text>
-        <Text style={styles.hint}>
-          결과에 따라 시작 주차와 레벨이 정해져요.{'\n'}아래는 첫날(Day 1) 세트예요.
-        </Text>
-        {initialTestPreview().map(row => (
-          <View key={row.range} style={styles.previewRow}>
-            <Text style={styles.previewRange}>{row.range}</Text>
-            <View style={styles.previewRight}>
-              <Text style={styles.previewSets}>{row.sets}</Text>
-              <Text style={styles.previewWeek}>
-                {row.week}주차 · 레벨 {row.level}
-              </Text>
-            </View>
-          </View>
-        ))}
-        <Text style={styles.hint}>
-          세트 사이 60초 휴식, 마지막 세트는 최소 횟수 이상 가능한 만큼.{'\n'}
-          Day 가 지날수록 횟수가 조금씩 늘어나요.{'\n'}
-          모든 세트를 채워야 다음 Day 로 넘어가요.{'\n'}
-          2 · 4 · 5주차 끝에 다시 테스트해서 다음 주차 레벨을 정해요.
-        </Text>
-        <Text style={styles.link} onPress={openTable}>
-          주차 · 레벨별 전체 세트 보기
-        </Text>
-      </View>
-    </>
-  );
-
-  const renderBody = () => {
-    if (view === 'loading') {
-      return <ActivityIndicator style={styles.loading} size="large" color={colors.primary} />;
-    }
-    if (view === 'error') {
-      return (
-        <View style={styles.card}>
-          <Text style={styles.heading}>프로그램 정보를 불러오지 못했어요</Text>
-          <Text style={styles.body}>네트워크를 확인하고 다시 시도해 주세요. 진행 상황은 그대로 있어요.</Text>
-          <CustomButton
-            title="다시 시도"
-            variant="start"
-            style={styles.button}
-            onPress={() => programQuery.refetch()}
-          />
-        </View>
-      );
-    }
-    if (view === 'none' || !programRow) {
-      return renderIntro();
-    }
+  } else if (view === 'error') {
+    body = (
+      <ErrorState
+        title="프로그램 정보를 불러오지 못했어요"
+        message="네트워크를 확인하고 다시 시도해 주세요. 진행 상황은 그대로 있어요."
+        actionLabel="다시 시도"
+        onAction={() => programQuery.refetch()}
+      />
+    );
+  } else if (view === 'none' || !programRow) {
+    body = <ProgramIntro onOpenTable={openTable} />;
+    footer = (
+      <Button
+        variant="primary"
+        title="초기 테스트 시작"
+        icon="play"
+        onPress={goTest}
+      />
+    );
+  } else if (view === 'completed') {
+    body = (
+      <ProgramCompletedCard
+        initialTestReps={initialTestReps}
+        lastTestReps={programRow.last_test_reps}
+        startedAt={programRow.created_at}
+        finishedAt={programRow.updated_at}
+        records={programRow.completed_days}
+        onRestart={confirmRestart}
+      />
+    );
+  } else {
     const state = toProgramState(programRow);
-    if (view === 'completed') {
-      return (
-        <ProgramCompletedCard
-          lastTestReps={state.lastTestReps}
-          startedAt={programRow.created_at}
-          finishedAt={programRow.updated_at}
-          passedDays={passedDayCount(programRow.completed_days)}
-          onRestart={handleRestart}
-        />
-      );
-    }
-    if (view === 'testDue') {
-      return (
-        <ProgramTestCard
-          state={state}
-          records={programRow.completed_days}
-          onTest={goTest}
-          onOpenTable={openTable}
-        />
-      );
-    }
+    const records = programRow.completed_days;
+    const progress =
+      view === 'testDue'
+        ? 'open'
+        : todayProgress(records, state, programRow.created_at, now);
+    const streak =
+      progress === 'open' && view === 'active' ? failStreak(records, state) : 0;
+    const downgrade = streak >= DOWNGRADE_AFTER ? downgradeTarget(state) : null;
+
     const startWorkout = () =>
       navigation.navigate('Workout', {
         plan: todayPlan(state),
         source: {kind: 'program', programId: programRow.id},
       });
-    // 오늘 할 일을 마쳤으면 다음 Day 는 내일로 안내한다 (미리 하기는 막지 않는다)
-    const progress = todayProgress(programRow.completed_days, state, programRow.created_at, now);
-    if (progress !== 'open') {
-      return (
-        <ProgramDoneTodayCard kind={progress} next={state} onStartEarly={startWorkout} onOpenTable={openTable} />
+
+    const move = (
+      to: Position,
+      kind: 'week' | 'downgrade',
+      onSuccess: () => void,
+      onError?: () => void,
+    ) => {
+      if (busy) {
+        return;
+      }
+      setMoveKind(kind);
+      const moved = moveTo(state, to);
+      moveProgram.mutate(
+        {
+          id: programRow.id,
+          state: moved,
+          completedDay: moveRecord(moved, new Date().toISOString()),
+          existing: records,
+        },
+        {onSuccess, onError},
+      );
+    };
+
+    const confirmWeekRestart = () => {
+      const to: Position = {week: state.week, day: 1, level: state.level};
+      setDialog({
+        ...weekJumpConfirmation(state, to),
+        onConfirm: () =>
+          move(
+            to,
+            'week',
+            () => setNotice(jumpNotice(to)),
+            () =>
+              setDialog({
+                title: '주차를 바꾸지 못했어요',
+                message: '네트워크를 확인하고 다시 시도해 주세요.',
+                confirmLabel: '확인',
+                onConfirm: () => setDialog(undefined),
+              }),
+          ),
+      });
+    };
+
+    const confirmAbandon = () =>
+      setDialog({
+        title: '프로그램 그만두기',
+        message: '진행 상황이 사라져요. 다시 시작하면 초기 테스트부터예요.',
+        confirmLabel: '그만두기',
+        cancelLabel: '취소',
+        destructive: true,
+        onConfirm: () => {
+          setNotice(undefined);
+          abandonProgram.mutate(programRow.id);
+          cancelWorkoutReminders().catch(() => {});
+        },
+      });
+
+    let todayCard: ReactNode;
+    if (view === 'testDue') {
+      todayCard = <ProgramTestCard state={state} records={records} now={now} />;
+      footer = (
+        <Button
+          variant="primary"
+          title="최대 횟수 테스트"
+          icon="flag"
+          disabled={busy}
+          onPress={goTest}
+        />
+      );
+    } else if (progress !== 'open') {
+      todayCard = <ProgramDoneTodayCard kind={progress} next={state} />;
+      footer = (
+        <Button
+          variant="text"
+          title="미리 하기"
+          icon="chevron-right"
+          disabled={busy}
+          onPress={startWorkout}
+        />
+      );
+    } else {
+      todayCard = (
+        <ProgramTodayCard
+          state={state}
+          records={records}
+          streak={streak}
+          downgrade={downgrade}
+          onDowngrade={() => {
+            if (downgrade) {
+              move(downgrade, 'downgrade', () =>
+                setNotice(downgradeNotice(state, downgrade)),
+              );
+            }
+          }}
+          downgradePending={moveKind === 'downgrade' && moveProgram.isPending}
+          downgradeError={moveKind === 'downgrade' && moveProgram.isError}
+          disabled={busy}
+        />
+      );
+      footer = (
+        <Button
+          variant="primary"
+          title={
+            downgrade
+              ? '이 레벨로 한 번 더'
+              : `${state.week}주차 ${state.day}일차 시작`
+          }
+          icon="play"
+          disabled={busy}
+          onPress={startWorkout}
+        />
       );
     }
-    return (
-      <ProgramTodayCard
-        state={state}
-        records={programRow.completed_days}
-        onStart={startWorkout}
-        onRetest={handleRetest}
-        onOpenTable={openTable}
-        onDowngrade={handleDowngrade}
-        downgradePending={moveProgram.isPending}
-        downgradeError={moveProgram.isError}
-      />
-    );
-  };
 
-  const inProgress = view === 'active' || view === 'testDue';
+    body = (
+      <>
+        <ProgramPathView
+          state={state}
+          records={records}
+          initialTestReps={initialTestReps}
+          doneToday={progress !== 'open'}>
+          {todayCard}
+        </ProgramPathView>
+        <View style={styles.alternatives}>
+          <Text weight={800}>힘들면 이렇게 골라도 돼요</Text>
+          <Text variant="label" color="textMuted" weight={500}>
+            고르지 않으면 지금 순서대로 이어가요. 어느 쪽을 골라도 기록은 그대로
+            남아요.
+          </Text>
+          <View style={styles.pathActions}>
+            <PathAction
+              title={`${state.week}주차 다시 하기`}
+              icon="rotate-ccw"
+              disabled={busy}
+              onPress={confirmWeekRestart}
+            />
+            {view !== 'testDue' && (
+              <PathAction
+                title="지금 다시 테스트"
+                icon="flag"
+                disabled={busy}
+                onPress={confirmRetest}
+              />
+            )}
+          </View>
+        </View>
+        <View>
+          <Button
+            variant="text"
+            title="전체 세트 보기 · 주차 바꾸기"
+            icon="chevron-right"
+            disabled={busy}
+            onPress={openTable}
+          />
+          <Button
+            variant="text"
+            title="그만두기"
+            disabled={busy}
+            onPress={confirmAbandon}
+          />
+        </View>
+      </>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Header title="100개 챌린지" />
-      <ScrollView contentContainerStyle={styles.content}>
-        {notice ? (
-          <Pressable style={styles.notice} onPress={() => setNotice(undefined)}>
-            <Text style={styles.noticeText}>{notice}</Text>
-            <Text style={styles.noticeClose}>닫기</Text>
-          </Pressable>
-        ) : null}
-        {renderBody()}
-        {inProgress && <ReminderSettingsCard />}
-        {inProgress && (
-          <Text style={styles.abandon} onPress={handleAbandon}>
-            그만두기
-          </Text>
-        )}
-      </ScrollView>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      {view === 'completed' ? (
+        body
+      ) : (
+        <>
+          <ScreenHeader
+            title="100개 챌린지"
+            right={
+              inProgress ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="전체 세트 보기"
+                  accessibilityState={{disabled: busy}}
+                  disabled={busy}
+                  onPress={openTable}
+                  style={({pressed}) => [
+                    styles.headerAction,
+                    (pressed || busy) && styles.dimmed,
+                  ]}>
+                  <List size={24} color={color.text} />
+                </Pressable>
+              ) : undefined
+            }
+          />
+          <ScrollView ref={scroll} contentContainerStyle={styles.content}>
+            {notice && (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={notice + ', 안내 닫기'}
+                accessibilityLiveRegion="polite"
+                style={styles.notice}
+                onPress={() => setNotice(undefined)}>
+                <Text variant="label" style={styles.noticeText}>
+                  {notice}
+                </Text>
+                <Text variant="label" color="active">
+                  닫기
+                </Text>
+              </Pressable>
+            )}
+            {body}
+          </ScrollView>
+          {footer && <View style={styles.footer}>{footer}</View>}
+        </>
+      )}
+      {dialog && (
+        <ConfirmDialog
+          {...dialog}
+          visible
+          onCancel={() => setDialog(undefined)}
+          onConfirm={() => {
+            setDialog(undefined);
+            dialog.onConfirm();
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: colors.backgroundDark},
-  content: {padding: 20, gap: 24},
-  loading: {marginTop: 80},
-  card: {backgroundColor: colors.overlayLight, borderRadius: 16, padding: 24, gap: 12},
-  heading: {fontSize: 22, fontWeight: '600', color: colors.textLight},
-  body: {fontSize: 15, lineHeight: 22, color: colors.textSecondary},
-  hint: {fontSize: 13, lineHeight: 19, color: colors.gray400},
-  previewTitle: {fontSize: 16, fontWeight: '600', color: colors.textLight, marginBottom: 4},
+  container: {flex: 1, backgroundColor: color.bg},
+  content: {
+    paddingHorizontal: layout.screenPadding,
+    paddingTop: space[8],
+    paddingBottom: space[24],
+    gap: space[24],
+  },
+  headerAction: {
+    width: layout.touchMin,
+    height: layout.touchMin,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loading: {paddingTop: space[16], gap: space[16]},
   previewRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.overlayMedium,
+    gap: space[12],
+    paddingVertical: space[8],
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: color.border,
   },
-  previewRange: {fontSize: 14, color: colors.textSecondary},
-  previewRight: {alignItems: 'flex-end', gap: 2},
-  previewSets: {fontSize: 15, fontWeight: '600', color: colors.textLight},
-  previewWeek: {fontSize: 12, color: colors.gray400},
-  button: {marginTop: 8},
-  link: {textAlign: 'center', fontSize: 14, color: colors.primaryLight, paddingTop: 8},
-  abandon: {textAlign: 'center', fontSize: 14, color: colors.gray400, padding: 8},
+  previewValues: {flex: 1, alignItems: 'flex-end', gap: space[4]},
+  previewSets: {textAlign: 'right'},
   notice: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    backgroundColor: colors.primaryOverlayMedium,
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    minHeight: layout.touchMin,
+    gap: space[12],
+    backgroundColor: color.activeSoft,
+    borderRadius: radius.m,
+    padding: space[12],
   },
-  noticeText: {flex: 1, fontSize: 14, lineHeight: 20, color: colors.textLight},
-  noticeClose: {fontSize: 13, color: colors.primaryLight},
+  noticeText: {flex: 1},
+  alternatives: {gap: space[12]},
+  pathActions: {flexDirection: 'row', gap: space[8]},
+  pathAction: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: layout.primaryButtonHeight,
+    gap: space[8],
+    paddingHorizontal: space[8],
+    paddingVertical: space[8],
+    backgroundColor: color.surface2,
+    borderWidth: 1,
+    borderColor: color.border,
+    borderRadius: radius.m,
+  },
+  pathActionLabel: {flexShrink: 1, textAlign: 'center'},
+  dimmed: {opacity: 0.55},
+  footer: {
+    alignItems: 'stretch',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: color.border,
+    paddingHorizontal: layout.screenPadding,
+    paddingTop: space[12],
+    paddingBottom: space[8],
+  },
 });
 
 export default ProgramScreen;

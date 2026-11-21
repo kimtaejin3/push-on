@@ -49,9 +49,3 @@ export const adRequestOptions = async (): Promise<RequestOptions> => {
   }
   return {};
 };
-
-/**
- * @deprecated adRequestOptions() 로 바뀐다(useAds 작업에서 쓰는 곳을 옮기고 지운다).
- * 옮기기 전까지는 예전처럼 모든 광고 요청을 비개인화로 보낸다.
- */
-export const AD_REQUEST_OPTIONS = {requestNonPersonalizedAdsOnly: true} as const;

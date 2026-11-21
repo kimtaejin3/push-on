@@ -3,10 +3,22 @@ import {act, create, ReactTestRenderer} from 'react-test-renderer';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import mobileAds, {AdsConsent, InterstitialAd} from 'react-native-google-mobile-ads';
 import {AppState, AppStateStatus} from 'react-native';
-import {useAds} from '../../src/hooks/useAds';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  getLatestAdConfig,
+  prepareInterstitial,
+  resetAdsForTest,
+  showPreparedInterstitial,
+  useAds,
+  waitInterstitialReady,
+} from '../../src/hooks/useAds';
 import {useAdConfigRefresh} from '../../src/hooks/useAdConfigRefresh';
-import {AdBanner} from '../../src/components/common/AdBanner';
 import {resetAdsSdkForTest} from '../../src/utils/adsSdk';
+import {
+  CONSENT_FLOW_DONE_STORAGE_KEY,
+  loadConsentFlowDone,
+  resetAdsConsentForTest,
+} from '../../src/utils/adsConsent';
 import {loadAdState, saveAdState} from '../../src/utils/adState';
 import {getAdConfig} from '../../src/remote/appConfig';
 import {AdConfig, AdState, ADS_OFF} from '../../src/domain/adFrequency';
@@ -74,6 +86,8 @@ const ADS_ON: AdConfig = {
   minGapSeconds: 180,
   graceWorkouts: 1,
 };
+// 광고 스위치만 끈 설정. 빈도 값은 ADS_ON 과 같아, 꺼짐 외의 이유로 막히지 않는다
+const ADS_TURNED_OFF: AdConfig = {...ADS_ON, adsEnabled: false};
 // 유예(1회)를 넘긴 상태라 조건을 만족한다
 const READY_STATE: AdState = {
   date: '2026-11-21',
@@ -86,9 +100,15 @@ const READY_STATE: AdState = {
 const emit = (type: string, payload?: unknown) =>
   (mockListeners[type] ?? []).forEach(listener => listener(payload));
 
+// 앱 시작 때 AdsBootstrap 이 하듯, 저장된 "동의 흐름 완료" 를 읽어 메모리에 채운다
+const completeConsentFlow = async () => {
+  await AsyncStorage.setItem(CONSENT_FLOW_DONE_STORAGE_KEY, '1');
+  await loadConsentFlowDone();
+};
+
 // 프라미스 체인과 지연 0 타이머(TanStack Query 의 알림 배치)를 비운다. 3초 같은 실제 지연은 건드리지 않는다
 const flush = async () => {
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 40; i++) {
     await Promise.resolve();
     jest.advanceTimersByTime(0);
   }
@@ -131,23 +151,19 @@ async function renderBootstrap() {
   await act(flush);
 }
 
-async function renderAdBanner() {
-  await act(async () => {
-    renderer = create(
-      <QueryClientProvider client={queryClient}>
-        <AdBanner />
-      </QueryClientProvider>,
-    );
-  });
-  await act(flush);
-  return renderer!;
-}
-
-beforeEach(() => {
+beforeEach(async () => {
   jest.clearAllMocks();
   jest.useFakeTimers();
+  // READY_STATE 의 날짜와 같은 날(KST 정오)
+  jest.setSystemTime(new Date('2026-11-21T03:00:00Z'));
+  // 지난 테스트에서 불러 둔 광고를 먼저 치운다(리스너 해제) — 그다음 리스너 목록을 비운다
+  resetAdsForTest();
   mockListeners = {};
   resetAdsSdkForTest();
+  resetAdsConsentForTest();
+  await AsyncStorage.clear();
+  // 대부분의 테스트는 동의 흐름을 이미 마친 사용자. 동의 전 동작은 따로 확인한다
+  await completeConsentFlow();
   // clearAllMocks 는 구현을 되돌리지 않으므로, 테스트마다 바꾸는 목은 여기서 기본값으로 되돌린다
   mockLoadAdState.mockResolvedValue(READY_STATE);
   mockSaveAdState.mockResolvedValue(undefined);
@@ -188,10 +204,10 @@ describe('useAds 전면광고', () => {
       done = true;
     });
     await act(flush);
-    expect(mockCreateInterstitial).toHaveBeenCalledWith(
-      'test-interstitial',
-      expect.objectContaining({requestNonPersonalizedAdsOnly: true}),
-    );
+    // 요청 옵션은 adRequestOptions() 규칙을 따른다: iOS 에서 앱 추적을 허용했으면(권한 목 기본값) 맞춤 광고
+    expect(mockCreateInterstitial).toHaveBeenCalledWith('test-interstitial', {
+      requestNonPersonalizedAdsOnly: false,
+    });
     expect(mockInterstitialLoad).toHaveBeenCalledTimes(1);
 
     await act(async () => {
@@ -279,7 +295,7 @@ describe('useAds 전면광고', () => {
     expect(mockSaveAdState).toHaveBeenCalledWith(expect.objectContaining({shownToday: 1}));
   });
 
-  it('show() 뒤 광고가 열리지 않으면 5초 안에 끝난다 (노출 기록은 하지 않는다)', async () => {
+  it('show() 뒤 열림·닫힘 신호가 끝내 없으면 90초 뒤 끝난다 (노출 기록은 하지 않는다)', async () => {
     const hook = await renderUseAds();
 
     let done = false;
@@ -293,8 +309,9 @@ describe('useAds 전면광고', () => {
     });
     expect(mockInterstitialShow).toHaveBeenCalledTimes(1);
 
+    // 예전처럼 5초에 풀리지 않는다
     await act(async () => {
-      jest.advanceTimersByTime(4999);
+      jest.advanceTimersByTime(90 * 1000 - 1);
       await flush();
     });
     expect(done).toBe(false);
@@ -338,7 +355,6 @@ describe('useAds 전면광고', () => {
 
     const first = hook.current.showInterstitial();
     const second = hook.current.showInterstitial();
-    expect(second).toBe(first);
     await act(flush);
     await act(async () => {
       emit('loaded');
@@ -354,10 +370,183 @@ describe('useAds 전면광고', () => {
     expect(mockInterstitialShow).toHaveBeenCalledTimes(1);
     expect(mockSaveAdState).toHaveBeenCalledTimes(1);
 
-    // 끝난 뒤의 호출은 새로 진행한다
+    // 끝난 뒤의 호출은 새로 진행한다(규칙 확인을 위해 저장값을 다시 읽는다)
+    const reads = mockLoadAdState.mock.calls.length;
     mockLoadAdState.mockResolvedValue({...READY_STATE, shownToday: 2});
     await act(() => hook.current.showInterstitial());
-    expect(mockLoadAdState).toHaveBeenCalledTimes(3);
+    expect(mockLoadAdState.mock.calls.length).toBeGreaterThan(reads);
+    expect(mockCreateInterstitial).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('전면 미리 불러오기', () => {
+  // SDK 가 준비된 상태(동의 완료 + 초기화)에서 광고 하나를 불러 둔다
+  async function prepareReady() {
+    const hook = await renderUseAds();
+    expect(hook.current.adsEnabled).toBe(true);
+    act(() => hook.current.prepareInterstitial());
+    await act(flush);
+    await act(async () => {
+      emit('loaded');
+      await flush();
+    });
+    await expect(waitInterstitialReady(0)).resolves.toBe(true);
+    return hook;
+  }
+
+  it('준비가 1초 안에 안 되면 waitInterstitialReady(1000) 은 false', async () => {
+    await renderUseAds();
+    prepareInterstitial(ADS_ON);
+
+    let result: boolean | undefined;
+    waitInterstitialReady(1000).then(ok => {
+      result = ok;
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(999);
+      await flush();
+    });
+    expect(result).toBeUndefined();
+    await act(async () => {
+      jest.advanceTimersByTime(1);
+      await flush();
+    });
+    expect(result).toBe(false);
+  });
+
+  it('불러오는 중에 다시 준비해도 한 번만 로드하고, 로드되면 true', async () => {
+    await renderUseAds();
+    prepareInterstitial(ADS_ON);
+    prepareInterstitial(ADS_ON);
+
+    const ready = waitInterstitialReady(1000);
+    await act(flush);
+    await act(async () => {
+      emit('loaded');
+      await flush();
+    });
+
+    await expect(ready).resolves.toBe(true);
+    expect(mockCreateInterstitial).toHaveBeenCalledTimes(1);
+    expect(mockInterstitialLoad).toHaveBeenCalledTimes(1);
+    // 준비돼 있으면 또 불러오지 않는다
+    prepareInterstitial(ADS_ON);
+    await act(flush);
+    expect(mockCreateInterstitial).toHaveBeenCalledTimes(1);
+  });
+
+  it('규칙을 통과하지 못하면 불러오지 않고 기다림도 바로 false', async () => {
+    mockLoadAdState.mockResolvedValue({...READY_STATE, testDate: '2026-11-21'});
+    await renderUseAds();
+    prepareInterstitial(ADS_ON);
+
+    await act(async () => {
+      await expect(waitInterstitialReady(1000)).resolves.toBe(false);
+    });
+    expect(mockCreateInterstitial).not.toHaveBeenCalled();
+  });
+
+  it('보여주기 직전에 서버가 광고를 끄면 show 를 부르지 않는다', async () => {
+    const hook = await prepareReady();
+
+    // 불러 둔 사이 서버에서 광고를 껐다(포그라운드 복귀·5분 재조회로 캐시가 바뀜). 다른 값은 그대로
+    await act(async () => {
+      queryClient.setQueryData(['appConfig', 'ads'], ADS_TURNED_OFF);
+      await flush();
+    });
+    await act(() => hook.current.showInterstitial());
+
+    expect(mockInterstitialShow).not.toHaveBeenCalled();
+    expect(mockSaveAdState).not.toHaveBeenCalled();
+  });
+
+  it('보여주기 직전 getConfig() 가 꺼짐이면 모듈 함수도 show 를 부르지 않는다', async () => {
+    await prepareReady();
+
+    await act(() => showPreparedInterstitial(() => ADS_TURNED_OFF));
+
+    expect(mockInterstitialShow).not.toHaveBeenCalled();
+  });
+
+  it('열림 신호가 6초 뒤에 와도 닫힐 때까지 다음 호출은 같은 프라미스를 기다린다', async () => {
+    await prepareReady();
+
+    let done = false;
+    const first = showPreparedInterstitial(getLatestAdConfig);
+    first.then(() => {
+      done = true;
+    });
+    await act(flush);
+    expect(mockInterstitialShow).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      jest.advanceTimersByTime(6000);
+      await flush();
+    });
+    // 5초가 지나도 잠금이 풀리지 않는다
+    expect(showPreparedInterstitial(getLatestAdConfig)).toBe(first);
+    expect(done).toBe(false);
+
+    await act(async () => {
+      emit('opened');
+      await flush();
+    });
+    expect(showPreparedInterstitial(getLatestAdConfig)).toBe(first);
+    expect(done).toBe(false);
+
+    await act(async () => {
+      emit('closed');
+      await first;
+    });
+    expect(done).toBe(true);
+    expect(mockInterstitialShow).toHaveBeenCalledTimes(1);
+    expect(mockSaveAdState).toHaveBeenCalledTimes(1);
+    expect(mockSaveAdState).toHaveBeenCalledWith(expect.objectContaining({shownToday: 1}));
+  });
+
+  it('열린 뒤 닫힘이 없으면 90초 뒤 끝난다', async () => {
+    await prepareReady();
+
+    let done = false;
+    const pending = showPreparedInterstitial(getLatestAdConfig).then(() => {
+      done = true;
+    });
+    await act(async () => {
+      await flush();
+      emit('opened');
+      await flush();
+      jest.advanceTimersByTime(90 * 1000 - 1);
+      await flush();
+    });
+    expect(done).toBe(false);
+
+    await act(async () => {
+      jest.advanceTimersByTime(1);
+      await flush();
+    });
+    await pending;
+    expect(done).toBe(true);
+    expect(mockSaveAdState).toHaveBeenCalledWith(expect.objectContaining({shownToday: 1}));
+  });
+
+  it('준비된 광고가 없으면 기다리지 않고 끝난다', async () => {
+    await renderUseAds();
+
+    await act(() => showPreparedInterstitial(() => ADS_ON));
+
+    expect(mockInterstitialShow).not.toHaveBeenCalled();
+  });
+
+  it('getLatestAdConfig 는 마지막으로 읽은 서버 설정을 돌려준다', async () => {
+    expect(getLatestAdConfig()).toBeUndefined();
+    await renderUseAds();
+    expect(getLatestAdConfig()).toEqual(ADS_ON);
+
+    await act(async () => {
+      queryClient.setQueryData(['appConfig', 'ads'], ADS_OFF);
+      await flush();
+    });
+    expect(getLatestAdConfig()).toEqual(ADS_OFF);
   });
 });
 
@@ -425,17 +614,44 @@ describe('useAds 초기화와 운동 기록', () => {
     await act(() => hook.current.showInterstitial());
 
     expect(hook.current.adsEnabled).toBe(false);
+    expect(hook.current.serverAdsEnabled).toBe(false);
     expect(mockGatherConsent).not.toHaveBeenCalled();
     expect(mockInitialize).not.toHaveBeenCalled();
     expect(mockCreateInterstitial).not.toHaveBeenCalled();
   });
 
-  it('광고가 켜져 있으면 동의를 받은 뒤 SDK 를 한 번만 초기화한다', async () => {
+  it('동의 흐름 전에는 서버가 켜도 adsEnabled 가 false 이고 초기화하지 않는다', async () => {
+    // 업데이트로 처음 들어온 기존 사용자: 동의 흐름을 아직 안 돌았다
+    resetAdsConsentForTest();
+    const hook = await renderUseAds();
+
+    expect(hook.current.serverAdsEnabled).toBe(true);
+    expect(hook.current.consentDone).toBe(false);
+    expect(hook.current.adsEnabled).toBe(false);
+    expect(mockInitialize).not.toHaveBeenCalled();
+
+    // 미리 불러오기·전면도 요청하지 않는다
+    act(() => hook.current.prepareInterstitial());
+    await act(() => hook.current.showInterstitial());
+    expect(mockCreateInterstitial).not.toHaveBeenCalled();
+
+    // 결과 화면에서 동의 흐름이 끝나면(완료 알림) 그때 초기화하고 광고를 켠다
+    await act(async () => {
+      await completeConsentFlow();
+      await flush();
+    });
+    expect(hook.current.consentDone).toBe(true);
+    expect(mockInitialize).toHaveBeenCalledTimes(1);
+    expect(hook.current.adsEnabled).toBe(true);
+  });
+
+  it('광고가 켜져 있고 동의 흐름을 마쳤으면 SDK 를 한 번만 초기화한다(동의 양식은 띄우지 않는다)', async () => {
     await renderUseAds();
     act(() => renderer?.unmount());
-    await renderUseAds();
+    const hook = await renderUseAds();
 
-    expect(mockGatherConsent).toHaveBeenCalledTimes(1);
+    expect(hook.current.consentDone).toBe(true);
+    expect(mockGatherConsent).not.toHaveBeenCalled();
     expect(mockSetRequestConfiguration).toHaveBeenCalledTimes(1);
     expect(mockInitialize).toHaveBeenCalledTimes(1);
     expect(mobileAds).toBeDefined();
@@ -474,32 +690,26 @@ describe('useAds 초기화와 운동 기록', () => {
 
     await expect(hook.current.recordWorkout()).resolves.toBeUndefined();
   });
-});
 
-describe('AdBanner', () => {
-  it('adsEnabled 가 거짓이면 배너를 렌더하지 않는다', async () => {
-    mockGetAdConfig.mockResolvedValue(ADS_OFF);
-    const tree = await renderAdBanner();
-    expect(tree.toJSON()).toBeNull();
-  });
-
-  it('설정을 아직 못 읽었으면 배너를 렌더하지 않는다', async () => {
-    mockGetAdConfig.mockReturnValue(new Promise(() => {}));
-    const tree = await renderAdBanner();
-    expect(tree.toJSON()).toBeNull();
-  });
-
-  it('광고가 켜져 있으면 비개인화 배너를 렌더하고, 로드에 실패하면 숨긴다', async () => {
-    const tree = await renderAdBanner();
-    const banner = tree.root.findByProps({unitId: 'test-banner'});
-    expect(banner.type).toBe('BannerAd');
-    expect(banner.props.requestOptions).toEqual(
-      expect.objectContaining({requestNonPersonalizedAdsOnly: true}),
-    );
-
-    await act(async () => {
-      banner.props.onAdFailedToLoad(new Error('no fill'));
+  it('recordTestDay 는 저장된 상태에 오늘 날짜를 남긴다', async () => {
+    let stored: AdState = {...READY_STATE, date: '2026-11-20', testDate: null};
+    mockLoadAdState.mockImplementation(async () => stored);
+    mockSaveAdState.mockImplementation(async (next: AdState) => {
+      stored = next;
     });
-    expect(tree.toJSON()).toBeNull();
+    const hook = await renderUseAds();
+
+    await act(() => hook.current.recordTestDay());
+
+    expect(stored.testDate).toBe('2026-11-21');
+    // 다른 기록은 건드리지 않는다
+    expect(stored.completedWorkouts).toBe(READY_STATE.completedWorkouts);
+  });
+
+  it('저장에 실패해도 recordTestDay 는 예외를 던지지 않는다', async () => {
+    mockSaveAdState.mockRejectedValue(new Error('disk full'));
+    const hook = await renderUseAds();
+
+    await expect(hook.current.recordTestDay()).resolves.toBeUndefined();
   });
 });

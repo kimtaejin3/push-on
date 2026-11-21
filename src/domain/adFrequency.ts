@@ -33,13 +33,17 @@ export const createAdState = (now: Date): AdState => ({
   completedWorkouts: 0,
 });
 
-/** 날짜가 바뀌었으면 오늘 노출 기록만 초기화한다. 같은 날이면 같은 객체를 그대로 돌려준다 */
+/**
+ * 날짜가 바뀌었으면 오늘 노출 횟수만 초기화한다. 같은 날이면 같은 객체를 그대로 돌려준다.
+ * lastShownAt 은 남긴다: 지우면 23:59 노출 뒤 00:01 에 또 뜨거나(최소 간격 무시),
+ * 시계를 하루 되돌려 '미래 lastShownAt' 방어를 피할 수 있다.
+ */
 export const rollDate = (state: AdState, now: Date): AdState => {
   const today = formatKSTDate(now);
   if (state.date === today) {
     return state;
   }
-  return {...state, date: today, shownToday: 0, lastShownAt: null};
+  return {...state, date: today, shownToday: 0};
 };
 
 export const shouldShowInterstitial = (

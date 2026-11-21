@@ -5,7 +5,7 @@ export const AD_STATE_STORAGE_KEY = 'ad-state';
 
 /**
  * 저장된 전면광고 노출 기록. 없거나 깨졌으면 초기 상태로 시작하고,
- * 날짜가 지났으면 오늘 노출 기록만 초기화한다(누적 운동 수는 유지).
+ * 날짜가 지났으면 오늘 노출 횟수만 초기화한다(누적 운동 수·마지막 노출 시각은 유지).
  */
 export const loadAdState = async (now: Date = new Date()): Promise<AdState> => {
   try {

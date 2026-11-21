@@ -30,11 +30,11 @@ describe('adState', () => {
     mockGet.mockResolvedValue(JSON.stringify({shownToday: 3}));
     await expect(loadAdState(now)).resolves.toMatchObject({shownToday: 0, completedWorkouts: 0});
   });
-  it('날짜가 지난 저장값은 오늘 기준으로 리셋해서 돌려준다 (누적 운동 수는 유지)', async () => {
+  it('날짜가 지난 저장값은 오늘 노출 횟수만 리셋해서 돌려준다 (누적 운동 수·마지막 노출 시각은 유지)', async () => {
     mockGet.mockResolvedValue(JSON.stringify(
       {date: '2026-10-18', shownToday: 2, lastShownAt: 123, completedWorkouts: 7}));
     await expect(loadAdState(now)).resolves.toEqual(
-      {date: '2026-10-19', shownToday: 0, lastShownAt: null, completedWorkouts: 7});
+      {date: '2026-10-19', shownToday: 0, lastShownAt: 123, completedWorkouts: 7});
   });
   it('saveAdState 는 JSON 으로 저장한다', async () => {
     await saveAdState(state);

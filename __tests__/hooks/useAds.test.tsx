@@ -2,7 +2,9 @@ import React from 'react';
 import {act, create, ReactTestRenderer} from 'react-test-renderer';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import mobileAds, {AdsConsent, InterstitialAd} from 'react-native-google-mobile-ads';
+import {AppState, AppStateStatus} from 'react-native';
 import {useAds} from '../../src/hooks/useAds';
+import {useAdConfigRefresh} from '../../src/hooks/useAdConfigRefresh';
 import {AdBanner} from '../../src/components/common/AdBanner';
 import {resetAdsSdkForTest} from '../../src/utils/adsSdk';
 import {loadAdState, saveAdState} from '../../src/utils/adState';
@@ -109,6 +111,23 @@ async function renderUseAds() {
   });
   await act(flush);
   return result;
+}
+
+// AdsBootstrap 처럼 설정 구독(useAds)과 주기적 재조회(useAdConfigRefresh)를 함께 둔다
+async function renderBootstrap() {
+  function Bootstrap() {
+    useAds();
+    useAdConfigRefresh();
+    return null;
+  }
+  await act(async () => {
+    renderer = create(
+      <QueryClientProvider client={queryClient}>
+        <Bootstrap />
+      </QueryClientProvider>,
+    );
+  });
+  await act(flush);
 }
 
 async function renderAdBanner() {
@@ -257,6 +276,143 @@ describe('useAds 전면광고', () => {
 
     await expect(pending).resolves.toBeUndefined();
     expect(mockSaveAdState).toHaveBeenCalledWith(expect.objectContaining({shownToday: 1}));
+  });
+
+  it('show() 뒤 광고가 열리지 않으면 5초 안에 끝난다 (노출 기록은 하지 않는다)', async () => {
+    const hook = await renderUseAds();
+
+    let done = false;
+    const pending = hook.current.showInterstitial().then(() => {
+      done = true;
+    });
+    await act(flush);
+    await act(async () => {
+      emit('loaded');
+      await flush();
+    });
+    expect(mockInterstitialShow).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      jest.advanceTimersByTime(4999);
+      await flush();
+    });
+    expect(done).toBe(false);
+    await act(async () => {
+      jest.advanceTimersByTime(1);
+      await flush();
+    });
+
+    await pending;
+    expect(done).toBe(true);
+    expect(mockSaveAdState).not.toHaveBeenCalled();
+  });
+
+  it('광고가 열렸으면 5초가 지나도 닫힐 때까지 기다린다', async () => {
+    const hook = await renderUseAds();
+
+    let done = false;
+    const pending = hook.current.showInterstitial().then(() => {
+      done = true;
+    });
+    await act(flush);
+    await act(async () => {
+      emit('loaded');
+      await flush();
+      emit('opened');
+      await flush();
+      jest.advanceTimersByTime(60 * 1000);
+      await flush();
+    });
+    expect(done).toBe(false);
+
+    await act(async () => {
+      emit('closed');
+      await pending;
+    });
+    expect(mockSaveAdState).toHaveBeenCalledWith(expect.objectContaining({shownToday: 1}));
+  });
+
+  it('진행 중에 다시 불러도 광고를 한 번만 로드하고 한 번만 기록한다', async () => {
+    const hook = await renderUseAds();
+
+    const first = hook.current.showInterstitial();
+    const second = hook.current.showInterstitial();
+    expect(second).toBe(first);
+    await act(flush);
+    await act(async () => {
+      emit('loaded');
+      await flush();
+      emit('opened');
+      await flush();
+      emit('closed');
+      await Promise.all([first, second]);
+    });
+
+    expect(mockCreateInterstitial).toHaveBeenCalledTimes(1);
+    expect(mockInterstitialLoad).toHaveBeenCalledTimes(1);
+    expect(mockInterstitialShow).toHaveBeenCalledTimes(1);
+    expect(mockSaveAdState).toHaveBeenCalledTimes(1);
+
+    // 끝난 뒤의 호출은 새로 진행한다
+    mockLoadAdState.mockResolvedValue({...READY_STATE, shownToday: 2});
+    await act(() => hook.current.showInterstitial());
+    expect(mockLoadAdState).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe('광고 설정 재조회', () => {
+  let appStateListener: ((state: AppStateStatus) => void) | undefined;
+
+  beforeEach(() => {
+    appStateListener = undefined;
+    (AppState as {currentState: AppStateStatus}).currentState = 'active';
+    (AppState.addEventListener as jest.Mock).mockImplementation(
+      (_type: string, listener: (state: AppStateStatus) => void) => {
+        appStateListener = listener;
+        return {remove: jest.fn()};
+      },
+    );
+  });
+
+  const changeAppState = async (state: AppStateStatus) => {
+    (AppState as {currentState: AppStateStatus}).currentState = state;
+    await act(async () => {
+      appStateListener?.(state);
+      await flush();
+    });
+  };
+
+  it('앱이 포그라운드로 돌아오면 서버 설정을 다시 읽어 바로 반영한다', async () => {
+    await renderBootstrap();
+    expect(mockGetAdConfig).toHaveBeenCalledTimes(1);
+
+    await changeAppState('background');
+    expect(mockGetAdConfig).toHaveBeenCalledTimes(1);
+
+    // 백그라운드에 있는 동안 서버에서 광고를 껐다
+    mockGetAdConfig.mockResolvedValue(ADS_OFF);
+    await changeAppState('active');
+
+    expect(mockGetAdConfig).toHaveBeenCalledTimes(2);
+    expect(queryClient.getQueryData(['appConfig', 'ads'])).toEqual(ADS_OFF);
+  });
+
+  it('앱이 켜져 있는 동안 5분마다 다시 읽고, 백그라운드에서는 읽지 않는다', async () => {
+    await renderBootstrap();
+    expect(mockGetAdConfig).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      jest.advanceTimersByTime(5 * 60 * 1000);
+      await flush();
+    });
+    expect(mockGetAdConfig).toHaveBeenCalledTimes(2);
+
+    await changeAppState('background');
+    await act(async () => {
+      jest.advanceTimersByTime(15 * 60 * 1000);
+      await flush();
+    });
+    expect(mockGetAdConfig).toHaveBeenCalledTimes(2);
   });
 });
 

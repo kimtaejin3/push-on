@@ -7,6 +7,7 @@ import {
   recordInterstitialShown,
   recordWorkoutCompleted,
 } from '../../src/domain/adFrequency';
+import {formatKSTDate} from '../../src/utils/time';
 
 const base: AdState = {date: '2026-10-19', shownToday: 0, lastShownAt: null, completedWorkouts: 5};
 const on: AdConfig = {...ADS_OFF, adsEnabled: true, interstitialEnabled: true};
@@ -42,10 +43,22 @@ describe('shouldShowInterstitial', () => {
 });
 
 describe('rollDate', () => {
-  it('날짜가 바뀌면 shownToday 와 lastShownAt 을 초기화한다', () => {
+  it('날짜가 바뀌면 shownToday 만 초기화하고 lastShownAt 은 유지한다', () => {
     // 정오로 둬 기기 시간대(UTC−3…UTC+14)와 관계없이 10월 19일이 되게 한다
     const next = rollDate({date: '2026-10-18', shownToday: 2, lastShownAt: 1, completedWorkouts: 5}, now);
-    expect(next).toEqual({date: '2026-10-19', shownToday: 0, lastShownAt: null, completedWorkouts: 5});
+    expect(next).toEqual({date: '2026-10-19', shownToday: 0, lastShownAt: 1, completedWorkouts: 5});
+  });
+  it('자정 직전에 노출했으면 자정 직후에도 최소 간격이 지나기 전엔 노출하지 않는다', () => {
+    // 날짜 문자열은 formatKSTDate 로 만들어 기기 시간대와 관계없이 "전날 → 다음날" 이 되게 한다
+    const shownAt = new Date(2026, 9, 18, 23, 59, 0);
+    const checkAt = new Date(2026, 9, 19, 0, 1, 0);
+    const state = recordInterstitialShown(
+      {date: formatKSTDate(shownAt), shownToday: 0, lastShownAt: null, completedWorkouts: 5},
+      shownAt,
+    );
+    const rolled = rollDate(state, checkAt);
+    expect(rolled.shownToday).toBe(0);
+    expect(shouldShowInterstitial(on, rolled, checkAt)).toBe(false);
   });
   it('같은 날이면 상태를 그대로 돌려준다', () => {
     const same = {date: '2026-10-19', shownToday: 1, lastShownAt: 10, completedWorkouts: 5};

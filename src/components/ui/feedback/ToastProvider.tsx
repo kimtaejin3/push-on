@@ -9,7 +9,6 @@ import React, {
 import {
   AccessibilityInfo,
   Animated,
-  Modal,
   Pressable,
   StyleSheet,
   View,
@@ -73,53 +72,51 @@ export function ToastProvider({children}: {children: ReactNode}) {
   return (
     <ToastContext.Provider value={api}>
       {children}
-      <Modal
-        visible={toast !== null}
-        transparent
-        statusBarTranslucent
-        navigationBarTranslucent
-        onRequestClose={() => setToast(null)}>
-        {toast ? (
-          <View
-            style={[
-              styles.overlay,
-              {
-                paddingBottom: insets.bottom + 86,
-                paddingLeft: insets.left + layout.screenPadding,
-                paddingRight: insets.right + layout.screenPadding,
-              },
-            ]}>
-            <Animated.View style={[styles.toast, {opacity}]}>
-              <Icon
-                name={toast.tone === 'alert' ? 'info' : 'circle-check'}
-                color={toast.tone === 'alert' ? 'alert' : 'active'}
-              />
-              <Text variant="label" weight={700} style={styles.message}>
-                {toast.message}
-              </Text>
-              {toast.action ? (
-                <Pressable
-                  accessibilityRole="button"
-                  style={styles.action}
-                  onPress={() => {
-                    setToast(null);
-                    toast.action?.onPress();
-                  }}>
-                  <Text variant="label" weight={700} color="active">
-                    {toast.action.label}
-                  </Text>
-                </Pressable>
-              ) : null}
-            </Animated.View>
-          </View>
-        ) : null}
-      </Modal>
+      {toast ? (
+        <View
+          pointerEvents="box-none"
+          style={[
+            styles.overlay,
+            {
+              bottom: insets.bottom + 86,
+              left: insets.left + layout.screenPadding,
+              right: insets.right + layout.screenPadding,
+            },
+          ]}>
+          <Animated.View style={[styles.toast, {opacity}]}>
+            <Icon
+              name={toast.tone === 'alert' ? 'info' : 'circle-check'}
+              color={toast.tone === 'alert' ? 'alert' : 'active'}
+            />
+            <Text variant="label" weight={700} style={styles.message}>
+              {toast.message}
+            </Text>
+            {toast.action ? (
+              <Pressable
+                accessibilityRole="button"
+                style={styles.action}
+                onPress={() => {
+                  setToast(null);
+                  toast.action?.onPress();
+                }}>
+                <Text variant="label" weight={700} color="active">
+                  {toast.action.label}
+                </Text>
+              </Pressable>
+            ) : null}
+          </Animated.View>
+        </View>
+      ) : null}
     </ToastContext.Provider>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {flex: 1, justifyContent: 'flex-end', alignItems: 'center'},
+  overlay: {
+    position: 'absolute',
+    alignItems: 'center',
+    zIndex: 1,
+  },
   toast: {
     width: '100%',
     maxWidth: layout.frameWidth - 2 * layout.screenPadding,

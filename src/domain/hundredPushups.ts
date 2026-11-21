@@ -110,22 +110,6 @@ export const retestLevel = (state: ProgramState, reps: number): ProgramState => 
   return {...state, level: assignLevel(state.week, reps) ?? 1, lastTestReps: reps};
 };
 
-/** 하루 목표 달성률: 실제 합 ÷ 목표 합 (마지막 max 세트는 최소치를 목표로 본다) */
-export const dayAchievementRate = (planSets: number[], results: number[]): number => {
-  const target = planSets.reduce((a, b) => a + b, 0);
-  if (target === 0) {
-    return 1;
-  }
-  const actual = results.reduce((a, b) => a + b, 0);
-  return actual / target;
-};
-
-const REPEAT_SUGGEST_THRESHOLD = 0.8;
-
-/** 목표의 80% 미만이면 "이 날 다시 하기"를 제안한다 (원본 프로그램의 '힘들면 반복' 권장) */
-export const shouldSuggestRepeat = (planSets: number[], results: number[]): boolean =>
-  dayAchievementRate(planSets, results) < REPEAT_SUGGEST_THRESHOLD;
-
 export type InitialTestPreviewRow = {
   range: string;
   week: number;

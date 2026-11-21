@@ -1,5 +1,5 @@
 import {
-  assignLevel, startProgram, todayPlan, completeDay, applyTest, describeSets, retestLevel, dayAchievementRate, shouldSuggestRepeat, initialTestPreview, programTable,
+  assignLevel, startProgram, todayPlan, completeDay, applyTest, describeSets, retestLevel, initialTestPreview, programTable,
   isDayPassed, missedSets, attemptRecord, moveRecord, failStreak, lastFailure, passedDayCount,
   downgradeTarget, moveTo, levelRange, testThreshold, resolveTest,
 } from '../../src/domain/hundredPushups';
@@ -122,27 +122,6 @@ describe('retestLevel (레벨 다시 재기)', () => {
     expect(retestLevel(due, 30)).toBe(due);
     const done = {...active, status: 'completed' as const};
     expect(retestLevel(done, 30)).toBe(done);
-  });
-});
-
-describe('dayAchievementRate / shouldSuggestRepeat', () => {
-  const plan = [6, 6, 4, 4, 5]; // 목표 합 25 (마지막은 최소치)
-
-  it('실제 합 ÷ 목표 합을 돌려준다', () => {
-    expect(dayAchievementRate(plan, [6, 6, 4, 4, 5])).toBe(1);
-    expect(dayAchievementRate(plan, [3, 3, 2, 2, 2.5])).toBeCloseTo(0.5);
-    expect(dayAchievementRate(plan, [6, 6, 4, 4, 15])).toBeGreaterThan(1);
-  });
-
-  it('80% 미만이면 다시 하기를 제안한다 (경계 포함 안 함)', () => {
-    expect(shouldSuggestRepeat(plan, [6, 6, 4, 4, 5])).toBe(false);
-    expect(shouldSuggestRepeat(plan, [6, 6, 4, 4, 0])).toBe(false); // 20/25 = 0.8
-    expect(shouldSuggestRepeat(plan, [6, 6, 4, 3, 0])).toBe(true); // 19/25
-    expect(shouldSuggestRepeat(plan, [1, 1, 1, 1, 1])).toBe(true);
-  });
-
-  it('목표 합이 0 이면 제안하지 않는다', () => {
-    expect(shouldSuggestRepeat([], [])).toBe(false);
   });
 });
 

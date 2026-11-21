@@ -16,8 +16,8 @@ const mockGet = AsyncStorage.getItem as jest.Mock;
 describe('reminder settings', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('기본값: 꺼짐, 월·수·금 20:00', () => {
-    expect(DEFAULT_REMINDER_SETTINGS).toEqual({enabled: false, days: [1, 3, 5], hour: 20, minute: 0});
+  it('기본값: 꺼짐, 매일 20:00', () => {
+    expect(DEFAULT_REMINDER_SETTINGS).toEqual({enabled: false, days: [0, 1, 2, 3, 4, 5, 6], hour: 20, minute: 0});
   });
 
   it('범위 밖 값은 보정한다 (요일 0-6 중복 제거·정렬, 시 0-23, 분 0-59)', () => {
@@ -25,10 +25,15 @@ describe('reminder settings', () => {
       .toEqual({enabled: true, days: [1, 5], hour: 23, minute: 59});
   });
 
-  it('요일은 최대 3개까지만 남긴다 (주 3일 프로그램)', () => {
-    expect(clampReminderSettings({enabled: true, days: [0, 1, 2, 3, 4], hour: 9, minute: 0}).days)
-      .toEqual([0, 1, 2]);
-    expect(MAX_REMINDER_DAYS).toBe(3);
+  it('요일은 7일 모두 고를 수 있다 (매일 하는 프로그램)', () => {
+    expect(clampReminderSettings({enabled: true, days: [6, 0, 1, 2, 3, 4, 5], hour: 20, minute: 0}).days)
+      .toEqual([0, 1, 2, 3, 4, 5, 6]);
+    expect(MAX_REMINDER_DAYS).toBe(7);
+  });
+
+  it('이미 저장된 월·수·금 설정은 그대로 읽힌다', async () => {
+    mockGet.mockResolvedValue(JSON.stringify({enabled: true, days: [1, 3, 5], hour: 20, minute: 0}));
+    await expect(loadReminderSettings()).resolves.toEqual({enabled: true, days: [1, 3, 5], hour: 20, minute: 0});
   });
 
   it('저장된 값이 없거나 깨져 있으면 기본값', async () => {

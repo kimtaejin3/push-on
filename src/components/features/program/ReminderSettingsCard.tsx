@@ -50,13 +50,11 @@ function ReminderSettingsCard() {
     await apply({...settings, enabled});
   };
 
-  const isFull = settings.days.length >= MAX_REMINDER_DAYS;
+  // 매일 하는 프로그램이라, 빠진 요일이 있으면 모두 켜 두길 권한다
+  const isPartial = settings.days.length < MAX_REMINDER_DAYS;
 
   const toggleDay = (day: number) => {
     const selected = settings.days.includes(day);
-    if (!selected && isFull) {
-      return; // 최대 3일
-    }
     const days = selected
       ? settings.days.filter(d => d !== day)
       : [...settings.days, day];
@@ -83,13 +81,11 @@ function ReminderSettingsCard() {
           <View style={styles.dayRow}>
             {DAY_LABELS.map((label, day) => {
               const selected = settings.days.includes(day);
-              const disabled = !selected && isFull;
               return (
                 <Pressable
                   key={label}
                   onPress={() => toggleDay(day)}
-                  disabled={disabled}
-                  style={[styles.day, selected && styles.daySelected, disabled && styles.dayDisabled]}>
+                  style={[styles.day, selected && styles.daySelected]}>
                   <Text style={[styles.dayText, selected && styles.dayTextSelected]}>
                     {label}
                   </Text>
@@ -97,9 +93,11 @@ function ReminderSettingsCard() {
               );
             })}
           </View>
-          <Text style={styles.hint}>
-            주 {MAX_REMINDER_DAYS}일 프로그램이라 최대 {MAX_REMINDER_DAYS}일까지 고를 수 있어요
-          </Text>
+          {isPartial && (
+            <Text style={styles.hint}>
+              매일 하는 프로그램이에요. 요일을 모두 켜 두는 걸 권해요
+            </Text>
+          )}
           <Stepper
             label="시간"
             value={settings.hour}
@@ -152,7 +150,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.overlayMedium,
   },
   daySelected: {backgroundColor: colors.primary},
-  dayDisabled: {opacity: 0.35},
   hint: {fontSize: 12, color: colors.gray400, marginBottom: 4},
   dayText: {fontSize: 14, color: colors.textSecondary},
   dayTextSelected: {color: colors.textLight, fontWeight: '600'},

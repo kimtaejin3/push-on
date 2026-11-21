@@ -8,16 +8,16 @@ export type ReminderSettings = {
   minute: number;
 };
 
-// 원본 프로그램의 주 3일(월·수·금) 권장을 기본값으로
+// 프로그램이 매일 하는 운동이라 기본값도 매일
 export const DEFAULT_REMINDER_SETTINGS: ReminderSettings = {
   enabled: false,
-  days: [1, 3, 5],
+  days: [0, 1, 2, 3, 4, 5, 6],
   hour: 20,
   minute: 0,
 };
 
-/** 원본 프로그램이 주 3일이므로 알림도 최대 3일 */
-export const MAX_REMINDER_DAYS = 3;
+/** 매일 하는 프로그램이라 7일 모두 고를 수 있다 */
+export const MAX_REMINDER_DAYS = 7;
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 

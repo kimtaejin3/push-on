@@ -2,8 +2,21 @@ import {flushPendingSaves, onPendingFlushed, savePushupSession, saveWorkout} fro
 import {supabase} from '../../src/lib/supabase';
 import {addPendingSave, loadPendingSaves, removePendingSave} from '../../src/utils/pendingSaves';
 
+// 마지막으로 본 계정을 기록하는 onAuthStateChange 리스너 (한 번 등록되면 모듈이 살아 있는 동안 유지된다)
+let mockAuthListener: ((event: string, session: unknown) => void) | null = null;
 jest.mock('../../src/lib/supabase', () => ({
-  supabase: {auth: {getUser: jest.fn(), getSession: jest.fn()}, from: jest.fn(), rpc: jest.fn()},
+  supabase: {
+    auth: {
+      getUser: jest.fn(),
+      getSession: jest.fn(),
+      onAuthStateChange: jest.fn((listener: (event: string, session: unknown) => void) => {
+        mockAuthListener = listener;
+        return {data: {subscription: {unsubscribe: jest.fn()}}};
+      }),
+    },
+    from: jest.fn(),
+    rpc: jest.fn(),
+  },
 }));
 jest.mock('../../src/utils/pendingSaves', () => ({
   loadPendingSaves: jest.fn(),
@@ -28,6 +41,8 @@ const mockExisting = (row: unknown) => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  // 앞 테스트가 남긴 "마지막으로 본 계정"을 지운다 (명시적 로그아웃과 같다)
+  mockAuthListener?.('SIGNED_OUT', null);
   mockGetUser.mockResolvedValue({data: {user: {id: 'u1'}}});
   mockGetSession.mockResolvedValue({data: {session: {user: {id: 'u1'}}}});
   insert = jest.fn().mockResolvedValue({error: null});
@@ -98,6 +113,31 @@ describe('saveWorkout / flushPendingSaves', () => {
     mockGetUser.mockResolvedValue({data: {user: null}, error: {message: 'network'}});
     await expect(saveWorkout({reps: 3, duration_seconds: 5})).resolves.toBe('queued');
     expect(mockAddPending.mock.calls[0][0]).toMatchObject({userId: 'u1'});
+  });
+  it('saveWorkout: 세션 갱신에 실패해 세션이 없어도 마지막으로 본 계정으로 보관한다 (만료 + 오프라인)', async () => {
+    await saveWorkout({reps: 1, duration_seconds: 5}); // 세션이 살아 있을 때 한 번 — 계정을 기억한다
+    mockAddPending.mockClear();
+    mockGetSession.mockResolvedValue({data: {session: null}});
+    mockGetUser.mockResolvedValue({data: {user: null}, error: {message: 'network'}});
+    await expect(saveWorkout({reps: 7, duration_seconds: 5})).resolves.toBe('queued');
+    expect(mockAddPending.mock.calls[0][0]).toMatchObject({userId: 'u1', data: {reps: 7}});
+  });
+  it('saveWorkout: 직접 로그아웃했으면 마지막 계정이 있었어도 throw (보관하지 않는다)', async () => {
+    await saveWorkout({reps: 1, duration_seconds: 5});
+    mockAddPending.mockClear();
+    mockAuthListener?.('SIGNED_OUT', null);
+    mockGetSession.mockResolvedValue({data: {session: null}});
+    await expect(saveWorkout({reps: 7, duration_seconds: 5})).rejects.toThrow();
+    expect(mockAddPending).not.toHaveBeenCalled();
+  });
+  it('flushPendingSaves: 세션이 없으면 마지막으로 본 계정이 있어도 보내지 않는다', async () => {
+    await saveWorkout({reps: 1, duration_seconds: 5});
+    await flushPendingSaves();
+    insert.mockClear();
+    mockGetSession.mockResolvedValue({data: {session: null}});
+    mockLoadPending.mockResolvedValue([pending('2026-11-20T10:00:00.000Z', 9)]);
+    await expect(flushPendingSaves()).resolves.toBe(0);
+    expect(insert).not.toHaveBeenCalled();
   });
   it('flushPendingSaves: 서버에 없는 것은 원래 날짜·시각으로 다시 보내고 지운다', async () => {
     mockLoadPending.mockResolvedValue([{userId: 'u1', workout_date: '2026-11-20', created_at: '2026-11-20T10:00:00.000Z', data: {reps: 9, duration_seconds: 20}}]);

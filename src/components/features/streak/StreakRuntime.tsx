@@ -20,7 +20,7 @@ import {formatKSTDate} from '../../../utils/time';
  * 스트릭·기록 화면을 새로 그린다.
  *
  * 스트릭 알림도 여기서 걸어 둔다. 날짜 목록·알림 설정이 바뀌거나 앱이 포그라운드로 돌아올 때
- * 앞으로 3일 치를 다시 계획한다. 로그아웃하면 이 컴포넌트가 사라지므로 그때 모두 취소한다.
+ * 앞으로 3일 치를 다시 계획한다. 알림을 끄거나 로그아웃하면(이 컴포넌트가 사라지므로) 모두 취소한다.
  */
 function StreakRuntime(): null {
   const queryClient = useQueryClient();
@@ -70,8 +70,13 @@ function StreakRuntime(): null {
     if (!settings) {
       return; // 설정을 아직 읽는 중
     }
-    if (dates === null || !settings.enabled) {
+    if (!settings.enabled) {
       enqueue(cancelStreakNotifications);
+      return;
+    }
+    if (dates === null) {
+      // 날짜를 못 받았다(조회 중·일시적 실패) — 걸어 둔 알림은 그대로 두고 다시 계획만 미룬다.
+      // 여기서 취소하면 약한 네트워크 한 번에 그날 저녁 "곧 끊겨요" 알림까지 사라진다
       return;
     }
     enqueue(() => {

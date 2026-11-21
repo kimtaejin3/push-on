@@ -5,6 +5,7 @@ import {
   loadPendingSaves,
   removePendingSave,
 } from '../utils/pendingSaves';
+import {getLastKnownUserId, rememberUserId} from './lastKnownUser';
 
 export type WorkoutMode = 'challenge' | 'sets' | 'program' | 'program_test';
 
@@ -333,7 +334,11 @@ const currentUserId = async (): Promise<string | null> => {
   const {
     data: {session},
   } = await supabase.auth.getSession();
-  return session?.user.id ?? null;
+  const userId = session?.user.id ?? null;
+  if (userId) {
+    rememberUserId(userId);
+  }
+  return userId;
 };
 
 /**
@@ -343,7 +348,9 @@ const currentUserId = async (): Promise<string | null> => {
 export const saveWorkout = async (
   data: SavePushupSessionData,
 ): Promise<'saved' | 'queued'> => {
-  const userId = await currentUserId();
+  // 토큰이 만료된 채 오프라인이면 세션 갱신에 실패해 null 이 온다 → 마지막으로 본 계정으로 보관한다.
+  // 직접 로그아웃했으면 둘 다 없다
+  const userId = (await currentUserId()) ?? getLastKnownUserId();
   if (!userId) {
     throw new Error('사용자가 로그인되지 않았습니다.');
   }

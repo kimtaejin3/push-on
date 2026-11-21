@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {StyleSheet, Text, View, Animated} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import CustomButton from '../../common/CustomButton';
@@ -36,11 +36,15 @@ function ChallengeResult({pushUpCount, duration}: ChallengeResultProps): React.J
     goNext();
   });
 
+  // 이 화면에서는 한 번만 저장한다. 다시 누르면 새 시각으로 한 번 더 저장되어 중복 확인으로도 걸러지지 않는다.
+  // 저장이 끝난 뒤에도 축하 화면 준비(최대 1.5초) 동안 이 화면에 머무르므로 isPending 만으로는 막지 못한다
+  const saveStarted = useRef(false);
+
   const handleSaveAndGoHome = () => {
-    // 저장 중에 다시 누르면 새 시각으로 한 번 더 저장되어 중복 확인으로도 걸러지지 않는다
-    if (pushUpCount === 0 || savePushupMutation.isPending) {
+    if (pushUpCount === 0 || saveStarted.current) {
       return;
     }
+    saveStarted.current = true;
     savePushupMutation.mutate({
       reps: pushUpCount,
       duration_seconds: duration,
@@ -101,7 +105,7 @@ function ChallengeResult({pushUpCount, duration}: ChallengeResultProps): React.J
             title={pushUpCount > 0 ? '기록하고 홈으로 이동' : '홈으로 이동'}
             variant="start"
             onPress={pushUpCount > 0 ? handleSaveAndGoHome : goNext}
-            disabled={savePushupMutation.isPending}
+            disabled={savePushupMutation.isPending || savePushupMutation.isSuccess}
           />
         </View>
       </View>

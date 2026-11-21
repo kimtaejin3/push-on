@@ -46,7 +46,13 @@ function StreakScreen() {
       return;
     }
     if (enabled) {
-      const granted = await requestNotificationPermission();
+      let granted = false;
+      try {
+        granted = await requestNotificationPermission();
+      } catch (e) {
+        // 권한 요청 자체가 실패하면 허용되지 않은 것으로 본다
+        console.warn('알림 권한 요청 실패:', e);
+      }
       if (!granted) {
         Alert.alert('알림 권한 필요', '설정에서 푸쉬온의 알림을 허용해 주세요.');
         return;

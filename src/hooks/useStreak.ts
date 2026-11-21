@@ -1,7 +1,7 @@
 import {useMemo} from 'react';
 import {useQuery} from '@tanstack/react-query';
 import {computeStreak, StreakState} from '../domain/streak';
-import {getWorkoutDates} from '../remote/streak';
+import {getWorkoutDates, retryWorkoutDates} from '../remote/streak';
 import {queryKeys} from '../tanstack-query/queryKeys';
 import {loadPendingSaves} from '../utils/pendingSaves';
 import {formatKSTDate} from '../utils/time';
@@ -18,15 +18,15 @@ export const useWorkoutDates = (): string[] | null => {
   const userId = user?.id;
 
   const serverQuery = useQuery({
-    queryKey: queryKeys.pushup.workoutDates,
+    queryKey: queryKeys.pushup.workoutDates(userId ?? ''),
     queryFn: getWorkoutDates,
     enabled: !!userId,
-    // 함수가 서버에 없을 때 실패를 반복 호출하지 않도록 재시도하지 않는다
-    retry: false,
+    // 함수가 서버에 없으면 반복 호출하지 않고, 그 밖의 오류는 몇 번 다시 시도한다
+    retry: retryWorkoutDates,
   });
 
   const pendingQuery = useQuery({
-    queryKey: queryKeys.pushup.pendingDates,
+    queryKey: queryKeys.pushup.pendingDates(userId ?? ''),
     queryFn: async () =>
       (await loadPendingSaves())
         .filter(item => item.userId === userId)
@@ -44,10 +44,14 @@ export const useWorkoutDates = (): string[] | null => {
   }, [serverDates, pendingDates]);
 };
 
-/** 오늘 기준 스트릭. 앱이 포그라운드로 돌아오면 그날 날짜로 다시 계산한다. 날짜 목록이 없으면 null. */
-export const useStreak = (): StreakState | null => {
+/**
+ * 오늘 기준 스트릭. 날짜 목록이 없으면 null.
+ * now 를 넘기면 그 시각의 날짜를 오늘로 본다 — 화면이 쓰는 시계와 같은 것을 넘겨야
+ * 배너와 스트릭이 서로 다른 날을 보지 않는다. 안 넘기면 포그라운드 복귀 때 갱신되는 자체 시계를 쓴다.
+ */
+export const useStreak = (now?: Date): StreakState | null => {
   const dates = useWorkoutDates();
-  const {now} = useNow();
-  const today = formatKSTDate(now);
+  const {now: ownNow} = useNow();
+  const today = formatKSTDate(now ?? ownNow);
   return useMemo(() => (dates ? computeStreak(dates, today) : null), [dates, today]);
 };

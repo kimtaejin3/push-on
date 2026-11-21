@@ -6,9 +6,10 @@ export const queryKeys = {
       ['pushup', 'sets', year, month, day] as const,
     calendar: (year: number, month: number) =>
       ['pushup', 'calendar', year, month] as const,
-    // 스트릭용. pushup 아래에 둬 운동 저장 뒤 pushup.all 무효화에 함께 묶인다
-    workoutDates: ['pushup', 'workoutDates'] as const,
-    pendingDates: ['pushup', 'pendingDates'] as const,
+    // 스트릭용. pushup 아래에 둬 운동 저장 뒤 pushup.all 무효화에 함께 묶인다.
+    // 계정을 키에 넣어, 다른 계정으로 로그인했을 때 앞 계정의 스트릭이 보이거나 알림 계획에 쓰이지 않게 한다
+    workoutDates: (userId: string) => ['pushup', 'workoutDates', userId] as const,
+    pendingDates: (userId: string) => ['pushup', 'pendingDates', userId] as const,
     stats: {
       all: ['pushup', 'stats'] as const,
       raw: (days: number) => ['pushup', 'stats', 'raw', days] as const,

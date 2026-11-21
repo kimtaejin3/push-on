@@ -1,15 +1,21 @@
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import {Modal, Pressable, StyleSheet, Text, View} from 'react-native';
-import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {StyleSheet, View} from 'react-native';
 import {useQueryClient} from '@tanstack/react-query';
-import CustomButton from '../../common/CustomButton';
-import {colors} from '../../../constants/colors';
 import {computeStreak, type StreakState} from '../../../domain/streak';
 import {celebrationCopy} from '../../../domain/streakMessages';
 import type {StreakReminderSettings} from '../../../domain/streakNotifications';
 import {useWorkoutDates} from '../../../hooks/useStreak';
 import {requestNotificationPermission} from '../../../services/workoutReminder';
 import {queryKeys} from '../../../tanstack-query/queryKeys';
+import {space} from '../../../theme';
 import {
   loadLastCelebrated,
   loadReminderOffered,
@@ -20,6 +26,8 @@ import {
 } from '../../../utils/streakStorage';
 import {formatKSTDate} from '../../../utils/time';
 import {withTimeout} from '../../../utils/withTimeout';
+import {Button, Icon, Text} from '../../ui';
+import {BottomSheet} from '../../ui/feedback/BottomSheet';
 import WeekDots from './WeekDots';
 
 type CelebrationContextValue = {celebrateThen: (next: () => void) => void};
@@ -48,7 +56,11 @@ type Prepared = Pick<Celebration, 'state' | 'reminder'> & {today: string};
  * 내비게이션 위에 떠야 해서 App 에서 AppNavigation 을 감싼다.
  * 축하 화면은 덤이다 — 무슨 일이 있어도 원래 가려던 곳(next)으로는 정확히 한 번 간다.
  */
-export function StreakCelebrationProvider({children}: {children: React.ReactNode}): React.JSX.Element {
+export function StreakCelebrationProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}): React.JSX.Element {
   const queryClient = useQueryClient();
   const dates = useWorkoutDates();
   // 사라지는 동안에도 내용이 보이도록 내용(celebration)과 표시 여부(visible)를 나눈다
@@ -121,10 +133,14 @@ export function StreakCelebrationProvider({children}: {children: React.ReactNode
           }
           const {today, state, reminder} = prepared;
           // 저장을 못 해도 오늘 축하는 보여 준다 (다음 운동 뒤 한 번 더 뜰 수 있을 뿐이다)
-          saveLastCelebrated(today).catch(error => console.warn('축하 날짜 저장 실패:', error));
+          saveLastCelebrated(today).catch(error =>
+            console.warn('축하 날짜 저장 실패:', error),
+          );
           if (reminder) {
             // 누르든 안 누르든 보여 준 것으로 친다
-            saveReminderOffered().catch(error => console.warn('알림 권유 기록 실패:', error));
+            saveReminderOffered().catch(error =>
+              console.warn('알림 권유 기록 실패:', error),
+            );
           }
           setReminderAsk('offer');
           setCelebration({state, reminder, next: runNext});
@@ -180,11 +196,7 @@ export function StreakCelebrationProvider({children}: {children: React.ReactNode
   return (
     <CelebrationContext.Provider value={value}>
       {children}
-      <Modal
-        visible={visible}
-        transparent
-        animationType="fade"
-        onRequestClose={handleContinue}>
+      <BottomSheet visible={visible} onClose={handleContinue}>
         {celebration && (
           <CelebrationContent
             celebration={celebration}
@@ -193,7 +205,7 @@ export function StreakCelebrationProvider({children}: {children: React.ReactNode
             onContinue={handleContinue}
           />
         )}
-      </Modal>
+      </BottomSheet>
     </CelebrationContext.Provider>
   );
 }
@@ -214,47 +226,60 @@ function CelebrationContent({
   const {state, reminder} = celebration;
   const {title, lines} = celebrationCopy(state);
 
+  const [before, count, after] = title.split(/(\d+)/);
+  const accent = state.milestoneToday === null ? 'active' : 'record';
+
   const renderReminder = () => {
     if (!reminder) {
       return null;
     }
-    if (reminderAsk === 'enabled') {
-      return <Text style={styles.reminderNote}>스트릭 알림을 켰어요</Text>;
-    }
-    if (reminderAsk === 'declined') {
-      return <Text style={styles.reminderNote}>알림은 스트릭 화면에서 언제든 켤 수 있어요</Text>;
+    if (reminderAsk === 'enabled' || reminderAsk === 'declined') {
+      return (
+        <Text variant="label" color="textMuted" style={styles.centered}>
+          {reminderAsk === 'enabled'
+            ? '스트릭 알림을 켰어요'
+            : '알림은 스트릭 화면에서 언제든 켤 수 있어요'}
+        </Text>
+      );
     }
     return (
-      <Pressable
+      <Button
+        variant="secondary"
+        title="스트릭 알림 받기"
+        icon="bell"
+        loading={reminderAsk === 'asking'}
         onPress={onEnableReminder}
-        disabled={reminderAsk === 'asking'}
-        accessibilityRole="button"
-        style={({pressed}) => [styles.reminderButton, pressed && styles.pressed]}>
-        <FontAwesome6 name="bell" size={14} color={colors.primaryLight} iconStyle="solid" />
-        <Text style={styles.reminderText}>스트릭 알림 받기</Text>
-      </Pressable>
+      />
     );
   };
 
   return (
-    <View style={styles.overlay}>
-      <View style={styles.card}>
-        <FontAwesome6 name="fire" size={64} color={colors.primary} iconStyle="solid" />
-        <Text style={styles.title}>{title}</Text>
-        <View style={styles.week}>
-          <WeekDots week={state.week} />
-        </View>
-        <View style={styles.lines}>
-          {lines.map(line => (
-            <Text key={line} style={styles.line}>
-              {line}
-            </Text>
-          ))}
-        </View>
-        <View style={styles.footer}>
-          {renderReminder()}
-          <CustomButton title="계속" onPress={onContinue} />
-        </View>
+    <View style={styles.content}>
+      <View style={styles.heading} accessibilityRole="header">
+        <Icon
+          name={state.milestoneToday === null ? 'zap' : 'trophy'}
+          size={36}
+          color={accent}
+        />
+        <Text variant="title" style={styles.centered}>
+          {before}
+          <Text variant="title" numeric color={accent}>
+            {count}
+          </Text>
+          {after}
+        </Text>
+      </View>
+      <WeekDots week={state.week} />
+      <View>
+        {lines.map(line => (
+          <Text key={line} color="textMuted" style={styles.centered}>
+            {line}
+          </Text>
+        ))}
+      </View>
+      <View style={styles.actions}>
+        {renderReminder()}
+        <Button variant="primary" title="계속" onPress={onContinue} />
       </View>
     </View>
   );
@@ -264,48 +289,16 @@ function CelebrationContent({
 export const useStreakCelebration = (): CelebrationContextValue => {
   const value = useContext(CelebrationContext);
   if (!value) {
-    throw new Error('useStreakCelebration 은 StreakCelebrationProvider 안에서만 쓸 수 있어요');
+    throw new Error(
+      'useStreakCelebration 은 StreakCelebrationProvider 안에서만 쓸 수 있어요',
+    );
   }
   return value;
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  card: {
-    backgroundColor: colors.backgroundDark,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: colors.primaryBorder,
-    paddingHorizontal: 24,
-    paddingTop: 36,
-    paddingBottom: 24,
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: colors.textLight,
-    marginTop: 16,
-  },
-  week: {width: '100%', marginTop: 28},
-  lines: {marginTop: 24, gap: 4, alignItems: 'center'},
-  line: {fontSize: 16, lineHeight: 24, color: colors.gray400, textAlign: 'center'},
-  footer: {width: '100%', marginTop: 28, gap: 12, alignItems: 'center'},
-  reminderButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    backgroundColor: colors.primaryOverlay,
-  },
-  pressed: {backgroundColor: colors.primaryOverlayMedium},
-  reminderText: {fontSize: 15, fontWeight: '600', color: colors.primaryLight},
-  reminderNote: {fontSize: 14, color: colors.gray400, textAlign: 'center'},
+  content: {gap: space[24]},
+  heading: {alignItems: 'center', gap: space[12]},
+  centered: {textAlign: 'center'},
+  actions: {gap: space[8]},
 });

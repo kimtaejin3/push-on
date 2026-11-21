@@ -4,6 +4,7 @@ import {DEFAULT_STREAK_REMINDER, type StreakReminderSettings} from '../domain/st
 // 100개 챌린지 운동 알림('workout-reminder')과 독립이라 키도 따로 둔다
 const REMINDER_KEY = 'streak-reminder';
 const LAST_CELEBRATED_KEY = 'streak-last-celebrated';
+const REMINDER_OFFERED_KEY = 'streak-reminder-offered';
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 
@@ -49,4 +50,17 @@ export const loadLastCelebrated = async (): Promise<string | null> => {
 
 export const saveLastCelebrated = async (date: string): Promise<void> => {
   await AsyncStorage.setItem(LAST_CELEBRATED_KEY, date);
+};
+
+/** 축하 화면에서 "스트릭 알림 받기"를 이미 권했는지. 한 번만 권하고 다시 조르지 않으려고 둔다 */
+export const loadReminderOffered = async (): Promise<boolean> => {
+  try {
+    return (await AsyncStorage.getItem(REMINDER_OFFERED_KEY)) === 'true';
+  } catch {
+    return false;
+  }
+};
+
+export const saveReminderOffered = async (): Promise<void> => {
+  await AsyncStorage.setItem(REMINDER_OFFERED_KEY, 'true');
 };

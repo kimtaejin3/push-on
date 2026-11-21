@@ -12,14 +12,20 @@ import {requestNotificationPermission} from '../../../services/workoutReminder';
 import {queryKeys} from '../../../tanstack-query/queryKeys';
 import {
   loadLastCelebrated,
+  loadReminderOffered,
   loadStreakReminder,
   saveLastCelebrated,
+  saveReminderOffered,
   saveStreakReminder,
 } from '../../../utils/streakStorage';
 import {formatKSTDate} from '../../../utils/time';
+import {withTimeout} from '../../../utils/withTimeout';
 import WeekDots from './WeekDots';
 
 type CelebrationContextValue = {celebrateThen: (next: () => void) => void};
+
+/** 축하 화면 준비(폰 저장소 읽기)를 기다리는 최대 시간 */
+const PREPARE_TIMEOUT_MS = 1500;
 
 const CelebrationContext = createContext<CelebrationContextValue | null>(null);
 
@@ -28,11 +34,14 @@ type ReminderAsk = 'offer' | 'asking' | 'enabled' | 'declined';
 
 type Celebration = {
   state: StreakState;
-  /** 알림이 이미 켜져 있으면 null — 버튼을 보여 주지 않는다 */
+  /** 알림이 이미 켜져 있거나 예전에 권했으면 null — 버튼을 보여 주지 않는다 */
   reminder: StreakReminderSettings | null;
   /** 한 번만 실행되도록 감싼 원래의 이동 */
   next: () => void;
 };
+
+/** 축하 화면을 띄우는 데 필요한 것 (읽기 결과) */
+type Prepared = Pick<Celebration, 'state' | 'reminder'> & {today: string};
 
 /**
  * 그날 첫 운동을 마치고 결과 화면을 떠날 때 한 번 축하 화면을 띄운다 (스펙 4.2).
@@ -59,6 +68,7 @@ export function StreakCelebrationProvider({children}: {children: React.ReactNode
   const celebrateThen = useCallback(
     (next: () => void) => {
       if (inFlight.current) {
+        // 일부러 버린다: 결과 화면 버튼 연타 방지. 이동은 먼저 들어온 호출의 next 가 한다
         return;
       }
       inFlight.current = true;
@@ -72,17 +82,16 @@ export function StreakCelebrationProvider({children}: {children: React.ReactNode
         next();
       };
 
-      const prepare = async () => {
+      // 읽기만 한다. 저장은 실제로 띄울 때 한다 — 시간이 초과된 뒤 늦게 끝나도 흔적을 남기지 않게
+      const prepare = async (): Promise<Prepared | null> => {
         const known = datesRef.current;
         // 스트릭 정보를 못 불러왔으면 축하 화면을 건너뛴다
         if (known === null) {
-          runNext();
-          return;
+          return null;
         }
         const today = formatKSTDate(new Date());
         if ((await loadLastCelebrated()) === today) {
-          runNext();
-          return;
+          return null;
         }
         // 방금 한 운동이 아직 날짜 목록에 안 들어왔을 수 있어 오늘을 더해 계산한다 (중복은 무시된다)
         const state = computeStreak([...known, today], today);
@@ -92,26 +101,39 @@ export function StreakCelebrationProvider({children}: {children: React.ReactNode
             queryKey: queryKeys.streak.reminder,
             queryFn: loadStreakReminder,
           });
-          reminder = settings.enabled ? null : settings;
+          // 알림 권유는 첫 축하 화면에서 한 번만 (거절해도 다시 조르지 않는다. 스트릭 화면에서 켤 수 있다)
+          if (!settings.enabled && !(await loadReminderOffered())) {
+            reminder = settings;
+          }
         } catch (error) {
           // 설정을 모르면 버튼만 뺀다
           console.warn('스트릭 알림 설정 읽기 실패:', error);
         }
-        try {
-          await saveLastCelebrated(today);
-        } catch (error) {
-          // 저장을 못 해도 오늘 축하는 보여 준다 (다음 운동 뒤 한 번 더 뜰 수 있을 뿐이다)
-          console.warn('축하 날짜 저장 실패:', error);
-        }
-        setReminderAsk('offer');
-        setCelebration({state, reminder, next: runNext});
-        setVisible(true);
+        return {today, state, reminder};
       };
 
-      prepare().catch(error => {
-        console.warn('축하 화면 준비 실패:', error);
-        runNext();
-      });
+      // 폰 저장소가 멈춰도 결과 화면에 갇히지 않게, 준비가 늦으면 축하 화면 없이 이동한다
+      withTimeout(prepare(), PREPARE_TIMEOUT_MS)
+        .then(prepared => {
+          if (!prepared) {
+            runNext();
+            return;
+          }
+          const {today, state, reminder} = prepared;
+          // 저장을 못 해도 오늘 축하는 보여 준다 (다음 운동 뒤 한 번 더 뜰 수 있을 뿐이다)
+          saveLastCelebrated(today).catch(error => console.warn('축하 날짜 저장 실패:', error));
+          if (reminder) {
+            // 누르든 안 누르든 보여 준 것으로 친다
+            saveReminderOffered().catch(error => console.warn('알림 권유 기록 실패:', error));
+          }
+          setReminderAsk('offer');
+          setCelebration({state, reminder, next: runNext});
+          setVisible(true);
+        })
+        .catch(error => {
+          console.warn('축하 화면 준비 실패:', error);
+          runNext();
+        });
     },
     [queryClient],
   );

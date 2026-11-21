@@ -4,6 +4,8 @@ import {
   saveStreakReminder,
   loadLastCelebrated,
   saveLastCelebrated,
+  loadReminderOffered,
+  saveReminderOffered,
 } from '../../src/utils/streakStorage';
 
 jest.mock('@react-native-async-storage/async-storage', () => ({
@@ -68,5 +70,27 @@ describe('last celebrated date', () => {
   it('읽기에 실패하면 null', async () => {
     mockGet.mockRejectedValueOnce(new Error('io'));
     await expect(loadLastCelebrated()).resolves.toBeNull();
+  });
+});
+
+describe('reminder offered flag', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('저장된 값이 없으면 false', async () => {
+    mockGet.mockResolvedValueOnce(null);
+    await expect(loadReminderOffered()).resolves.toBe(false);
+  });
+
+  it('저장한 뒤에는 true', async () => {
+    await saveReminderOffered();
+    const [key, value] = mockSet.mock.calls[0];
+    mockGet.mockImplementation(async (k: string) => (k === key ? value : null));
+    await expect(loadReminderOffered()).resolves.toBe(true);
+    mockGet.mockReset();
+  });
+
+  it('읽기에 실패하면 false', async () => {
+    mockGet.mockRejectedValueOnce(new Error('io'));
+    await expect(loadReminderOffered()).resolves.toBe(false);
   });
 });

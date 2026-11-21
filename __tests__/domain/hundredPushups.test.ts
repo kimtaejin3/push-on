@@ -1,5 +1,7 @@
 import {
   assignLevel, startProgram, todayPlan, completeDay, applyTest, describeSets, retestLevel, dayAchievementRate, shouldSuggestRepeat, initialTestPreview, programTable,
+  isDayPassed, missedSets, attemptRecord, moveRecord, failStreak, lastFailure, passedDayCount,
+  downgradeTarget, moveTo, levelRange, testThreshold,
 } from '../../src/domain/hundredPushups';
 import {PROGRAM} from '../../src/constants/hundredPushups';
 
@@ -183,5 +185,102 @@ describe('programTable', () => {
   it('레벨 3 의 6주차 마지막 날은 9세트다', () => {
     const table = programTable(3);
     expect(table[5].days[2].sets).toBe('26 · 26 · 33 · 33 · 26 · 26 · 22 · 22 · 60+');
+  });
+});
+
+const pos = (week: number, day: number, level: 1 | 2 | 3) =>
+  ({week, day, level, lastTestReps: 12, testDue: false, status: 'active' as const});
+const at = '2026-11-19T10:00:00.000Z';
+const fail = (s: ReturnType<typeof pos>) => attemptRecord(s, [14, 16, 12, 12, 17], [14, 13, 12, 10, 17], at);
+const pass = (s: ReturnType<typeof pos>) => attemptRecord(s, [14, 16, 12, 12, 17], [14, 16, 12, 12, 19], at);
+
+describe('isDayPassed / missedSets', () => {
+  it('모든 세트가 목표 이상이어야 통과', () => {
+    expect(isDayPassed([6, 6, 4, 4, 5], [6, 6, 4, 4, 5])).toBe(true);
+    expect(isDayPassed([6, 6, 4, 4, 5], [6, 6, 4, 4, 9])).toBe(true);
+    expect(isDayPassed([6, 6, 4, 4, 5], [6, 5, 4, 4, 30])).toBe(false); // 합계가 넘어도 한 세트 미달이면 실패
+  });
+  it('결과가 짧으면 빠진 세트는 0개로 본다', () => {
+    expect(isDayPassed([6, 6, 4], [6, 6])).toBe(false);
+    expect(missedSets([6, 6, 4], [6, 6])).toEqual([{set: 3, reps: 0, target: 4, short: 4}]);
+  });
+  it('못 채운 세트만 1부터 번호로 돌려준다', () => {
+    expect(missedSets([14, 16, 12, 12, 17], [14, 13, 12, 10, 17])).toEqual([
+      {set: 2, reps: 13, target: 16, short: 3},
+      {set: 4, reps: 10, target: 12, short: 2},
+    ]);
+  });
+});
+
+describe('attemptRecord / moveRecord', () => {
+  it('시도 기록은 위치·목표·결과·통과 여부를 담는다', () => {
+    expect(fail(pos(2, 2, 3))).toEqual({
+      week: 2, day: 2, level: 3, targets: [14, 16, 12, 12, 17], reps: [14, 13, 12, 10, 17], passed: false, completed_at: at,
+    });
+    expect(pass(pos(2, 2, 3)).passed).toBe(true);
+  });
+  it('이동 표시는 kind: move 이고 reps 가 비어 있다', () => {
+    expect(moveRecord(pos(2, 2, 2), at)).toEqual({kind: 'move', week: 2, day: 2, level: 2, reps: [], completed_at: at});
+  });
+});
+
+describe('failStreak / lastFailure / passedDayCount', () => {
+  const s = pos(2, 2, 3);
+  it('현재 위치의 실패가 끝에서부터 이어진 개수', () => {
+    expect(failStreak([], s)).toBe(0);
+    expect(failStreak([fail(s)], s)).toBe(1);
+    expect(failStreak([pass(pos(2, 1, 3)), fail(s), fail(s)], s)).toBe(2);
+  });
+  it('통과·다른 위치·이동 표시·예전 기록이 끼면 끊긴다', () => {
+    expect(failStreak([fail(s), pass(s)], s)).toBe(0);
+    expect(failStreak([fail(s), fail(pos(2, 2, 2))], s)).toBe(0);
+    expect(failStreak([fail(s), fail(s), moveRecord(s, at)], s)).toBe(0);
+    const legacy = {week: 2, day: 2, reps: [1, 1, 1, 1, 1], completed_at: at}; // passed 없음 = 통과
+    expect(failStreak([fail(s), legacy], s)).toBe(0);
+  });
+  it('lastFailure 는 마지막 기록이 현재 위치의 실패일 때만', () => {
+    expect(lastFailure([pass(pos(2, 1, 3)), fail(s)], s)).toEqual(fail(s));
+    expect(lastFailure([fail(s), moveRecord(s, at)], s)).toBeNull();
+    expect(lastFailure([fail(pos(2, 1, 3))], s)).toBeNull();
+    expect(lastFailure([], s)).toBeNull();
+  });
+  it('passedDayCount 는 통과한 시도만 센다 (예전 기록 포함, 실패·이동 제외)', () => {
+    const legacy = {week: 1, day: 1, reps: [6, 6, 4, 4, 5], completed_at: at};
+    expect(passedDayCount([legacy, pass(s), fail(s), moveRecord(s, at)])).toBe(2);
+  });
+});
+
+describe('downgradeTarget / moveTo', () => {
+  it('레벨 2·3 은 같은 주차·Day 의 한 레벨 아래', () => {
+    expect(downgradeTarget(pos(2, 2, 3))).toEqual({week: 2, day: 2, level: 2});
+    expect(downgradeTarget(pos(5, 3, 2))).toEqual({week: 5, day: 3, level: 1});
+  });
+  it('레벨 1 이고 2주차 이상이면 이전 주차 Day 1 레벨 1', () => {
+    expect(downgradeTarget(pos(3, 2, 1))).toEqual({week: 2, day: 1, level: 1});
+  });
+  it('1주차 레벨 1 은 낮출 곳이 없다', () => {
+    expect(downgradeTarget(pos(1, 3, 1))).toBeNull();
+  });
+  it('moveTo 는 위치를 바꾸고 테스트 차례를 푼다. 최근 테스트 기록은 유지', () => {
+    const due = {...pos(2, 3, 2), testDue: true};
+    expect(moveTo(due, {week: 4, day: 1, level: 2})).toEqual({...due, week: 4, day: 1, level: 2, testDue: false});
+  });
+  it('완료된 프로그램은 그대로 돌려준다', () => {
+    const done = {...pos(6, 3, 3), status: 'completed' as const};
+    expect(moveTo(done, {week: 1, day: 1, level: 1})).toBe(done);
+  });
+});
+
+describe('levelRange / testThreshold', () => {
+  it.each([
+    [1, 1, 0, 5], [2, 2, 6, 10], [1, 3, 11, 20],
+    [3, 1, 16, 20], [4, 2, 21, 25], [3, 3, 26, null],
+    [5, 1, 31, 35], [5, 2, 36, 40], [5, 3, 41, null],
+    [6, 1, 46, 50], [6, 2, 51, 60], [6, 3, 61, null],
+  ])('%i주차 레벨 %i → %i ~ %s', (week, level, min, max) => {
+    expect(levelRange(week, level as 1 | 2 | 3)).toEqual({min, max});
+  });
+  it('테스트 통과 기준', () => {
+    expect([1, 2, 3, 4, 5, 6].map(testThreshold)).toEqual([null, 16, null, 31, 46, 100]);
   });
 });

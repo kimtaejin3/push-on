@@ -170,3 +170,130 @@ export const programTable = (level: Level): ProgramTableWeek[] =>
       restSeconds: day.rest,
     })),
   }));
+
+/**
+ * completed_days 에 쌓이는 기록. 시도(통과/실패) 또는 이동 표시.
+ * 구버전 앱이 남긴 기록에는 level/targets/passed 가 없다 — passed 가 없으면 통과로 본다.
+ */
+export type ProgramRecord = {
+  week: number;
+  day: number;
+  reps: number[];
+  completed_at: string;
+  level?: Level;
+  targets?: number[];
+  passed?: boolean;
+  /** 하향·주차 변경 표시. 시도가 아니다 */
+  kind?: 'move';
+};
+
+export type Position = {week: number; day: number; level: Level};
+
+/** 못 채운 세트. set 은 1부터 */
+export type MissedSet = {set: number; reps: number; target: number; short: number};
+
+/** 같은 위치를 이만큼 연속으로 실패하면 하향을 권한다 */
+export const DOWNGRADE_AFTER = 2;
+
+/** 못 채운 세트만 돌려준다. 결과가 짧으면 빠진 세트는 0개로 본다 */
+export const missedSets = (targets: number[], reps: number[]): MissedSet[] =>
+  targets
+    .map((target, i) => ({set: i + 1, reps: reps[i] ?? 0, target, short: target - (reps[i] ?? 0)}))
+    .filter(s => s.short > 0);
+
+/** 모든 세트가 목표 이상이어야 통과 (마지막 max 세트는 최소치가 목표) */
+export const isDayPassed = (targets: number[], reps: number[]): boolean =>
+  missedSets(targets, reps).length === 0;
+
+export const attemptRecord = (
+  state: ProgramState,
+  targets: number[],
+  reps: number[],
+  at: string,
+): ProgramRecord => ({
+  week: state.week,
+  day: state.day,
+  level: state.level,
+  targets,
+  reps,
+  passed: isDayPassed(targets, reps),
+  completed_at: at,
+});
+
+/** 하향·주차 변경 표시. 이동한 "뒤"의 상태를 받는다 */
+export const moveRecord = (state: ProgramState, at: string): ProgramRecord => ({
+  kind: 'move',
+  week: state.week,
+  day: state.day,
+  level: state.level,
+  reps: [],
+  completed_at: at,
+});
+
+const isFailureAt = (record: ProgramRecord, state: ProgramState): boolean =>
+  record.kind !== 'move' &&
+  record.passed === false &&
+  record.week === state.week &&
+  record.day === state.day &&
+  record.level === state.level;
+
+/** 현재 위치(주차·Day·레벨)의 실패가 기록 끝에서부터 이어진 개수 */
+export const failStreak = (records: ProgramRecord[], state: ProgramState): number => {
+  let count = 0;
+  for (let i = records.length - 1; i >= 0 && isFailureAt(records[i], state); i--) {
+    count++;
+  }
+  return count;
+};
+
+/** 마지막 기록이 현재 위치의 실패일 때만 그 기록 */
+export const lastFailure = (records: ProgramRecord[], state: ProgramState): ProgramRecord | null => {
+  const last = records[records.length - 1];
+  return last && isFailureAt(last, state) ? last : null;
+};
+
+/** 통과한 운동 일수 (예전 기록 포함, 실패·이동 표시 제외) */
+export const passedDayCount = (records: ProgramRecord[]): number =>
+  records.filter(r => r.kind !== 'move' && r.passed !== false).length;
+
+/**
+ * 하향 대상. 레벨 2·3 은 같은 주차·Day 의 한 레벨 아래,
+ * 레벨 1 은 이전 주차 Day 1 레벨 1 (이전 주차의 높은 레벨은 오히려 더 어렵다).
+ * 1주차 레벨 1 은 더 낮출 곳이 없다.
+ */
+export const downgradeTarget = (state: ProgramState): Position | null => {
+  if (state.level > 1) {
+    return {week: state.week, day: state.day, level: (state.level - 1) as Level};
+  }
+  if (state.week > 1) {
+    return {week: state.week - 1, day: 1, level: 1};
+  }
+  return null;
+};
+
+/** 하향·주차 직접 고르기 공용: 위치를 옮기고 테스트 차례를 푼다. 최근 테스트 기록은 유지 */
+export const moveTo = (state: ProgramState, to: Position): ProgramState => {
+  if (state.status !== 'active') {
+    return state;
+  }
+  return {...state, week: to.week, day: to.day, level: to.level, testDue: false};
+};
+
+/** 그 주차·레벨이 기준으로 삼는 최대 횟수 범위. max 가 null 이면 "min 이상" */
+export const levelRange = (week: number, level: Level): {min: number; max: number | null} => {
+  const mins: number[] = THRESHOLDS[week];
+  const min = mins[level - 1];
+  if (level < 3) {
+    return {min, max: mins[level] - 1};
+  }
+  // 1·2주차는 20개 초과면 3주차로 건너뛰므로 레벨 3 의 상한이 20
+  return {min, max: week <= 2 ? 20 : null};
+};
+
+/** 그 주차 끝 테스트의 통과 기준. 테스트가 없는 주차는 null */
+export const testThreshold = (week: number): number | null => {
+  if (!TEST_WEEKS.has(week)) {
+    return null;
+  }
+  return week === WEEKS ? FINAL_GOAL : THRESHOLDS[week + 1][0];
+};

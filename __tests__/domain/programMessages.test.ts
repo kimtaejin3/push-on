@@ -41,9 +41,10 @@ describe('nextStepLabel', () => {
   const s = (week: number, day: number) => ({week, day, level: 1 as const, lastTestReps: 0, testDue: false, status: 'active' as const});
   it('통과한 뒤 할 일을 말한다', () => {
     expect(nextStepLabel(s(2, 2))).toBe('2주차 Day 3');
-    expect(nextStepLabel(s(1, 3))).toBe('2주차 Day 1');
-    expect(nextStepLabel(s(2, 3))).toBe('2주차 테스트');
-    expect(nextStepLabel(s(6, 3))).toBe('최종 테스트');
+    expect(nextStepLabel(s(1, 3))).toBe('1주차 Day 4');
+    expect(nextStepLabel(s(1, 7))).toBe('2주차 Day 1');
+    expect(nextStepLabel(s(2, 7))).toBe('2주차 테스트');
+    expect(nextStepLabel(s(6, 7))).toBe('최종 테스트');
   });
 });
 

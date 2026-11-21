@@ -8,7 +8,10 @@ export type ProgramDay = {
 };
 
 export const WEEKS = 6;
-export const DAYS_PER_WEEK = 3;
+/** 매일 운동: 원본 3일 표(PROGRAM)를 domain/dailyProgram 에서 주 7일로 펼쳐 쓴다 */
+export const DAYS_PER_WEEK = 7;
+/** 매일 하므로 하루 양을 원본 사이 값의 이 비율로 낮춘다 (주간 총량은 원본의 약 1.4배) */
+export const DAILY_VOLUME_RATIO = 0.6;
 
 export const PROGRAM: ProgramDay[][] = [
   // Week 1

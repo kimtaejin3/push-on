@@ -49,24 +49,25 @@ describe('startProgram', () => {
 });
 
 describe('todayPlan', () => {
-  it('주차/일차/열에 맞는 세트와 휴식을 준다', () => {
+  it('주차/일차/열에 맞는 세트와 휴식을 7일 표에서 준다', () => {
     const plan = todayPlan({week: 2, day: 3, level: 1, lastTestReps: 4, testDue: false, status: 'active'});
-    expect(plan).toEqual({sets: [5,7,5,5,8], restSeconds: 120, lastIsMax: true});
+    expect(plan).toEqual({sets: [3, 4, 2, 2, 4], restSeconds: 90, lastIsMax: true});
   });
 });
 
 describe('completeDay', () => {
   const base = {level: 1 as const, lastTestReps: 4, testDue: false, status: 'active' as const};
-  it('Day 1 → Day 2', () => {
+  it('Day 1 → Day 2, Day 3 → Day 4', () => {
     expect(completeDay({...base, week: 1, day: 1})).toMatchObject({week: 1, day: 2, testDue: false});
+    expect(completeDay({...base, week: 1, day: 3})).toMatchObject({week: 1, day: 4, testDue: false});
   });
-  it('테스트 없는 주(1,3)의 Day 3 → 다음 주 Day 1', () => {
-    expect(completeDay({...base, week: 1, day: 3})).toMatchObject({week: 2, day: 1, testDue: false});
-    expect(completeDay({...base, week: 3, day: 3})).toMatchObject({week: 4, day: 1, testDue: false});
+  it('테스트 없는 주(1,3)의 Day 7 → 다음 주 Day 1', () => {
+    expect(completeDay({...base, week: 1, day: 7})).toMatchObject({week: 2, day: 1, testDue: false});
+    expect(completeDay({...base, week: 3, day: 7})).toMatchObject({week: 4, day: 1, testDue: false});
   });
-  it('테스트 있는 주(2,4,5,6)의 Day 3 → testDue', () => {
+  it('테스트 있는 주(2,4,5,6)의 Day 7 → testDue', () => {
     [2, 4, 5, 6].forEach(week => {
-      expect(completeDay({...base, week, day: 3})).toMatchObject({week, day: 3, testDue: true});
+      expect(completeDay({...base, week, day: 7})).toMatchObject({week, day: 7, testDue: true});
     });
   });
 });
@@ -126,28 +127,26 @@ describe('retestLevel (레벨 다시 재기)', () => {
 });
 
 describe('initialTestPreview', () => {
-  it('테스트 구간 4개를 실제 프로그램 표에서 계산해 돌려준다', () => {
+  it('테스트 구간 4개를 7일 표에서 계산해 돌려준다', () => {
     const rows = initialTestPreview();
     expect(rows.map(r => r.range)).toEqual(['5개 이하', '6 ~ 10개', '11 ~ 20개', '21개 이상']);
     // 같은 1주차라도 테스트 결과에 따라 레벨이 갈려 횟수가 달라진다
-    expect(rows[0]).toMatchObject({week: 1, level: 1, sets: '2 · 3 · 2 · 2 · 3+', restSeconds: 60});
-    expect(rows[1]).toMatchObject({week: 1, level: 2, sets: '6 · 6 · 4 · 4 · 5+'});
-    expect(rows[2]).toMatchObject({week: 1, level: 3, sets: '10 · 12 · 7 · 7 · 9+'});
+    expect(rows[0]).toMatchObject({week: 1, level: 1, sets: '1 · 2 · 1 · 1 · 2+', restSeconds: 60});
+    expect(rows[1]).toMatchObject({week: 1, level: 2, sets: '4 · 4 · 2 · 2 · 3+'});
+    expect(rows[2]).toMatchObject({week: 1, level: 3, sets: '6 · 7 · 4 · 4 · 5+'});
     // 20개 초과는 1·2주차를 건너뛰고 3주차부터
-    expect(rows[3]).toMatchObject({week: 3, level: 3, sets: '14 · 18 · 14 · 14 · 20+'});
+    expect(rows[3]).toMatchObject({week: 3, level: 3, sets: '8 · 11 · 8 · 8 · 12+'});
   });
 });
 
 describe('programTable', () => {
-  it('레벨별로 6주 × 3일 세트를 돌려준다', () => {
+  it('레벨별로 6주 × 7일 세트와 하루 합계를 돌려준다', () => {
     const table = programTable(2);
     expect(table).toHaveLength(6);
     expect(table[0]).toMatchObject({week: 1, hasTest: false});
-    expect(table[0].days).toEqual([
-      {day: 1, sets: '6 · 6 · 4 · 4 · 5+', restSeconds: 60},
-      {day: 2, sets: '6 · 8 · 6 · 6 · 7+', restSeconds: 60},
-      {day: 3, sets: '8 · 10 · 7 · 7 · 10+', restSeconds: 60},
-    ]);
+    expect(table[0].days).toHaveLength(7);
+    expect(table[0].days[0]).toEqual({day: 1, sets: '4 · 4 · 2 · 2 · 3+', restSeconds: 60, total: 15});
+    expect(table[0].days.map(d => d.total)).toEqual([15, 17, 18, 21, 22, 23, 25]);
   });
 
   it('테스트가 있는 주차(2·4·5·6)를 표시한다', () => {
@@ -157,13 +156,13 @@ describe('programTable', () => {
 
   it('주차·요일마다 휴식 시간이 다르다', () => {
     const table = programTable(1);
-    expect(table[1].days.map(d => d.restSeconds)).toEqual([60, 90, 120]);
-    expect(table[4].days.map(d => d.restSeconds)).toEqual([60, 45, 45]);
+    expect(table[1].days.map(d => d.restSeconds)).toEqual([60, 60, 90, 90, 90, 120, 120]);
+    expect(table[4].days.map(d => d.restSeconds)).toEqual([60, 60, 45, 45, 45, 45, 45]);
   });
 
   it('레벨 3 의 6주차 마지막 날은 9세트다', () => {
     const table = programTable(3);
-    expect(table[5].days[2].sets).toBe('26 · 26 · 33 · 33 · 26 · 26 · 22 · 22 · 60+');
+    expect(table[5].days[6].sets).toBe('16 · 16 · 20 · 20 · 16 · 16 · 13 · 13 · 36+');
   });
 });
 
@@ -302,22 +301,22 @@ describe('resolveTest', () => {
 
 describe('describeSetsAt', () => {
   it('주차·Day·레벨 위치의 세트를 문자열로 돌려준다', () => {
-    expect(describeSetsAt({week: 2, day: 2, level: 2})).toBe('10 · 12 · 9 · 9 · 13+');
-    expect(describeSetsAt({week: 2, day: 2, level: 3})).toBe('14 · 16 · 12 · 12 · 17+');
+    expect(describeSetsAt({week: 2, day: 2, level: 2})).toBe('6 · 7 · 5 · 5 · 7+');
+    expect(describeSetsAt({week: 2, day: 2, level: 3})).toBe('8 · 9 · 6 · 6 · 9+');
   });
 });
 
 describe('planMatches (운동한 세트가 지금 프로그램 위치의 세트인가)', () => {
   const s = {week: 2, day: 2, level: 3 as const, lastTestReps: 12, testDue: false, status: 'active' as const};
   it('지금 위치의 세트와 같으면 true', () => {
-    expect(planMatches(s, [14, 16, 12, 12, 17])).toBe(true);
+    expect(planMatches(s, [8, 9, 6, 6, 9])).toBe(true);
   });
   it('운동 중에 위치가 바뀌었으면(다른 Day·레벨) false', () => {
-    expect(planMatches({...s, day: 3}, [14, 16, 12, 12, 17])).toBe(false);
-    expect(planMatches({...s, level: 2}, [14, 16, 12, 12, 17])).toBe(false);
+    expect(planMatches({...s, day: 3}, [8, 9, 6, 6, 9])).toBe(false);
+    expect(planMatches({...s, level: 2}, [8, 9, 6, 6, 9])).toBe(false);
   });
   it('테스트 차례이거나 완료 상태면 false', () => {
-    expect(planMatches({...s, testDue: true}, [14, 16, 12, 12, 17])).toBe(false);
-    expect(planMatches({...s, status: 'completed'}, [14, 16, 12, 12, 17])).toBe(false);
+    expect(planMatches({...s, testDue: true}, [8, 9, 6, 6, 9])).toBe(false);
+    expect(planMatches({...s, status: 'completed'}, [8, 9, 6, 6, 9])).toBe(false);
   });
 });

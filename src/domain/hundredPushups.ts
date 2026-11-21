@@ -1,10 +1,11 @@
-import {PROGRAM, WEEKS, DAYS_PER_WEEK} from '../constants/hundredPushups';
+import {WEEKS, DAYS_PER_WEEK} from '../constants/hundredPushups';
+import {dailyDay} from './dailyProgram';
 
 export type Level = 1 | 2 | 3;
 
 export type ProgramState = {
   week: number; // 1..6
-  day: number; // 1..3
+  day: number; // 1..7
   level: Level;
   lastTestReps: number;
   testDue: boolean; // 다음 행동이 최대 횟수 테스트인지
@@ -54,9 +55,9 @@ export const startProgram = (testReps: number): ProgramState => {
 };
 
 export const todayPlan = (state: ProgramState) => {
-  const day = PROGRAM[state.week - 1][state.day - 1];
+  const day = dailyDay(state.week, state.day, state.level);
   return {
-    sets: day.sets[state.level - 1],
+    sets: day.sets,
     restSeconds: day.rest,
     lastIsMax: true as const,
   };
@@ -140,19 +141,24 @@ export const initialTestPreview = (): InitialTestPreviewRow[] =>
     };
   });
 
-export type ProgramTableDay = {day: number; sets: string; restSeconds: number};
+/** total 은 그날 세트의 합 (마지막 max 세트는 최소치로 센다) */
+export type ProgramTableDay = {day: number; sets: string; restSeconds: number; total: number};
 export type ProgramTableWeek = {week: number; hasTest: boolean; days: ProgramTableDay[]};
 
-/** 특정 레벨의 6주 × 3일 전체 세트 구성 */
+/** 특정 레벨의 6주 × 7일 전체 세트 구성 */
 export const programTable = (level: Level): ProgramTableWeek[] =>
-  PROGRAM.map((week, weekIndex) => ({
+  Array.from({length: WEEKS}, (_, weekIndex) => ({
     week: weekIndex + 1,
     hasTest: TEST_WEEKS.has(weekIndex + 1),
-    days: week.map((day, dayIndex) => ({
-      day: dayIndex + 1,
-      sets: describeSets(day.sets[level - 1], true),
-      restSeconds: day.rest,
-    })),
+    days: Array.from({length: DAYS_PER_WEEK}, (__, dayIndex) => {
+      const day = dailyDay(weekIndex + 1, dayIndex + 1, level);
+      return {
+        day: dayIndex + 1,
+        sets: describeSets(day.sets, true),
+        restSeconds: day.rest,
+        total: day.sets.reduce((x, y) => x + y, 0),
+      };
+    }),
   }));
 
 /**
@@ -336,7 +342,7 @@ export const resolveTest = (
 
 /** 그 위치(주차·Day·레벨)의 세트 구성 문자열. 하향·주차 변경 안내에서 "바꾸면 이렇게 돼요"를 보여줄 때 쓴다 */
 export const describeSetsAt = (to: Position): string =>
-  describeSets(PROGRAM[to.week - 1][to.day - 1].sets[to.level - 1], true);
+  describeSets(dailyDay(to.week, to.day, to.level).sets, true);
 
 /**
  * 방금 운동한 세트가 지금 프로그램 위치의 세트와 같은가.

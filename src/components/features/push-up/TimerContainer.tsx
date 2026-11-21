@@ -1,52 +1,73 @@
-import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
+import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import {colors} from '../../../constants/colors';
-import Timer from '../../common/Timer';
+import {color, radius, space} from '../../../theme';
+import {Text} from '../../ui/Text';
 
 interface TimerContainerProps {
-  formattedTime: string;
+  label: string;
+  detail?: string;
+  progress?: number;
+  resting?: boolean;
 }
+
 function TimerContainer({
-  formattedTime,
-}: TimerContainerProps): React.JSX.Element {
+  label,
+  detail,
+  progress,
+  resting = false,
+}: TimerContainerProps) {
+  const tint = resting ? 'onAccent' : 'onBrand';
+  const fraction =
+    progress === undefined ? undefined : Math.min(Math.max(progress, 0), 1);
   return (
-    <View style={styles.timeContainer}>
-      <FontAwesome5
-        name="clock"
-        iconStyle="solid"
-        size={17}
-        color={colors.gray400}
-      />
-      <Timer time={formattedTime} style={styles.timeText} />
+    <View style={styles.container}>
+      <View style={styles.labels}>
+        <Text color={tint} variant="headline" style={styles.label}>
+          {label}
+        </Text>
+        {detail ? (
+          <Text color={tint} variant="headline">
+            {detail}
+          </Text>
+        ) : null}
+      </View>
+      {fraction !== undefined && (
+        <View
+          accessibilityRole="progressbar"
+          accessibilityValue={{
+            min: 0,
+            max: 100,
+            now: Math.round(fraction * 100),
+          }}
+          style={styles.track}>
+          <View
+            style={[
+              styles.fill,
+              {backgroundColor: color[tint], width: `${fraction * 100}%`},
+            ]}
+          />
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  timeContainer: {
+  container: {gap: space[8]},
+  labels: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginTop: 40,
-    marginBottom: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 20,
-    shadowColor: colors.gray900,
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    gap: space[8],
   },
-  timeText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: colors.textLight,
-    textShadowColor: colors.gray900,
-    textShadowOffset: {width: 0, height: 1},
-    textShadowRadius: 2,
+  label: {flexShrink: 1},
+  track: {
+    height: 14,
+    backgroundColor: `${color.bg}33`,
+    borderRadius: radius.pill,
+    overflow: 'hidden',
   },
+  fill: {height: '100%', borderRadius: radius.pill},
 });
 
 export default TimerContainer;

@@ -49,4 +49,5 @@ export const queryKeys = {
     all: ['appConfig'] as const,
     ads: ['appConfig', 'ads'] as const,
   },
+  workoutPrefs: ['workoutPrefs'],
 } as const;

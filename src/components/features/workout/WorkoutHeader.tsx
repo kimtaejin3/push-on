@@ -1,44 +1,80 @@
 import React from 'react';
-import {StyleSheet, Text, View} from 'react-native';
-import {colors} from '../../../constants/colors';
+import {StyleSheet, View} from 'react-native';
+import {color, radius, space} from '../../../theme';
+import {Text} from '../../ui/Text';
+import {SetMeter} from '../../ui/SetMeter';
+import {Chip} from '../../ui/Chip';
 
 interface WorkoutHeaderProps {
-  setNumber: number; // 1-based
-  totalSets: number;
-  target: {reps: number; isMax: boolean};
-  /** 카운팅 중일 때의 현재 횟수. 주면 목표까지 남은 개수를 함께 보여준다 */
-  count?: number;
+  phase: 'idle' | 'countdown' | 'tracking' | 'paused' | 'rest';
+  set?: {current: number; total: number; results: number[]};
+  title?: string;
 }
 
-const remainingText = (target: {reps: number; isMax: boolean}, count: number): string => {
-  const left = target.reps - count;
-  if (left > 0) {
-    return `${left}개 남음`;
-  }
-  return target.isMax ? '최소 달성' : '달성';
-};
-
-function WorkoutHeader({setNumber, totalSets, target, count}: WorkoutHeaderProps) {
+function WorkoutHeader({phase, set, title}: WorkoutHeaderProps) {
+  const resting = phase === 'rest';
+  const tracking = phase === 'tracking';
+  const tint = resting ? 'onAccent' : tracking ? 'onBrand' : 'text';
+  const label = resting ? '쉬는 중' : tracking ? '세는 중' : undefined;
   return (
-    <View style={styles.container}>
-      <Text style={styles.set}>
-        세트 {setNumber} / {totalSets}
-      </Text>
-      <Text style={styles.target}>
-        {target.isMax ? `최소 ${target.reps}회, 가능한 만큼` : `목표 ${target.reps}회`}
-        {count !== undefined ? (
-          <Text style={styles.remaining}> · {remainingText(target, count)}</Text>
+    <View style={styles.header}>
+      <View style={styles.row}>
+        {label ? (
+          <View style={[styles.badge, resting && styles.restBadge]}>
+            <View style={[styles.dot, {backgroundColor: color[tint]}]} />
+            <Text variant="label" color={tint} weight={700}>
+              {label}
+            </Text>
+          </View>
+        ) : (
+          <Chip
+            label={phase === 'paused' ? '일시정지' : '준비'}
+            tone="active"
+          />
+        )}
+        {set ? (
+          <View style={styles.set}>
+            <Text
+              variant="headline"
+              color={tint === 'text' ? 'textMuted' : tint}>
+              {resting ? '세트 끝' : '세트'}
+            </Text>
+            <Text variant="hero" color={tint} style={styles.number}>
+              {set.current} / {set.total}
+            </Text>
+          </View>
+        ) : title ? (
+          <Text variant="label" color={tint} weight={700}>
+            {title}
+          </Text>
         ) : null}
-      </Text>
+      </View>
+      {set && <SetMeter {...set} />}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {alignItems: 'center', gap: 4, marginBottom: 32},
-  set: {fontSize: 26, fontWeight: 'bold', color: colors.textSecondary},
-  target: {fontSize: 15, color: colors.gray400},
-  remaining: {color: colors.primaryLight, fontWeight: '600'},
+  header: {gap: space[8]},
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: space[8],
+  },
+  set: {flexDirection: 'row', alignItems: 'baseline', gap: 6},
+  number: {fontSize: 40, lineHeight: 44},
+  badge: {
+    minHeight: 36,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[8],
+    paddingHorizontal: 14,
+    borderRadius: radius.pill,
+    backgroundColor: `${color.bg}33`,
+  },
+  restBadge: {backgroundColor: `${color.bg}1F`},
+  dot: {width: 10, height: 10, borderRadius: 5},
 });
 
 export default WorkoutHeader;

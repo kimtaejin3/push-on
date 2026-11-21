@@ -1,23 +1,47 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {ActivityIndicator, Alert, StyleSheet, Text, View} from 'react-native';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {
+  ActivityIndicator,
+  AppState,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  View,
+} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {RouteProp, StackActions, useNavigation, usePreventRemove, useRoute} from '@react-navigation/native';
+import {
+  NavigationAction,
+  RouteProp,
+  StackActions,
+  useNavigation,
+  usePreventRemove,
+  useRoute,
+} from '@react-navigation/native';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
-import usePushUpManager from '../hooks/usePushUpManager';
+import {useWorkoutCounter} from '../components/features/workout/useWorkoutCounter';
+import {useKeepAwakeWhile} from '../hooks/useKeepAwakeWhile';
 import {useWorkoutSession} from '../hooks/useWorkoutSession';
 import {useSession} from '../hooks/useSession';
-import CustomButton from '../components/common/CustomButton';
+import {Button} from '../components/ui/Button';
+import {Icon} from '../components/ui/Icon';
+import {Text} from '../components/ui/Text';
+import {ConfirmDialog} from '../components/ui/feedback/ConfirmDialog';
+import {WorkoutAction} from '../components/features/workout/WorkoutAction';
+import {
+  WorkoutMilestone,
+  useWorkoutMilestone,
+} from '../components/features/workout/WorkoutMilestone';
 import Count from '../components/features/push-up/Count';
 import TimerContainer from '../components/features/push-up/TimerContainer';
-import Engagement from '../components/features/push-up/Engagement';
 import WorkoutHeader from '../components/features/workout/WorkoutHeader';
 import RestTimer from '../components/features/workout/RestTimer';
 import WorkoutSummary from '../components/features/workout/WorkoutSummary';
 import ProgramDaySummary from '../components/features/program/ProgramDaySummary';
-import {colors} from '../constants/colors';
+import {color, layout, radius, space} from '../theme';
 import {formatTime} from '../utils/time';
 import {generateUuid} from '../utils/id';
 import {saveWorkout} from '../remote/pushup';
+import {getBestSetBefore} from '../remote/workoutHistory';
+import {loadWorkoutPrefs, WorkoutPrefs} from '../utils/workoutPrefs';
 import {ProgramRow, toProgramState} from '../remote/program';
 import {
   attemptRecord,
@@ -30,10 +54,20 @@ import {
   planMatches,
   Position,
 } from '../domain/hundredPushups';
-import {downgradeNotice, nextStepLabel, withJosa} from '../domain/programMessages';
-import {shouldConfirmLeave} from '../domain/workoutSession';
+import {
+  downgradeNotice,
+  nextStepLabel,
+  withJosa,
+} from '../domain/programMessages';
+import {
+  shouldConfirmLeave,
+  REST_EXTEND_SECONDS,
+} from '../domain/workoutSession';
 import {AppStackParamList} from '../navigations/AppNavigation';
-import {currentProgramQueryOptions, useUpdateProgramMutation} from '../tanstack-query';
+import {
+  currentProgramQueryOptions,
+  useUpdateProgramMutation,
+} from '../tanstack-query';
 import {queryKeys} from '../tanstack-query/queryKeys';
 import {useStreakCelebration} from '../components/features/streak/StreakCelebrationProvider';
 
@@ -52,6 +86,31 @@ type DayOutcome = {
  * 상태기계(useWorkoutSession)가 흐름을, usePushUpManager 가 실제 카운팅을 맡는다.
  */
 function WorkoutScreen(): React.JSX.Element {
+  const {data, isFetching} = useQuery({
+    queryKey: queryKeys.workoutPrefs,
+    queryFn: loadWorkoutPrefs,
+    networkMode: 'always',
+  });
+  const [initialPrefs, setInitialPrefs] = useState<WorkoutPrefs>();
+  useEffect(() => {
+    if (!initialPrefs && !isFetching && data) {
+      setInitialPrefs(data);
+    }
+  }, [data, initialPrefs, isFetching]);
+
+  return initialPrefs ? (
+    <Workout prefs={initialPrefs} />
+  ) : (
+    <SafeAreaView style={[styles.safeArea, styles.pending]}>
+      <ActivityIndicator
+        color={color.active}
+        accessibilityLabel="운동 설정을 불러오고 있어요"
+      />
+    </SafeAreaView>
+  );
+}
+
+function Workout({prefs}: {prefs: WorkoutPrefs}): React.JSX.Element {
   const navigation = useNavigation();
   const {params} = useRoute<RouteProp<AppStackParamList, 'Workout'>>();
   const {plan, source} = params;
@@ -59,8 +118,30 @@ function WorkoutScreen(): React.JSX.Element {
   const {user} = useSession();
   const queryClient = useQueryClient();
 
-  const manager = usePushUpManager();
-  const {state, target, start, count, finishSet, skipRest} = useWorkoutSession(plan);
+  const manager = useWorkoutCounter();
+  const {
+    state,
+    target,
+    start,
+    beginCountdown,
+    pause,
+    resume,
+    count,
+    finishSet,
+    skipRest,
+    extendRest,
+  } = useWorkoutSession(plan, {autoNext: prefs.autoNextSet});
+  const {phase} = state;
+  const {milestone, showMilestone} = useWorkoutMilestone();
+  const [leaveAction, setLeaveAction] = useState<NavigationAction | null>(null);
+  const [restDuration, setRestDuration] = useState(plan.restSeconds);
+  const startedAt = useRef(new Date().toISOString()).current;
+  const {data: previousBest} = useQuery({
+    queryKey: [...queryKeys.pushup.all, 'bestSetBefore', user?.id, startedAt],
+    queryFn: () => getBestSetBefore(startedAt),
+    enabled: !!user?.id,
+  });
+  useKeepAwakeWhile(phase !== 'idle' && phase !== 'done');
 
   const workoutId = useRef(generateUuid()).current;
   const totalSeconds = useRef(0);
@@ -77,14 +158,95 @@ function WorkoutScreen(): React.JSX.Element {
   const recordMutation = useUpdateProgramMutation();
   const moveMutation = useUpdateProgramMutation();
 
-  // 네이티브 카운트 → 상태기계 (tracking 이 아니면 리듀서가 무시)
-  useEffect(() => {
-    count(manager.pushUpCount);
-  }, [manager.pushUpCount, count]);
-
-  // 세트 하나가 끝났을 때(결과 개수가 늘었을 때): 네이티브 정지 + 저장
-  const {handleStopTracking} = manager;
+  const {
+    stop: stopCounter,
+    pause: pauseCounter,
+    resume: resumeCounter,
+    start: startCounter,
+  } = manager;
   const elapsed = manager.timer.elapsedTime;
+  const previousPhase = useRef(phase);
+
+  useLayoutEffect(() => {
+    const previous = previousPhase.current;
+    previousPhase.current = phase;
+    if (phase === previous) {
+      return;
+    }
+    if (phase === 'tracking') {
+      if (AppState.currentState === 'background') {
+        pause();
+      } else if (previous === 'paused') {
+        resumeCounter();
+      } else {
+        startCounter();
+      }
+    } else if (phase === 'paused') {
+      pauseCounter();
+    } else if (previous === 'tracking' || previous === 'paused') {
+      stopCounter();
+    }
+  }, [phase, pause, pauseCounter, resumeCounter, startCounter, stopCounter]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', next => {
+      if (next === 'background') {
+        pauseCounter();
+        pause();
+      }
+    });
+    return () => subscription.remove();
+  }, [pause, pauseCounter]);
+
+  useEffect(() => {
+    const reps = manager.pushUpCount;
+    if (
+      phase !== 'tracking' ||
+      !manager.isTracking ||
+      manager.isPaused ||
+      reps <= state.currentCount
+    ) {
+      return;
+    }
+    const best =
+      previousBest === undefined || previousBest === null
+        ? undefined
+        : Math.max(previousBest, ...state.results);
+    const record =
+      best !== undefined && state.currentCount <= best && reps > best;
+    const goal = state.currentCount < target.reps && reps >= target.reps;
+    if (record || goal) {
+      showMilestone({
+        reps,
+        previousBest: record ? best : undefined,
+        goal: goal ? target.reps : undefined,
+        autoFinish:
+          goal && !target.isMax && state.setIndex + 1 < plan.sets.length,
+      });
+    }
+    count(reps);
+  }, [
+    count,
+    manager.isPaused,
+    manager.isTracking,
+    manager.pushUpCount,
+    phase,
+    plan.sets.length,
+    previousBest,
+    showMilestone,
+    state.currentCount,
+    state.results,
+    state.setIndex,
+    target.isMax,
+    target.reps,
+  ]);
+
+  const setSeconds = manager.isTracking ? elapsed : 0;
+  const summarySeconds =
+    totalSeconds.current +
+    (state.results.length > savedCount.current ? setSeconds : 0);
+
+  // 저장은 세트가 끝났을 때 한 번만 시도한다.
   useEffect(() => {
     if (state.results.length === savedCount.current) {
       return;
@@ -92,13 +254,13 @@ function WorkoutScreen(): React.JSX.Element {
     savedCount.current = state.results.length;
     const index = state.results.length - 1;
     const reps = state.results[index];
-    totalSeconds.current += elapsed;
-    handleStopTracking();
+    totalSeconds.current += setSeconds;
+    setRestDuration(plan.restSeconds);
     if (reps > 0) {
-      // 실패하면 폰에 보관했다가 다시 보낸다('queued') — 운동은 그대로 이어간다
+      // 네트워크가 끊겨도 보관된 세트는 연결되면 다시 보낸다.
       saveWorkout({
         reps,
-        duration_seconds: elapsed,
+        duration_seconds: setSeconds,
         mode: isProgram ? 'program' : 'sets',
         workout_id: workoutId,
         set_index: index + 1,
@@ -112,7 +274,15 @@ function WorkoutScreen(): React.JSX.Element {
         })
         .catch(() => setSaveError('failed'));
     }
-  }, [state.results, elapsed, handleStopTracking, plan.sets, isProgram, workoutId, queryClient]);
+  }, [
+    state.results,
+    setSeconds,
+    plan.restSeconds,
+    plan.sets,
+    isProgram,
+    workoutId,
+    queryClient,
+  ]);
 
   // 프로그램: 운동을 끝까지 마치면 시도 1건을 기록한다.
   // 모든 세트를 채웠을 때만 다음 Day 로 넘어가고, 못 채웠으면 위치는 그대로 둔다.
@@ -160,28 +330,9 @@ function WorkoutScreen(): React.JSX.Element {
     }
   };
 
-  const handleStart = () => {
-    start();
-    manager.handleStartTracking();
-  };
-
-  // 운동 중(카운팅·휴식)에는 어떤 경로로 나가든 — 버튼, 안드로이드 뒤로가기, iOS 스와이프 —
-  // 확인을 거친다. 확인창은 여기 한 곳에서만 띄운다.
+  // 버튼과 시스템 뒤로가기는 같은 확인창을 사용한다.
   usePreventRemove(shouldConfirmLeave(state), ({data}) => {
-    const message = isProgram
-      ? '지금까지 끝낸 세트는 기록에 남아요.\n오늘 운동은 처음부터 다시 해야 해요.'
-      : '지금까지 끝낸 세트는 기록에 남아요.';
-    Alert.alert('운동 그만두기', message, [
-      {text: '취소', style: 'cancel'},
-      {
-        text: '그만두기',
-        style: 'destructive',
-        onPress: () => {
-          manager.handleStopTracking();
-          navigation.dispatch(data.action);
-        },
-      },
-    ]);
+    setLeaveAction(data.action);
   });
 
   // navigate 는 기존 화면으로 돌아가지 않고 새로 쌓으므로(React Navigation 7) popTo 로 돌아간다
@@ -225,13 +376,13 @@ function WorkoutScreen(): React.JSX.Element {
     );
   };
 
-  if (state.phase === 'done') {
+  if (phase === 'done' && !milestone) {
     if (!isProgram) {
       return (
         <WorkoutSummary
           plan={plan}
           results={state.results}
-          totalSeconds={totalSeconds.current}
+          totalSeconds={summarySeconds}
           doneLabel="홈으로"
           onDone={() => leaveSummary()}
         />
@@ -241,11 +392,16 @@ function WorkoutScreen(): React.JSX.Element {
       return (
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.pending}>
-            <Text style={styles.pendingText}>
-              운동하는 사이에 프로그램 진행 위치가 바뀌어서{'\n'}이번 운동은 진행에 반영하지 않았어요.{'\n'}
+            <Text style={styles.centered}>
+              운동하는 사이에 프로그램 진행 위치가 바뀌어서{'\n'}이번 운동은
+              진행에 반영하지 않았어요.{'\n'}
               세트 기록은 히스토리에 그대로 남아 있어요.
             </Text>
-            <CustomButton title="프로그램으로" variant="start" onPress={() => goBackToStart()} />
+            <Button
+              title="프로그램으로"
+              variant="primary"
+              onPress={() => goBackToStart()}
+            />
           </View>
         </SafeAreaView>
       );
@@ -257,16 +413,20 @@ function WorkoutScreen(): React.JSX.Element {
           <View style={styles.pending}>
             {programQuery.isError ? (
               <>
-                <Text style={styles.pendingText}>
-                  프로그램 정보를 불러오지 못해 운동 결과를 반영하지 못했어요.{'\n'}네트워크를 확인하고 다시
-                  시도해 주세요.
+                <Text style={styles.centered}>
+                  프로그램 정보를 불러오지 못해 운동 결과를 반영하지 못했어요.
+                  {'\n'}네트워크를 확인하고 다시 시도해 주세요.
                 </Text>
-                <CustomButton title="다시 시도" variant="start" onPress={retrySave} />
+                <Button
+                  title="다시 시도"
+                  variant="primary"
+                  onPress={retrySave}
+                />
               </>
             ) : (
               <>
-                <ActivityIndicator size="large" color={colors.primary} />
-                <Text style={styles.pendingText}>운동 결과를 반영하고 있어요</Text>
+                <ActivityIndicator size="large" color={color.active} />
+                <Text style={styles.centered}>운동 결과를 반영하고 있어요</Text>
               </>
             )}
           </View>
@@ -278,7 +438,7 @@ function WorkoutScreen(): React.JSX.Element {
         position={outcome.position}
         targets={plan.sets}
         results={state.results}
-        totalSeconds={totalSeconds.current}
+        totalSeconds={summarySeconds}
         passed={outcome.passed}
         streak={outcome.streak}
         nextLabel={outcome.nextLabel}
@@ -290,8 +450,6 @@ function WorkoutScreen(): React.JSX.Element {
       />
     );
   }
-
-  const displayCount = state.phase === 'tracking' ? manager.pushUpCount : 0;
 
   const renderRest = () => {
     const index = state.setIndex;
@@ -309,7 +467,16 @@ function WorkoutScreen(): React.JSX.Element {
     return (
       <RestTimer
         remaining={state.restRemaining}
-        onSkip={skipRest}
+        duration={restDuration}
+        autoNext={state.autoNext}
+        onSkip={() => {
+          skipRest();
+          start();
+        }}
+        onExtend={() => {
+          setRestDuration(total => total + REST_EXTEND_SECONDS);
+          extendRest();
+        }}
         last={{
           setNumber: index + 1,
           reps: state.results[index] ?? 0,
@@ -317,7 +484,6 @@ function WorkoutScreen(): React.JSX.Element {
           isMax: plan.lastIsMax && index === lastSetIndex,
         }}
         next={{
-          setNumber: nextIndex + 1,
           reps: plan.sets[nextIndex],
           isMax: plan.lastIsMax && nextIndex === lastSetIndex,
         }}
@@ -326,65 +492,243 @@ function WorkoutScreen(): React.JSX.Element {
     );
   };
 
+  const tracking = phase === 'tracking';
+  const resting = phase === 'rest';
+  const paused = phase === 'paused';
+  const preparing = phase === 'idle' || phase === 'countdown';
+  const set = {
+    current: state.setIndex + 1,
+    total: plan.sets.length,
+    results: state.results,
+  };
+  const targetLabel = target.isMax
+    ? `최소 ${target.reps}, 가능한 만큼`
+    : `목표 ${target.reps}개`;
+  const remaining = Math.max(0, target.reps - state.currentCount);
+  const attemptLabel =
+    target.isMax && remaining === 0
+      ? `최소 ${target.reps}개 달성 · 더 해도 돼요`
+      : `목표 ${target.reps}개 중 ${state.currentCount}개`;
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        {state.phase === 'rest' ? (
-          renderRest()
-        ) : (
-          <>
-            <WorkoutHeader
-              setNumber={state.setIndex + 1}
-              totalSets={plan.sets.length}
-              target={target}
-              count={state.phase === 'tracking' ? displayCount : undefined}
+    <SafeAreaView
+      style={[
+        styles.safeArea,
+        tracking && styles.tracking,
+        resting && styles.resting,
+      ]}>
+      <StatusBar
+        barStyle={resting || milestone ? 'dark-content' : 'light-content'}
+      />
+      {phase !== 'done' && (
+        <ScrollView contentContainerStyle={styles.container} bounces={false}>
+          <WorkoutHeader phase={phase} set={set} />
+          {saveError && (
+            <Text
+              color={tracking ? 'onBrand' : resting ? 'onAccent' : 'alert'}
+              variant="caption">
+              {saveError === 'queued'
+                ? '저장이 지연되고 있어요. 연결되면 자동으로 다시 보내요'
+                : '세트를 저장하지 못했어요. 로그인 상태를 확인해 주세요'}
+            </Text>
+          )}
+          {resting ? (
+            renderRest()
+          ) : (
+            <>
+              <View style={styles.hero}>
+                {paused ? (
+                  <>
+                    <View style={styles.pauseIcon}>
+                      <Icon name="pause" color="active" size={28} />
+                    </View>
+                    <Text variant="title">멈췄어요</Text>
+                    <Text color="textMuted">
+                      {state.currentCount}개 저장됨 · 세트 {set.current} /{' '}
+                      {set.total}
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    {phase !== 'idle' && (
+                      <Count
+                        value={
+                          tracking
+                            ? state.currentCount
+                            : state.countdownRemaining
+                        }
+                        color={tracking ? 'onBrand' : 'text'}
+                        pulse={tracking}
+                      />
+                    )}
+                    <Text
+                      color={tracking ? 'onBrand' : 'text'}
+                      weight={800}
+                      style={
+                        tracking && !target.isMax
+                          ? styles.remaining
+                          : styles.heroLabel
+                      }>
+                      {tracking
+                        ? target.isMax
+                          ? targetLabel
+                          : `${remaining}개 남음`
+                        : '엎드려 주세요'}
+                    </Text>
+                    {phase === 'idle' && (
+                      <Text color="textMuted" style={styles.centered}>
+                        기기를 얼굴과 마주보게 바닥에 두세요
+                      </Text>
+                    )}
+                  </>
+                )}
+              </View>
+              <View style={tracking ? styles.trackingFooter : styles.footer}>
+                {tracking && (
+                  <>
+                    <TimerContainer
+                      label={attemptLabel}
+                      detail={formatTime(elapsed).replace(/^0/, '')}
+                      progress={state.currentCount / Math.max(1, target.reps)}
+                    />
+                    <View style={styles.actions}>
+                      <WorkoutAction
+                        title="잠깐 멈추기"
+                        icon="pause"
+                        variant="tracking"
+                        onPress={pause}
+                      />
+                      <WorkoutAction
+                        title="운동 그만두기"
+                        icon="square"
+                        variant="tracking"
+                        iconOnly
+                        onPress={() => goBackToStart()}
+                      />
+                    </View>
+                    {target.isMax && (
+                      <Button
+                        title="이 세트 끝내기"
+                        variant="text"
+                        onPress={finishSet}
+                      />
+                    )}
+                  </>
+                )}
+                {paused && (
+                  <>
+                    <Button
+                      title="이어서 하기"
+                      variant="primary"
+                      icon="play"
+                      onPress={resume}
+                    />
+                    <Button
+                      title="이 세트 끝내기"
+                      variant="secondary"
+                      onPress={finishSet}
+                    />
+                  </>
+                )}
+                {preparing && (
+                  <Text variant="headline">
+                    {set.current === 1 ? '첫 세트' : '다음 세트'} {targetLabel}
+                  </Text>
+                )}
+                {phase === 'idle' && (
+                  <Button
+                    title="시작"
+                    variant="primary"
+                    icon="play"
+                    onPress={beginCountdown}
+                  />
+                )}
+                {phase === 'countdown' && (
+                  <Button
+                    title="취소하고 돌아가기"
+                    icon="x"
+                    variant="secondary"
+                    onPress={() => goBackToStart()}
+                  />
+                )}
+              </View>
+            </>
+          )}
+          {phase !== 'countdown' && !tracking && (
+            <Button
+              title="운동 그만두기"
+              variant="text"
+              onPress={() => goBackToStart()}
             />
-            <Count pushUpCount={displayCount} isGoingDown={manager.isGoingDown} />
-            <TimerContainer formattedTime={formatTime(state.phase === 'tracking' ? elapsed : 0)} />
-            <Engagement show={state.phase === 'tracking'} pushUpCount={displayCount} />
-          </>
-        )}
-
-        {saveError && (
-          <Text style={styles.warning}>
-            {saveError === 'queued'
-              ? '저장이 지연되고 있어요. 연결되면 자동으로 다시 보내요'
-              : '세트를 저장하지 못했어요. 로그인 상태를 확인해 주세요'}
-          </Text>
-        )}
-
-        <View style={styles.footer}>
-          <Text style={styles.instructionText}>
-            {state.phase === 'idle' ? '기기를 얼굴과 마주보게 바닥에 두세요' : ''}
-          </Text>
-          <View style={styles.buttonContainer}>
-            {state.phase === 'idle' && (
-              <CustomButton style={styles.button} title="시작하기" variant="start" onPress={handleStart} />
-            )}
-            {state.phase === 'tracking' && (
-              <CustomButton style={styles.button} title="세트 종료" variant="stop" onPress={finishSet} />
-            )}
-          </View>
-          <Text style={styles.abort} onPress={() => goBackToStart()}>
-            운동 그만두기
-          </Text>
-        </View>
-      </View>
+          )}
+        </ScrollView>
+      )}
+      {milestone && <WorkoutMilestone milestone={milestone} />}
+      <ConfirmDialog
+        visible={leaveAction !== null}
+        title="운동 그만두기"
+        message={
+          isProgram
+            ? '지금까지 끝낸 세트는 기록에 남아요.\n오늘 운동은 처음부터 다시 해야 해요.'
+            : '지금까지 끝낸 세트는 기록에 남아요.'
+        }
+        confirmLabel="그만두기"
+        cancelLabel="취소"
+        destructive
+        onCancel={() => setLeaveAction(null)}
+        onConfirm={() => {
+          if (leaveAction) {
+            setLeaveAction(null);
+            stopCounter();
+            navigation.dispatch(leaveAction);
+          }
+        }}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {flex: 1, backgroundColor: colors.backgroundDark},
-  container: {flex: 1, alignItems: 'center', padding: 20},
-  pending: {flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 20},
-  pendingText: {fontSize: 15, lineHeight: 22, color: colors.textLight, textAlign: 'center'},
-  warning: {fontSize: 13, color: colors.error, marginTop: 8},
-  footer: {marginTop: 'auto', width: '100%', alignItems: 'center', gap: 16},
-  instructionText: {fontSize: 16, textAlign: 'center', opacity: 0.8, color: colors.gray700, minHeight: 20},
-  buttonContainer: {flexDirection: 'row', width: '100%', justifyContent: 'center'},
-  button: {flex: 1, backgroundColor: colors.primaryDark},
-  abort: {fontSize: 14, color: colors.gray400, padding: 8},
+  safeArea: {flex: 1, backgroundColor: color.bg},
+  tracking: {backgroundColor: color.activeFill},
+  resting: {backgroundColor: color.rest},
+  container: {
+    flexGrow: 1,
+    paddingHorizontal: layout.screenPadding,
+    paddingVertical: space[12],
+    gap: space[8],
+  },
+  pending: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: space[24],
+    gap: space[20],
+  },
+  centered: {textAlign: 'center'},
+  hero: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: space[12],
+    gap: space[8],
+  },
+  heroLabel: {fontSize: 44, lineHeight: 54, textAlign: 'center'},
+  remaining: {fontSize: 52, lineHeight: 62, textAlign: 'center'},
+  pauseIcon: {
+    padding: space[16],
+    borderRadius: radius.pill,
+    backgroundColor: color.activeTint,
+  },
+  footer: {gap: space[12]},
+  trackingFooter: {
+    backgroundColor: `${color.bg}24`,
+    marginHorizontal: -layout.screenPadding,
+    paddingHorizontal: layout.screenPadding,
+    paddingVertical: space[12],
+    gap: space[12],
+  },
+  actions: {flexDirection: 'row', gap: space[12]},
 });
 
 export default WorkoutScreen;

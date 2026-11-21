@@ -22,7 +22,7 @@ export const radius = {
 } as const;
 
 export const layout = {
-  screenPadding: 24,
+  screenPadding: 16,
   touchMin: 44,
   primaryButtonHeight: 56,
   frameWidth: 393,

@@ -74,9 +74,68 @@ describe('workoutSession', () => {
     expect(workoutReducer(idle, {type: 'finishSet'})).toBe(idle);
     expect(workoutReducer(idle, {type: 'skipRest'})).toBe(idle);
   });
+
+  it('beginCountdown → 3·2·1 뒤 tracking', () => {
+    const s0 = run([{type: 'beginCountdown'}]);
+    expect(s0).toMatchObject({phase: 'countdown', countdownRemaining: 3});
+    const s = run([{type: 'countdownTick'}, {type: 'countdownTick'}, {type: 'countdownTick'}], s0);
+    expect(s).toMatchObject({phase: 'tracking', currentCount: 0, countdownRemaining: 0});
+  });
+
+  it('카운트다운 중 pause 는 준비(idle)로', () => {
+    expect(run([{type: 'beginCountdown'}, {type: 'pause'}]).phase).toBe('idle');
+  });
+
+  it('카운트다운은 매 틱 1초씩 줄어들고 중단하면 0으로 돌아간다', () => {
+    const two = run([{type: 'beginCountdown'}, {type: 'countdownTick'}]);
+    expect(two).toMatchObject({phase: 'countdown', countdownRemaining: 2});
+    const one = run([{type: 'countdownTick'}], two);
+    expect(one).toMatchObject({phase: 'countdown', countdownRemaining: 1});
+    expect(run([{type: 'pause'}], one)).toMatchObject({phase: 'idle', countdownRemaining: 0});
+  });
+
+  it('tracking 에서 pause → paused, 그동안 count 는 무시, resume → tracking', () => {
+    const p = run([{type: 'start'}, {type: 'count', count: 2}, {type: 'pause'}, {type: 'count', count: 3}]);
+    expect(p).toMatchObject({phase: 'paused', currentCount: 2});
+    expect(run([{type: 'resume'}], p).phase).toBe('tracking');
+  });
+
+  it('paused 에서 finishSet 은 지금 개수로 세트를 끝낸다', () => {
+    const s = run([{type: 'start'}, {type: 'count', count: 2}, {type: 'pause'}, {type: 'finishSet'}]);
+    expect(s).toMatchObject({phase: 'rest', results: [2]});
+  });
+
+  it('일시정지 마지막 세트를 끝내면 운동이 완료된다', () => {
+    const last: WorkoutState = {...createWorkout(plan), setIndex: 2, phase: 'paused', currentCount: 4, results: [3, 3]};
+    expect(run([{type: 'finishSet'}], last)).toMatchObject({phase: 'done', results: [3, 3, 4]});
+  });
+
+  it('extendRest 는 휴식 중에만 15초 더한다', () => {
+    const r = run([{type: 'start'}, {type: 'count', count: 3}]);
+    expect(run([{type: 'extendRest'}], r).restRemaining).toBe(17);
+    expect(run([{type: 'extendRest'}])).toEqual(createWorkout(plan));
+  });
+
+  it('autoNext 면 휴식이 끝나면 바로 다음 세트를 센다', () => {
+    const auto = createWorkout(plan, {autoNext: true});
+    const s = run([{type: 'start'}, {type: 'count', count: 3}, {type: 'restTick'}, {type: 'restTick'}], auto);
+    expect(s).toMatchObject({phase: 'tracking', setIndex: 1, currentCount: 0});
+    const k = run([{type: 'start'}, {type: 'count', count: 3}, {type: 'skipRest'}], auto);
+    expect(k).toMatchObject({phase: 'tracking', setIndex: 1});
+  });
+
+  it('autoNext 가 꺼져 있으면 지금처럼 준비(idle)로', () => {
+    const s = run([{type: 'start'}, {type: 'count', count: 3}, {type: 'skipRest'}]);
+    expect(s).toMatchObject({phase: 'idle', setIndex: 1});
+  });
 });
 
 describe('shouldConfirmLeave (나갈 때 확인이 필요한가)', () => {
+  it('카운트다운·일시정지도 나갈 때 확인한다', () => {
+    expect(shouldConfirmLeave(run([{type: 'beginCountdown'}]))).toBe(true);
+    expect(shouldConfirmLeave(run([{type: 'start'}, {type: 'pause'}]))).toBe(true);
+  });
+
   it('아직 아무것도 시작하지 않았으면 확인 없이 나간다', () => {
     expect(shouldConfirmLeave(createWorkout(plan))).toBe(false);
   });

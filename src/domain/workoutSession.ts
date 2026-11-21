@@ -4,7 +4,10 @@ export type WorkoutPlan = {
   lastIsMax: boolean;
 };
 
-export type WorkoutPhase = 'idle' | 'tracking' | 'rest' | 'done';
+export type WorkoutPhase = 'idle' | 'countdown' | 'tracking' | 'paused' | 'rest' | 'done';
+
+export const COUNTDOWN_SECONDS = 3;
+export const REST_EXTEND_SECONDS = 15;
 
 export type WorkoutState = {
   plan: WorkoutPlan;
@@ -13,6 +16,8 @@ export type WorkoutState = {
   currentCount: number;
   results: number[]; // 완료된 세트의 실제 횟수
   restRemaining: number;
+  countdownRemaining: number;
+  autoNext: boolean;
 };
 
 export type WorkoutEvent =
@@ -20,15 +25,22 @@ export type WorkoutEvent =
   | {type: 'count'; count: number}
   | {type: 'finishSet'}
   | {type: 'restTick'}
-  | {type: 'skipRest'};
+  | {type: 'skipRest'}
+  | {type: 'beginCountdown'}
+  | {type: 'countdownTick'}
+  | {type: 'pause'}
+  | {type: 'resume'}
+  | {type: 'extendRest'};
 
-export const createWorkout = (plan: WorkoutPlan): WorkoutState => ({
+export const createWorkout = (plan: WorkoutPlan, options?: {autoNext?: boolean}): WorkoutState => ({
   plan,
   phase: 'idle',
   setIndex: 0,
   currentCount: 0,
   results: [],
   restRemaining: 0,
+  countdownRemaining: 0,
+  autoNext: options?.autoNext ?? false,
 });
 
 export const targetFor = (state: WorkoutState) => {
@@ -55,7 +67,7 @@ const finishSet = (state: WorkoutState): WorkoutState => {
 
 const nextSet = (state: WorkoutState): WorkoutState => ({
   ...state,
-  phase: 'idle',
+  phase: state.autoNext ? 'tracking' : 'idle',
   setIndex: state.setIndex + 1,
   currentCount: 0,
   restRemaining: 0,
@@ -65,6 +77,26 @@ export const workoutReducer = (state: WorkoutState, event: WorkoutEvent): Workou
   switch (event.type) {
     case 'start':
       return state.phase === 'idle' ? {...state, phase: 'tracking', currentCount: 0} : state;
+    case 'beginCountdown':
+      return state.phase === 'idle'
+        ? {...state, phase: 'countdown', countdownRemaining: COUNTDOWN_SECONDS}
+        : state;
+    case 'countdownTick': {
+      if (state.phase !== 'countdown') {
+        return state;
+      }
+      const countdownRemaining = state.countdownRemaining - 1;
+      return countdownRemaining === 0
+        ? {...state, phase: 'tracking', currentCount: 0, countdownRemaining}
+        : {...state, countdownRemaining};
+    }
+    case 'pause':
+      if (state.phase === 'countdown') {
+        return {...state, phase: 'idle', countdownRemaining: 0};
+      }
+      return state.phase === 'tracking' ? {...state, phase: 'paused'} : state;
+    case 'resume':
+      return state.phase === 'paused' ? {...state, phase: 'tracking'} : state;
     case 'count': {
       // 값이 같으면 같은 객체를 돌려줘 불필요한 리렌더/루프를 막는다
       if (state.phase !== 'tracking' || event.count === state.currentCount) {
@@ -75,7 +107,7 @@ export const workoutReducer = (state: WorkoutState, event: WorkoutEvent): Workou
       return !isMax && event.count >= reps ? finishSet(next) : next;
     }
     case 'finishSet':
-      return state.phase === 'tracking' ? finishSet(state) : state;
+      return state.phase === 'tracking' || state.phase === 'paused' ? finishSet(state) : state;
     case 'restTick': {
       if (state.phase !== 'rest') {
         return state;
@@ -85,6 +117,10 @@ export const workoutReducer = (state: WorkoutState, event: WorkoutEvent): Workou
     }
     case 'skipRest':
       return state.phase === 'rest' ? nextSet(state) : state;
+    case 'extendRest':
+      return state.phase === 'rest'
+        ? {...state, restRemaining: state.restRemaining + REST_EXTEND_SECONDS}
+        : state;
     default:
       return state;
   }

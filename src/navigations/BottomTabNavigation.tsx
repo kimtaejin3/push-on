@@ -1,115 +1,46 @@
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import HomeScreen from '../screens/HomeScreen';
-import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
-import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
-import {colors} from '../constants/colors';
-import HistoryScreen from '../screens/HistoryScreen';
-import StatisticScreen from '../screens/StatisticScreen';
-import SettingScreen from '../screens/SettingScreen';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import {TabBar} from '../components/ui/TabBar';
+import HistoryScreen from '../screens/HistoryScreen';
+import HomeScreen from '../screens/HomeScreen';
+import ProgramScreen from '../screens/ProgramScreen';
+import SettingScreen from '../screens/SettingScreen';
+import {color} from '../theme';
 
 export type BottomTabParamList = {
   Home: undefined;
-  Statistic: undefined;
+  Program: {notice?: string} | undefined;
   History: undefined;
   Setting: undefined;
 };
 
 const Tab = createBottomTabNavigator<BottomTabParamList>();
 
-// TODO: 필요없는 Wrapper들 제거필요.
-const HomeIcon = ({color}: {color: string}) => (
-  <Fontawesome5 name="home" size={20} color={color} iconStyle="solid" />
-);
-const HistoryIcon = ({color}: {color: string}) => (
-  <Fontawesome5 name="history" size={20} color={color} iconStyle="solid" />
-);
-const StatisticIcon = ({color}: {color: string}) => (
-  <FontAwesome6 name="chart-simple" size={20} color={color} iconStyle="solid" />
-);
-const SettingIcon = ({color}: {color: string}) => (
-  <Fontawesome5 name="cog" size={20} color={color} iconStyle="solid" />
-);
-const homeTabBarIcon = ({color}: {color: string}) => <HomeIcon color={color} />;
-const historyTabBarIcon = ({color}: {color: string}) => (
-  <HistoryIcon color={color} />
-);
-const statisticTabBarIcon = ({color}: {color: string}) => (
-  <StatisticIcon color={color} />
-);
-const settingTabBarIcon = ({color}: {color: string}) => (
-  <SettingIcon color={color} />
-);
-
-const BottomTabNavigation = () => {
-  const handleTabPress = () => {
-    // 탭 이동 시 가벼운 진동
+const tabListeners = {
+  tabPress: () =>
     ReactNativeHapticFeedback.trigger('impactLight', {
       enableVibrateFallback: true,
       ignoreAndroidSystemSettings: false,
-    });
-  };
-
-  return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: '#7D5FFF',
-        tabBarInactiveTintColor: colors.tabInactive,
-        tabBarShowLabel: false, // This is the correct property to hide labels
-        tabBarStyle: {
-          backgroundColor: '#000',
-          paddingTop: 10,
-          borderTopWidth: 0,
-          elevation: 0,
-          shadowOpacity: 0,
-          borderRadius: 100,
-          position: 'absolute',
-          bottom: 0,
-        },
-      }}>
-      <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{
-          tabBarIcon: homeTabBarIcon,
-        }}
-        listeners={{
-          tabPress: handleTabPress,
-        }}
-      />
-      <Tab.Screen
-        name="History"
-        component={HistoryScreen}
-        options={{
-          tabBarIcon: historyTabBarIcon,
-        }}
-        listeners={{
-          tabPress: handleTabPress,
-        }}
-      />
-      <Tab.Screen
-        name="Statistic"
-        component={StatisticScreen}
-        options={{
-          tabBarIcon: statisticTabBarIcon,
-        }}
-        listeners={{
-          tabPress: handleTabPress,
-        }}
-      />
-      <Tab.Screen
-        name="Setting"
-        component={SettingScreen}
-        options={{
-          tabBarIcon: settingTabBarIcon,
-        }}
-        listeners={{
-          tabPress: handleTabPress,
-        }}
-      />
-    </Tab.Navigator>
-  );
+    }),
 };
+
+const renderTabBar: React.ComponentProps<
+  typeof Tab.Navigator
+>['tabBar'] = props => <TabBar {...props} />;
+
+const BottomTabNavigation = () => (
+  <Tab.Navigator
+    screenOptions={{
+      headerShown: false,
+      sceneStyle: {backgroundColor: color.bg},
+    }}
+    screenListeners={tabListeners}
+    tabBar={renderTabBar}>
+    <Tab.Screen name="Home" component={HomeScreen} />
+    <Tab.Screen name="Program" component={ProgramScreen} />
+    <Tab.Screen name="History" component={HistoryScreen} />
+    <Tab.Screen name="Setting" component={SettingScreen} />
+  </Tab.Navigator>
+);
 
 export default BottomTabNavigation;

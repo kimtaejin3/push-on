@@ -52,7 +52,11 @@ function ProgramTableScreen() {
         existing: programRow.completed_days,
       },
       {
-        onSuccess: () => navigation.dispatch(StackActions.popTo('Program', {notice: jumpNotice(to)})),
+        onSuccess: () =>
+          navigation.dispatch(StackActions.popTo('Tabs', {
+            screen: 'Program',
+            params: {notice: jumpNotice(to)},
+          })),
         onError: () => Alert.alert('주차를 바꾸지 못했어요', '네트워크를 확인하고 다시 시도해 주세요.'),
       },
     );

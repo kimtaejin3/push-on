@@ -188,7 +188,7 @@ function WorkoutScreen(): React.JSX.Element {
   const goBackToStart = (notice?: string) =>
     navigation.dispatch(
       isProgram
-        ? StackActions.popTo('Program', notice ? {notice} : undefined)
+        ? StackActions.popTo('Tabs', {screen: 'Program', params: {notice}})
         : StackActions.popTo('Tabs'),
     );
 

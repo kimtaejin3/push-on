@@ -74,7 +74,8 @@ function ProgramTestResult({reps, duration}: ProgramTestResultProps): React.JSX.
   }
   const result = resolved.current;
 
-  const goProgram = () => navigation.dispatch(StackActions.popTo('Program'));
+  const goProgram = () =>
+    navigation.dispatch(StackActions.popTo('Tabs', {screen: 'Program'}));
   const {celebrateThen} = useStreakCelebration();
   // 반영에 성공해 프로그램으로 돌아갈 때만 축하 화면을 거친다 (0개 결과는 goProgram 으로 바로 간다)
   const finish = () => celebrateThen(goProgram);

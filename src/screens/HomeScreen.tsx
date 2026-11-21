@@ -85,7 +85,7 @@ function HomeScreen(): React.JSX.Element {
           title="100개 챌린지"
           description="테스트 결과에 맞춘 세트로 연속 100개까지"
           status={programStatusText()}
-          onPress={() => navigation.navigate('Program')}
+          onPress={() => navigation.navigate('Tabs', {screen: 'Program'})}
         />
       </View>
 

@@ -9,14 +9,23 @@ import {
   Text,
   View,
 } from 'react-native';
-import {RouteProp, useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+  type CompositeNavigationProp,
+  type RouteProp,
+} from '@react-navigation/native';
+import type {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {useQuery} from '@tanstack/react-query';
 import Header from '../components/common/Header';
 import CustomButton from '../components/common/CustomButton';
 import {colors} from '../constants/colors';
 import {useSession} from '../hooks/useSession';
 import {useNow} from '../hooks/useNow';
-import {AppStackParamList} from '../navigations/AppNavigation';
+import type {AppStackParamList} from '../navigations/AppNavigation';
+import type {BottomTabParamList} from '../navigations/BottomTabNavigation';
 import {
   currentProgramQueryOptions,
   useAbandonProgramMutation,
@@ -42,8 +51,13 @@ import ProgramCompletedCard from '../components/features/program/ProgramComplete
 import {cancelWorkoutReminders} from '../services/workoutReminder';
 
 function ProgramScreen() {
-  const navigation = useNavigation();
-  const route = useRoute<RouteProp<AppStackParamList, 'Program'>>();
+  const navigation = useNavigation<
+    CompositeNavigationProp<
+      BottomTabNavigationProp<BottomTabParamList, 'Program'>,
+      NativeStackNavigationProp<AppStackParamList>
+    >
+  >();
+  const route = useRoute<RouteProp<BottomTabParamList, 'Program'>>();
   const {user} = useSession();
   // "오늘 완료" 판단은 지금 날짜를 따른다: 자정을 넘겨 다른 화면이나 앱 밖에서 돌아오면 다시 판단한다
   const {now, refresh: refreshNow} = useNow();
@@ -249,7 +263,7 @@ function ProgramScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header title="100개 챌린지" onBackPress={() => navigation.goBack()} />
+      <Header title="100개 챌린지" />
       <ScrollView contentContainerStyle={styles.content}>
         {notice ? (
           <Pressable style={styles.notice} onPress={() => setNotice(undefined)}>

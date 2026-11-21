@@ -1,7 +1,7 @@
 import {
   assignLevel, startProgram, todayPlan, completeDay, applyTest, describeSets, retestLevel, initialTestPreview, programTable,
   isDayPassed, missedSets, attemptRecord, moveRecord, failStreak, lastFailure, passedDayCount,
-  downgradeTarget, moveTo, levelRange, testThreshold, resolveTest,
+  downgradeTarget, moveTo, levelRange, testThreshold, resolveTest, describeSetsAt,
 } from '../../src/domain/hundredPushups';
 import {PROGRAM} from '../../src/constants/hundredPushups';
 
@@ -297,5 +297,12 @@ describe('resolveTest', () => {
     const r = resolveTest(s(3, 2, 3, false), 17);
     expect(r.next).toMatchObject({week: 3, day: 2, level: 1, lastTestReps: 17});
     expect(r.outcome).toEqual({kind: 'retest', week: 3, level: 1, prevLevel: 3});
+  });
+});
+
+describe('describeSetsAt', () => {
+  it('주차·Day·레벨 위치의 세트를 문자열로 돌려준다', () => {
+    expect(describeSetsAt({week: 2, day: 2, level: 2})).toBe('10 · 12 · 9 · 9 · 13+');
+    expect(describeSetsAt({week: 2, day: 2, level: 3})).toBe('14 · 16 · 12 · 12 · 17+');
   });
 });

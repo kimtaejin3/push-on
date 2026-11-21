@@ -3,13 +3,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {ScrollView, StyleSheet, Text, View} from 'react-native';
 import CustomButton from '../../common/CustomButton';
 import {colors} from '../../../constants/colors';
-import {
-  describeSets,
-  DOWNGRADE_AFTER,
-  missedSets,
-  Position,
-  todayPlan,
-} from '../../../domain/hundredPushups';
+import {describeSetsAt, DOWNGRADE_AFTER, missedSets, Position} from '../../../domain/hundredPushups';
 import {formatTime} from '../../../utils/time';
 
 interface ProgramDaySummaryProps {
@@ -32,11 +26,6 @@ interface ProgramDaySummaryProps {
   onDone: () => void;
   onDowngrade: () => void;
 }
-
-const setsAt = (to: Position): string => {
-  const plan = todayPlan({...to, lastTestReps: 0, testDue: false, status: 'active'});
-  return describeSets(plan.sets, plan.lastIsMax);
-};
 
 /**
  * 100개 챌린지 운동 요약: 판정 → 세트별 결과 → 왜 이렇게 됐고 다음에 뭘 하면 되는지.
@@ -80,8 +69,8 @@ function ProgramDaySummary({
     const rule = `모든 세트를 채워야 다음(${nextLabel})으로 넘어가요.`;
     if (offerDowngrade && downgrade) {
       return downgrade.week === week
-        ? `${rule}\n지금 레벨(${level})이 조금 버거울 수 있어요.\n레벨 ${downgrade.level}로 낮추면 Day ${day}는 ${setsAt(downgrade)} 예요.`
-        : `${rule}\n${week}주차가 지금은 조금 버거울 수 있어요.\n${downgrade.week}주차 Day ${downgrade.day}부터 다시 하면 ${setsAt(downgrade)} 예요.`;
+        ? `${rule}\n지금 레벨(${level})이 조금 버거울 수 있어요.\n레벨 ${downgrade.level}로 낮추면 Day ${day}는 ${describeSetsAt(downgrade)} 예요.`
+        : `${rule}\n${week}주차가 지금은 조금 버거울 수 있어요.\n${downgrade.week}주차 Day ${downgrade.day}부터 다시 하면 ${describeSetsAt(downgrade)} 예요.`;
     }
     if (!downgrade) {
       return `${rule}\n지금이 가장 쉬운 단계예요. 다음 운동도 Day ${day}를 다시 해요.`;

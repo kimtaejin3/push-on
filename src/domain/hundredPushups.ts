@@ -333,3 +333,7 @@ export const resolveTest = (
     },
   };
 };
+
+/** 그 위치(주차·Day·레벨)의 세트 구성 문자열. 하향·주차 변경 안내에서 "바꾸면 이렇게 돼요"를 보여줄 때 쓴다 */
+export const describeSetsAt = (to: Position): string =>
+  describeSets(PROGRAM[to.week - 1][to.day - 1].sets[to.level - 1], true);

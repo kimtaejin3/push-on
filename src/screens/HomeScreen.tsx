@@ -10,23 +10,31 @@ import LinkRow from '../components/features/home/LinkRow';
 import {useSession} from '../hooks/useSession';
 import {currentProgramQueryOptions} from '../tanstack-query';
 import {toProgramState} from '../remote/program';
-import {ProgramState} from '../domain/hundredPushups';
-
-const programStatusText = (program: ProgramState | null): string => {
-  if (!program) {
-    return '시작 전';
-  }
-  if (program.testDue) {
-    return '테스트 차례';
-  }
-  return `${program.week}주차 · Day ${program.day}`;
-};
+import {resolveProgramView} from '../domain/programView';
 
 function HomeScreen(): React.JSX.Element {
   const navigation = useNavigation();
   const {user} = useSession();
-  const {data: programRow} = useQuery(currentProgramQueryOptions(user?.id ?? ''));
-  const program = programRow ? toProgramState(programRow) : null;
+  const programQuery = useQuery(currentProgramQueryOptions(user?.id ?? ''));
+  const programRow = programQuery.data;
+
+  // 조회 전·조회 실패일 때는 "시작 전"이라고 말하지 않는다 (진행 중인 사람에게 틀린 정보)
+  const programStatusText = (): string | undefined => {
+    switch (resolveProgramView(programQuery)) {
+      case 'none':
+        return '시작 전';
+      case 'testDue':
+        return '테스트 차례';
+      case 'completed':
+        return '완료';
+      case 'active': {
+        const program = programRow ? toProgramState(programRow) : null;
+        return program ? `${program.week}주차 · Day ${program.day}` : undefined;
+      }
+      default:
+        return undefined;
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -54,7 +62,7 @@ function HomeScreen(): React.JSX.Element {
           icon="flag-checkered"
           title="100개 챌린지"
           description="테스트 결과에 맞춘 세트로 연속 100개까지"
-          status={programStatusText(program)}
+          status={programStatusText()}
           onPress={() => navigation.navigate('Program')}
         />
       </View>

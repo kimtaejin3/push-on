@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -9,12 +9,13 @@ import {
   Text,
   View,
 } from 'react-native';
-import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
+import {RouteProp, useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import {useQuery} from '@tanstack/react-query';
 import Header from '../components/common/Header';
 import CustomButton from '../components/common/CustomButton';
 import {colors} from '../constants/colors';
 import {useSession} from '../hooks/useSession';
+import {useNow} from '../hooks/useNow';
 import {AppStackParamList} from '../navigations/AppNavigation';
 import {
   currentProgramQueryOptions,
@@ -44,6 +45,9 @@ function ProgramScreen() {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<AppStackParamList, 'Program'>>();
   const {user} = useSession();
+  // "오늘 완료" 판단은 지금 날짜를 따른다: 자정을 넘겨 다른 화면이나 앱 밖에서 돌아오면 다시 판단한다
+  const {now, refresh: refreshNow} = useNow();
+  useFocusEffect(useCallback(() => refreshNow(), [refreshNow]));
 
   // 하향·주차 변경 직후의 안내는 한 번만 보여준다:
   // 파라미터로 받으면 화면 상태로 옮기고, 닫거나 다른 화면으로 가면 사라진다.
@@ -221,7 +225,7 @@ function ProgramScreen() {
         source: {kind: 'program', programId: programRow.id},
       });
     // 오늘 할 일을 마쳤으면 다음 Day 는 내일로 안내한다 (미리 하기는 막지 않는다)
-    const progress = todayProgress(programRow.completed_days, state, programRow.created_at, new Date());
+    const progress = todayProgress(programRow.completed_days, state, programRow.created_at, now);
     if (progress !== 'open') {
       return (
         <ProgramDoneTodayCard kind={progress} next={state} onStartEarly={startWorkout} onOpenTable={openTable} />

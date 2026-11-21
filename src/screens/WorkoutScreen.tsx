@@ -135,6 +135,8 @@ function Workout({prefs}: {prefs: WorkoutPrefs}): React.JSX.Element {
   const {milestone, showMilestone} = useWorkoutMilestone();
   const [leaveAction, setLeaveAction] = useState<NavigationAction | null>(null);
   const [restDuration, setRestDuration] = useState(plan.restSeconds);
+  // 운동을 시작한 시각 (첫 세트 저장 전). 운동 중 최고 기록과 결과 화면의 지난번·한 세트 최고는
+  // 이보다 앞선 기록과 비교한다 — 끝난 시각을 쓰면 세트마다 저장한 이번 운동이 자기 자신과 비교된다
   const startedAt = useRef(new Date().toISOString()).current;
   const {data: previousBest} = useQuery({
     queryKey: [...queryKeys.pushup.all, 'bestSetBefore', user?.id, startedAt],
@@ -347,8 +349,12 @@ function Workout({prefs}: {prefs: WorkoutPrefs}): React.JSX.Element {
   // 운동 중 그만두기(usePreventRemove)·반영 못 한 화면은 이걸 거치지 않는다
   const {celebrateThen} = useStreakCelebration();
   const didAny = state.results.some(reps => reps > 0);
-  const leaveSummary = (notice?: string) => {
-    const go = () => goBackToStart(notice);
+  // [기록에서 보기]는 같은 순서로 기록 탭에 간다
+  const leaveSummary = (notice?: string, to?: 'History') => {
+    const go = () =>
+      to
+        ? navigation.dispatch(StackActions.popTo('Tabs', {screen: to}))
+        : goBackToStart(notice);
     if (didAny) {
       celebrateThen(go);
     } else {
@@ -383,8 +389,10 @@ function Workout({prefs}: {prefs: WorkoutPrefs}): React.JSX.Element {
           plan={plan}
           results={state.results}
           totalSeconds={summarySeconds}
-          doneLabel="홈으로"
+          beforeIso={startedAt}
+          setSaveStatus={saveError}
           onDone={() => leaveSummary()}
+          onHistory={() => leaveSummary(undefined, 'History')}
         />
       );
     }
@@ -439,6 +447,8 @@ function Workout({prefs}: {prefs: WorkoutPrefs}): React.JSX.Element {
         targets={plan.sets}
         results={state.results}
         totalSeconds={summarySeconds}
+        beforeIso={startedAt}
+        setSaveStatus={saveError}
         passed={outcome.passed}
         streak={outcome.streak}
         nextLabel={outcome.nextLabel}
@@ -447,6 +457,7 @@ function Workout({prefs}: {prefs: WorkoutPrefs}): React.JSX.Element {
         move={{pending: moveMutation.isPending, error: moveMutation.isError}}
         onDone={() => leaveSummary()}
         onDowngrade={handleDowngrade}
+        onHistory={() => leaveSummary(undefined, 'History')}
       />
     );
   }

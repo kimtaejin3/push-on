@@ -1,88 +1,58 @@
 import React from 'react';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {ScrollView, StyleSheet, Text, View} from 'react-native';
-import CustomButton from '../../common/CustomButton';
-import {colors} from '../../../constants/colors';
 import {WorkoutPlan} from '../../../domain/workoutSession';
-import {formatTime} from '../../../utils/time';
+import {missedSets} from '../../../domain/hundredPushups';
+import {ResultLayout} from '../result/ResultLayout';
 
 interface WorkoutSummaryProps {
   plan: WorkoutPlan;
   results: number[];
   totalSeconds: number;
-  doneLabel: string;
+  /** 운동을 시작한 시각. 지난번·한 세트 최고는 이보다 앞선 기록과 비교한다 */
+  beforeIso: string;
+  /** 운동 중 세트 저장 상태 */
+  setSaveStatus?: 'queued' | 'failed' | null;
   onDone: () => void;
-  /** 목표 미달 등 완료 전 안내문 */
-  prompt?: string;
-  /** 안내문과 함께 보여줄 보조 선택지 (예: 이 날 다시 하기) */
-  secondaryAction?: {label: string; onPress: () => void};
+  onHistory: () => void;
 }
 
+/** 세트 모드(자유 세트) 운동 요약 */
 function WorkoutSummary({
   plan,
   results,
   totalSeconds,
-  doneLabel,
+  beforeIso,
+  setSaveStatus,
   onDone,
-  prompt,
-  secondaryAction,
+  onHistory,
 }: WorkoutSummaryProps) {
-  const total = results.reduce((a, b) => a + b, 0);
+  const setCount = plan.sets.length;
+  const reached = setCount - missedSets(plan.sets, results).length;
+  const sameTarget = plan.sets.every(reps => reps === plan.sets[0]);
+  // 목표가 모두 같으면 디자인 문구("목표 12개 × 5세트…"), 다르면 ResultLayout 의 총합 대비 문구
+  const headline = sameTarget
+    ? reached === setCount
+      ? `목표 ${plan.sets[0]}개 × ${setCount}세트를 모두 채웠어요`
+      : `목표 ${plan.sets[0]}개 × ${setCount}세트 중 ${reached}세트 채웠어요`
+    : undefined;
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>운동 완료</Text>
-        <View style={styles.totals}>
-          <View style={styles.totalItem}>
-            <Text style={styles.totalNumber}>{total}</Text>
-            <Text style={styles.totalLabel}>총 횟수</Text>
-          </View>
-          <View style={styles.totalItem}>
-            <Text style={styles.totalNumber}>{formatTime(totalSeconds)}</Text>
-            <Text style={styles.totalLabel}>총 시간</Text>
-          </View>
-        </View>
-        <View style={styles.table}>
-          {results.map((reps, i) => {
-            const isMax = plan.lastIsMax && i === plan.sets.length - 1;
-            return (
-              <View key={i} style={styles.row}>
-                <Text style={styles.rowLabel}>세트 {i + 1}</Text>
-                <Text style={styles.rowValue}>
-                  {reps} / {plan.sets[i]}
-                  {isMax ? '+' : ''}
-                </Text>
-              </View>
-            );
-          })}
-        </View>
-        {prompt ? <Text style={styles.prompt}>{prompt}</Text> : null}
-        <CustomButton title={doneLabel} variant="start" style={styles.button} onPress={onDone} />
-        {secondaryAction ? (
-          <Text style={styles.secondary} onPress={secondaryAction.onPress}>
-            {secondaryAction.label}
-          </Text>
-        ) : null}
-      </ScrollView>
-    </SafeAreaView>
+    <ResultLayout
+      mode="sets"
+      beforeIso={beforeIso}
+      completion={
+        reached === setCount
+          ? `자유 세트 · ${setCount}세트 모두 달성`
+          : `자유 세트 · ${reached}/${setCount}세트 달성`
+      }
+      results={results}
+      targets={plan.sets}
+      lastIsMax={plan.lastIsMax}
+      seconds={totalSeconds}
+      headline={headline}
+      setSaveStatus={setSaveStatus}
+      action={{title: '확인', onPress: onDone}}
+      onHistory={onHistory}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {flex: 1, backgroundColor: colors.backgroundDark},
-  content: {padding: 20, gap: 20},
-  title: {fontSize: 28, fontWeight: 'bold', color: colors.textLight, marginTop: 40, textAlign: 'center'},
-  totals: {flexDirection: 'row', gap: 12},
-  totalItem: {flex: 1, alignItems: 'center', backgroundColor: colors.overlayMedium, padding: 24, borderRadius: 16},
-  totalNumber: {fontSize: 28, fontWeight: 'bold', color: colors.textLight},
-  totalLabel: {fontSize: 13, color: colors.gray400, marginTop: 4},
-  table: {backgroundColor: colors.overlayLight, borderRadius: 16, paddingHorizontal: 20, paddingVertical: 8},
-  row: {flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12},
-  rowLabel: {fontSize: 16, color: colors.textSecondary},
-  rowValue: {fontSize: 16, fontWeight: '600', color: colors.textLight},
-  button: {marginTop: 12},
-  prompt: {fontSize: 14, lineHeight: 20, color: colors.textSecondary, textAlign: 'center', marginTop: 4},
-  secondary: {fontSize: 14, color: colors.primaryLight, textAlign: 'center', padding: 8},
-});
 
 export default WorkoutSummary;

@@ -51,6 +51,7 @@ function ChallengeScreen(): React.JSX.Element {
   const [countdown, setCountdown] = useState(0);
   const [starting, setStarting] = useState(false);
   const {milestone, showMilestone} = useWorkoutMilestone();
+  // 도전을 시작한 시각. 운동 중 최고 기록과 결과 화면의 지난번·최고 기록은 이보다 앞선 기록과 비교한다
   const startedAt = useRef(new Date().toISOString()).current;
   const lastCount = useRef(0);
   const mode = isProgramTest ? 'program_test' : 'challenge';
@@ -110,9 +111,17 @@ function ChallengeScreen(): React.JSX.Element {
 
   if (isFinished) {
     return isProgramTest ? (
-      <ProgramTestResult reps={pushUpCount} duration={elapsedTime} />
+      <ProgramTestResult
+        reps={pushUpCount}
+        duration={elapsedTime}
+        beforeIso={startedAt}
+      />
     ) : (
-      <ChallengeResult pushUpCount={pushUpCount} duration={elapsedTime} />
+      <ChallengeResult
+        pushUpCount={pushUpCount}
+        duration={elapsedTime}
+        beforeIso={startedAt}
+      />
     );
   }
 

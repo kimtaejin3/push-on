@@ -1,11 +1,7 @@
 import React from 'react';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {ScrollView, StyleSheet, Text, View} from 'react-native';
-import CustomButton from '../../common/CustomButton';
-import {colors} from '../../../constants/colors';
 import {describeSetsAt, DOWNGRADE_AFTER, missedSets, Position} from '../../../domain/hundredPushups';
 import {withJosa} from '../../../domain/programMessages';
-import {formatTime} from '../../../utils/time';
+import {NextWorkout, ResultLayout} from '../result/ResultLayout';
 
 interface ProgramDaySummaryProps {
   /** 이 운동을 한 위치 */
@@ -13,6 +9,10 @@ interface ProgramDaySummaryProps {
   targets: number[];
   results: number[];
   totalSeconds: number;
+  /** 운동을 시작한 시각. 지난번·한 세트 최고는 이보다 앞선 기록과 비교한다 */
+  beforeIso: string;
+  /** 운동 중 세트 저장 상태 */
+  setSaveStatus?: 'queued' | 'failed' | null;
   passed: boolean;
   /** 이번 시도를 포함한 연속 실패 횟수 */
   streak: number;
@@ -26,6 +26,7 @@ interface ProgramDaySummaryProps {
   move: {pending: boolean; error: boolean};
   onDone: () => void;
   onDowngrade: () => void;
+  onHistory: () => void;
 }
 
 /**
@@ -36,6 +37,8 @@ function ProgramDaySummary({
   targets,
   results,
   totalSeconds,
+  beforeIso,
+  setSaveStatus,
   passed,
   streak,
   nextLabel,
@@ -44,9 +47,9 @@ function ProgramDaySummary({
   move,
   onDone,
   onDowngrade,
+  onHistory,
 }: ProgramDaySummaryProps) {
   const {week, day, level} = position;
-  const total = results.reduce((a, b) => a + b, 0);
   const missed = missedSets(targets, results);
   const offerDowngrade = !passed && streak >= DOWNGRADE_AFTER && downgrade !== null;
   const busy = save.pending || move.pending;
@@ -61,12 +64,8 @@ function ProgramDaySummary({
     ? '모든 세트를 채웠어요'
     : `세트 ${missed.map(m => m.set).join('·')}에서 목표에 못 미쳤어요`;
 
+  // 못 채웠을 때: 왜 같은 Day 를 다시 하는지와 다음에 무엇을 권할지
   const guide = (): string => {
-    if (passed) {
-      return nextLabel.endsWith('테스트')
-        ? `다음은 ${nextLabel}예요. 충분히 쉰 날에 재는 걸 권해요.`
-        : `다음은 ${nextLabel} · 내일 이어서 해요.`;
-    }
     const rule = `모든 세트를 채워야 다음(${nextLabel})으로 넘어가요.`;
     if (offerDowngrade && downgrade) {
       return downgrade.week === week
@@ -80,110 +79,61 @@ function ProgramDaySummary({
     return `${rule} 다음 운동도 Day ${withJosa(day, '이에요')}.\n한 번 더 못 채우면 ${nextOffer} 권할게요.`;
   };
 
-  const renderActions = () => {
+  const nextCard = passed
+    ? nextLabel.endsWith('테스트')
+      ? {title: `다음 · ${nextLabel}`, detail: '충분히 쉰 날에 재는 걸 권해요.'}
+      : {title: `다음 운동 · 내일 ${nextLabel}`, detail: undefined}
+    : {title: `다음 운동도 ${week}주차 Day ${day}`, detail: guide()};
+
+  const actions = (): Pick<
+    React.ComponentProps<typeof ResultLayout>,
+    'action' | 'secondaryAction' | 'warning' | 'onHistory'
+  > => {
     if (save.error) {
-      return (
-        <>
-          <Text style={styles.warning}>운동 결과를 저장하지 못했어요. 네트워크를 확인해 주세요.</Text>
-          <CustomButton title="다시 시도" variant="start" style={styles.button} onPress={save.onRetry} />
-        </>
-      );
+      // 반영이 안 됐으면 떠나지 않고 다시 시도하게 한다
+      return {
+        warning: '운동 결과를 저장하지 못했어요. 네트워크를 확인해 주세요.',
+        action: {title: '다시 시도', onPress: save.onRetry},
+      };
     }
     if (offerDowngrade && downgrade) {
-      return (
-        <>
-          {move.error ? (
-            <Text style={styles.warning}>레벨을 바꾸지 못했어요. 네트워크를 확인해 주세요.</Text>
-          ) : null}
-          <CustomButton
-            title={
-              move.pending
-                ? '바꾸는 중…'
-                : downgrade.week === week
-                ? `레벨 ${withJosa(downgrade.level, '으로')} 낮추기`
-                : '이전 주차로 돌아가기'
-            }
-            variant="start"
-            disabled={busy}
-            style={[styles.button, busy && styles.disabled]}
-            onPress={onDowngrade}
-          />
-          <Text style={styles.secondary} onPress={busy ? undefined : onDone}>
-            이 레벨로 한 번 더
-          </Text>
-        </>
-      );
+      return {
+        warning: move.error ? '레벨을 바꾸지 못했어요. 네트워크를 확인해 주세요.' : undefined,
+        action: {
+          title:
+            downgrade.week === week
+              ? `레벨 ${withJosa(downgrade.level, '으로')} 낮추기`
+              : '이전 주차로 돌아가기',
+          onPress: onDowngrade,
+          loading: move.pending,
+          disabled: busy,
+        },
+        secondaryAction: {title: '이 레벨로 한 번 더', onPress: onDone, disabled: busy},
+        onHistory,
+      };
     }
-    return (
-      <CustomButton
-        title={save.pending ? '저장 중…' : '프로그램으로'}
-        variant="start"
-        disabled={busy}
-        style={[styles.button, busy && styles.disabled]}
-        onPress={onDone}
-      />
-    );
+    return {
+      action: {title: '확인', onPress: onDone, loading: save.pending, disabled: busy},
+      onHistory,
+    };
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.subtitle}>{subtitle}</Text>
-        </View>
-
-        <View style={styles.table}>
-          {targets.map((target, i) => {
-            const reps = results[i] ?? 0;
-            const short = target - reps;
-            const isMax = i === targets.length - 1;
-            return (
-              <View key={i} style={styles.row}>
-                <Text style={styles.rowLabel}>세트 {i + 1}</Text>
-                <View style={styles.rowRight}>
-                  {short > 0 ? <Text style={styles.rowShort}>−{short}</Text> : null}
-                  <Text style={[styles.rowValue, short > 0 && styles.rowValueMissed]}>
-                    {reps} / {target}
-                    {isMax ? '+' : ''}
-                  </Text>
-                </View>
-              </View>
-            );
-          })}
-          <View style={[styles.row, styles.totalRow]}>
-            <Text style={styles.rowLabel}>
-              총 {total}개 · {formatTime(totalSeconds)}
-            </Text>
-          </View>
-        </View>
-
-        <Text style={styles.guide}>{guide()}</Text>
-        {renderActions()}
-      </ScrollView>
-    </SafeAreaView>
+    <ResultLayout
+      mode="program"
+      beforeIso={beforeIso}
+      completion={title}
+      neutral={!passed}
+      results={results}
+      targets={targets}
+      lastIsMax
+      seconds={totalSeconds}
+      headline={passed ? undefined : subtitle}
+      setSaveStatus={setSaveStatus}
+      {...actions()}>
+      <NextWorkout title={nextCard.title} detail={nextCard.detail} />
+    </ResultLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {flex: 1, backgroundColor: colors.backgroundDark},
-  content: {padding: 20, gap: 20},
-  header: {alignItems: 'center', marginTop: 32, gap: 8},
-  title: {fontSize: 24, fontWeight: 'bold', color: colors.textLight, textAlign: 'center'},
-  subtitle: {fontSize: 15, color: colors.gray400, textAlign: 'center'},
-  table: {backgroundColor: colors.overlayLight, borderRadius: 16, paddingHorizontal: 20, paddingVertical: 8},
-  row: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12},
-  totalRow: {borderTopWidth: 1, borderTopColor: colors.overlayMedium},
-  rowLabel: {fontSize: 16, color: colors.gray400},
-  rowRight: {flexDirection: 'row', alignItems: 'center', gap: 10},
-  rowValue: {fontSize: 16, fontWeight: '600', color: colors.textLight},
-  rowValueMissed: {color: colors.warning},
-  rowShort: {fontSize: 14, fontWeight: '600', color: colors.warning},
-  guide: {fontSize: 15, lineHeight: 23, color: colors.textLight, textAlign: 'center'},
-  warning: {fontSize: 13, color: colors.error, textAlign: 'center'},
-  button: {marginTop: 4},
-  disabled: {opacity: 0.6},
-  secondary: {fontSize: 14, color: colors.primaryLight, textAlign: 'center', padding: 8},
-});
 
 export default ProgramDaySummary;

@@ -10,6 +10,8 @@ import {useReminderSync} from './src/hooks/useReminderSync';
 import {StreakCelebrationProvider} from './src/components/features/streak/StreakCelebrationProvider';
 import {useAds} from './src/hooks/useAds';
 import {useAdConfigRefresh} from './src/hooks/useAdConfigRefresh';
+import {OfflineBar} from './src/components/ui/feedback/OfflineBar';
+import {ToastProvider} from './src/components/ui/feedback/ToastProvider';
 
 export const queryClient = new QueryClient();
 
@@ -112,10 +114,15 @@ function App(): React.JSX.Element {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <AdsBootstrap />
-        {/* 축하 화면이 내비게이션 위에 뜨도록 감싼다 */}
-        <StreakCelebrationProvider>
-          <AppNavigation />
-        </StreakCelebrationProvider>
+        <ToastProvider>
+          <OfflineBar />
+          {/* 배너가 표시되면 내비게이션의 안전 영역을 새 위치에서 계산한다 */}
+          <SafeAreaProvider>
+            <StreakCelebrationProvider>
+              <AppNavigation />
+            </StreakCelebrationProvider>
+          </SafeAreaProvider>
+        </ToastProvider>
 
         {/* 업데이트 알림 모달 */}
         <UpdateModal

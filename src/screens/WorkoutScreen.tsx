@@ -64,7 +64,8 @@ function WorkoutScreen(): React.JSX.Element {
   const workoutId = useRef(generateUuid()).current;
   const totalSeconds = useRef(0);
   const savedCount = useRef(0);
-  const [saveError, setSaveError] = useState(false);
+  // queued: 폰에 보관했고 연결되면 다시 보낸다 / failed: 보관도 못 했다 (로그인 안 됨)
+  const [saveError, setSaveError] = useState<'queued' | 'failed' | null>(null);
 
   const programQuery = useQuery({
     ...currentProgramQueryOptions(user?.id ?? ''),
@@ -104,11 +105,11 @@ function WorkoutScreen(): React.JSX.Element {
       })
         .then(result => {
           if (result === 'queued') {
-            setSaveError(true);
+            setSaveError(prev => prev ?? 'queued');
           }
           queryClient.invalidateQueries({queryKey: queryKeys.pushup.all});
         })
-        .catch(() => setSaveError(true));
+        .catch(() => setSaveError('failed'));
     }
   }, [state.results, elapsed, handleStopTracking, plan.sets, isProgram, workoutId, queryClient]);
 
@@ -331,7 +332,11 @@ function WorkoutScreen(): React.JSX.Element {
         )}
 
         {saveError && (
-          <Text style={styles.warning}>저장이 지연되고 있어요. 연결되면 자동으로 다시 보내요</Text>
+          <Text style={styles.warning}>
+            {saveError === 'queued'
+              ? '저장이 지연되고 있어요. 연결되면 자동으로 다시 보내요'
+              : '세트를 저장하지 못했어요. 로그인 상태를 확인해 주세요'}
+          </Text>
         )}
 
         <View style={styles.footer}>

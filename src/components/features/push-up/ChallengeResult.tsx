@@ -33,7 +33,8 @@ function ChallengeResult({pushUpCount, duration}: ChallengeResultProps): React.J
   });
 
   const handleSaveAndGoHome = () => {
-    if (pushUpCount === 0) {
+    // 저장 중에 다시 누르면 새 시각으로 한 번 더 저장되어 중복 확인으로도 걸러지지 않는다
+    if (pushUpCount === 0 || savePushupMutation.isPending) {
       return;
     }
     savePushupMutation.mutate({
@@ -96,6 +97,7 @@ function ChallengeResult({pushUpCount, duration}: ChallengeResultProps): React.J
             title={pushUpCount > 0 ? '기록하고 홈으로 이동' : '홈으로 이동'}
             variant="start"
             onPress={pushUpCount > 0 ? handleSaveAndGoHome : goNext}
+            disabled={savePushupMutation.isPending}
           />
         </View>
       </View>

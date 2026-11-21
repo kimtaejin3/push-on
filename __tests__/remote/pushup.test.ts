@@ -1,4 +1,4 @@
-import {flushPendingSaves, savePushupSession, saveWorkout} from '../../src/remote/pushup';
+import {flushPendingSaves, onPendingFlushed, savePushupSession, saveWorkout} from '../../src/remote/pushup';
 import {supabase} from '../../src/lib/supabase';
 import {addPendingSave, loadPendingSaves, removePendingSave} from '../../src/utils/pendingSaves';
 
@@ -43,10 +43,18 @@ beforeEach(() => {
   mockAddPending.mockResolvedValue(undefined);
   mockRemovePending.mockResolvedValue(undefined);
   jest.spyOn(console, 'error').mockImplementation(() => {});
+  jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
 afterEach(() => {
-  (console.error as jest.Mock).mockRestore();
+  jest.restoreAllMocks();
+});
+
+const pending = (created_at: string, reps: number, userId = 'u1') => ({
+  userId,
+  workout_date: created_at.slice(0, 10),
+  created_at,
+  data: {reps, duration_seconds: 5},
 });
 
 describe('savePushupSession', () => {
@@ -126,6 +134,70 @@ describe('saveWorkout / flushPendingSaves', () => {
     ]);
     await expect(flushPendingSaves()).resolves.toBe(2);
     expect(insert.mock.calls.map(c => c[0].reps)).toEqual([1, 2]);
+  });
+  it('saveWorkout: 보관분 재전송을 기다리지 않고 바로 saved', async () => {
+    let release: (items: never[]) => void = () => {};
+    mockLoadPending.mockReturnValue(new Promise(resolve => (release = resolve))); // 재전송이 끝나지 않는다
+    await expect(saveWorkout({reps: 12, duration_seconds: 30})).resolves.toBe('saved');
+    release([]); // 다음 테스트를 위해 진행 중인 재전송을 끝낸다
+    await flushPendingSaves();
+  });
+  it('saveWorkout: 뒤에서 도는 재전송이 throw 해도 saved', async () => {
+    mockLoadPending.mockRejectedValue(new Error('storage'));
+    await expect(saveWorkout({reps: 12, duration_seconds: 30})).resolves.toBe('saved');
+    await new Promise(resolve => setImmediate(resolve)); // 처리되지 않은 거부가 없어야 한다
+  });
+  it('flushPendingSaves: 하나라도 보냈으면 등록된 리스너에 알린다', async () => {
+    const listener = jest.fn();
+    const off = onPendingFlushed(listener);
+    mockLoadPending.mockResolvedValue([pending('2026-11-20T10:00:00.000Z', 9)]);
+    await flushPendingSaves();
+    expect(listener).toHaveBeenCalledWith(1);
+    listener.mockClear();
+    mockLoadPending.mockResolvedValue([]);
+    await flushPendingSaves();
+    expect(listener).not.toHaveBeenCalled();
+    off();
+  });
+  it('flushPendingSaves: 존재 확인 조회가 실패하면 넣지도 지우지도 않는다', async () => {
+    mockLoadPending.mockResolvedValue([pending('2026-11-20T10:00:00.000Z', 9)]);
+    existing = {data: null, error: {message: 'network'}};
+    await expect(flushPendingSaves()).resolves.toBe(0);
+    expect(insert).not.toHaveBeenCalled();
+    expect(mockRemovePending).not.toHaveBeenCalled();
+  });
+  it('flushPendingSaves: 중간에 실패하면 멈추고 나머지는 남겨 둔다', async () => {
+    mockLoadPending.mockResolvedValue([
+      pending('2026-11-20T10:00:00.000Z', 1),
+      pending('2026-11-20T11:00:00.000Z', 2),
+      pending('2026-11-20T12:00:00.000Z', 3),
+    ]);
+    insert.mockResolvedValueOnce({error: null}).mockResolvedValueOnce({error: {message: 'network'}});
+    await expect(flushPendingSaves()).resolves.toBe(1);
+    expect(insert).toHaveBeenCalledTimes(2);
+    expect(mockRemovePending.mock.calls).toEqual([['2026-11-20T10:00:00.000Z']]);
+  });
+  it('flushPendingSaves: 도중에 계정이 바뀌면 멈추고 다른 계정으로 넣지 않는다', async () => {
+    mockLoadPending.mockResolvedValue([
+      pending('2026-11-20T10:00:00.000Z', 1),
+      pending('2026-11-20T11:00:00.000Z', 2),
+    ]);
+    // 첫 건을 보낸 뒤 로그아웃 → 다른 계정으로 로그인
+    mockRemovePending.mockImplementationOnce(async () => {
+      mockGetSession.mockResolvedValue({data: {session: {user: {id: 'u2'}}}});
+      mockGetUser.mockResolvedValue({data: {user: {id: 'u2'}}});
+    });
+    await expect(flushPendingSaves()).resolves.toBe(1);
+    expect(insert).toHaveBeenCalledTimes(1);
+    expect(insert.mock.calls[0][0]).toMatchObject({user_id: 'u1', reps: 1});
+    expect(mockRemovePending).toHaveBeenCalledTimes(1);
+  });
+  it('flushPendingSaves: 넣기 직전 서버가 다른 계정을 돌려주면 넣지 않고 남겨 둔다', async () => {
+    mockLoadPending.mockResolvedValue([pending('2026-11-20T10:00:00.000Z', 1)]);
+    mockGetUser.mockResolvedValue({data: {user: {id: 'u2'}}});
+    await expect(flushPendingSaves()).resolves.toBe(0);
+    expect(insert).not.toHaveBeenCalled();
+    expect(mockRemovePending).not.toHaveBeenCalled();
   });
   it('flushPendingSaves: 로그인 안 됐으면 아무것도 하지 않는다', async () => {
     mockGetSession.mockResolvedValue({data: {session: null}});

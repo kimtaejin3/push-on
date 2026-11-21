@@ -276,7 +276,12 @@ export const getMonthlyPushupStats = async (): Promise<MonthlyStatsData[]> => {
   }
 };
 
-export type WorkoutStamp = {workout_date: string; created_at: string};
+export type WorkoutStamp = {
+  workout_date: string;
+  created_at: string;
+  // 이 계정으로만 넣는다. 지금 로그인한 계정이 다르면 넣지 않고 throw (보관분을 남의 계정에 넣지 않도록)
+  userId?: string;
+};
 
 /** stamp 가 없으면 지금 날짜·시각으로 기록한다. 보관했다 다시 보낼 때는 원래 값을 넘긴다. */
 export const savePushupSession = async (
@@ -288,6 +293,9 @@ export const savePushupSession = async (
 
     if (!user.user) {
       throw new Error('사용자가 로그인되지 않았습니다.');
+    }
+    if (stamp?.userId && stamp.userId !== user.user.id) {
+      throw new Error('보관한 운동의 계정과 지금 로그인한 계정이 다릅니다.');
     }
 
     const {error} = await supabase.from('pushup_sets').insert({
@@ -354,13 +362,22 @@ export const saveWorkout = async (
     }
     return 'queued';
   }
-  // 저장이 됐다면 연결이 살아 있으니, 보관 중인 운동도 이참에 보낸다
-  try {
-    await flushPendingSaves();
-  } catch (error) {
-    console.warn('보관 중인 운동 재전송 실패:', error);
-  }
+  // 저장이 됐다면 연결이 살아 있으니, 보관 중인 운동도 이참에 보낸다.
+  // 기다리지 않는다 — 느린 재전송 때문에 결과 화면이 멈추면 사용자가 다시 눌러 같은 운동이 두 번 저장된다.
+  // 보낸 게 있으면 onPendingFlushed 리스너(StreakRuntime)가 캐시를 무효화한다.
+  flushPendingSaves().catch(error => console.warn('보관 중인 운동 재전송 실패:', error));
   return 'saved';
+};
+
+type FlushListener = (count: number) => void;
+const flushListeners = new Set<FlushListener>();
+
+/** 보관분을 하나라도 보냈을 때 알림을 받는다 (캐시 무효화용). 해제 함수를 돌려준다. */
+export const onPendingFlushed = (listener: FlushListener): (() => void) => {
+  flushListeners.add(listener);
+  return () => {
+    flushListeners.delete(listener);
+  };
 };
 
 // 앱 시작·포그라운드 복귀·저장 성공이 겹쳐 동시에 돌면 같은 운동을 두 번 넣을 수 있어 하나만 돌린다
@@ -372,9 +389,16 @@ let flushing: Promise<number> | null = null;
  */
 export const flushPendingSaves = (): Promise<number> => {
   if (!flushing) {
-    flushing = flushOnce().finally(() => {
-      flushing = null;
-    });
+    flushing = flushOnce()
+      .then(count => {
+        if (count > 0) {
+          flushListeners.forEach(listener => listener(count));
+        }
+        return count;
+      })
+      .finally(() => {
+        flushing = null;
+      });
   }
   return flushing;
 };
@@ -390,6 +414,10 @@ const flushOnce = async (): Promise<number> => {
 
   let done = 0;
   for (const item of mine) {
+    // 도중에 로그아웃·다른 계정 로그인이 일어나면 멈춘다 — 남은 것은 원래 계정으로 다시 로그인했을 때 보낸다
+    if ((await currentUserId()) !== userId) {
+      break;
+    }
     try {
       const {data: found, error} = await supabase
         .from('pushup_sets')
@@ -405,6 +433,7 @@ const flushOnce = async (): Promise<number> => {
         await savePushupSession(item.data, {
           workout_date: item.workout_date,
           created_at: item.created_at,
+          userId,
         });
       }
       await removePendingSave(item.created_at);

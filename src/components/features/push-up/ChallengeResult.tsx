@@ -4,7 +4,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import CustomButton from '../../common/CustomButton';
 import {colors} from '../../../constants/colors';
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
-import {useNavigation} from '@react-navigation/native';
+import {StackActions, useNavigation} from '@react-navigation/native';
 import {useSavePushupSessionMutation} from '../../../tanstack-query';
 import {
   useSequentialAnimation,
@@ -31,11 +31,12 @@ function ChallengeResult({
 
   const isProgramTest = purpose === 'program-test';
 
+  // navigate 는 기존 화면으로 돌아가지 않고 새로 쌓으므로(React Navigation 7) popTo 로 돌아간다
   const goNext = () => {
     if (isProgramTest) {
-      navigation.navigate('Program', {testReps: pushUpCount});
+      navigation.dispatch(StackActions.popTo('Program', {testReps: pushUpCount}));
     } else {
-      navigation.navigate('Tabs' as never);
+      navigation.dispatch(StackActions.popTo('Tabs'));
     }
   };
 
@@ -119,11 +120,9 @@ function ChallengeResult({
               if (pushUpCount > 0) {
                 handleSaveAndGoHome();
               } else if (isProgramTest) {
-                navigation.navigate('Program');
+                navigation.dispatch(StackActions.popTo('Program'));
               } else {
-                navigation.navigate('Tabs', {
-                  screen: 'Home',
-                });
+                navigation.dispatch(StackActions.popTo('Tabs'));
               }
             }}
           />

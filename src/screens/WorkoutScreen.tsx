@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Alert, StyleSheet, Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
+import {RouteProp, StackActions, useNavigation, usePreventRemove, useRoute} from '@react-navigation/native';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 import usePushUpManager from '../hooks/usePushUpManager';
 import {useWorkoutSession} from '../hooks/useWorkoutSession';
@@ -117,19 +117,29 @@ function WorkoutScreen(): React.JSX.Element {
     manager.handleStartTracking();
   };
 
-  const handleAbort = () => {
-    Alert.alert('운동 그만두기', '지금까지 끝낸 세트는 기록에 남아요.', [
+  // 운동 중(카운팅·휴식)에는 어떤 경로로 나가든 — 버튼, 안드로이드 뒤로가기, iOS 스와이프 —
+  // 확인을 거친다. 확인창은 여기 한 곳에서만 띄운다.
+  usePreventRemove(state.phase !== 'done', ({data}) => {
+    const message =
+      source.kind === 'program'
+        ? '지금까지 끝낸 세트는 기록에 남아요.\n오늘 운동은 처음부터 다시 해야 해요.'
+        : '지금까지 끝낸 세트는 기록에 남아요.';
+    Alert.alert('운동 그만두기', message, [
       {text: '취소', style: 'cancel'},
       {
         text: '그만두기',
         style: 'destructive',
         onPress: () => {
           manager.handleStopTracking();
-          navigation.navigate('Tabs' as never);
+          navigation.dispatch(data.action);
         },
       },
     ]);
-  };
+  });
+
+  const backTarget = source.kind === 'program' ? 'Program' : 'Tabs';
+  // navigate 는 기존 화면으로 돌아가지 않고 새로 쌓으므로(React Navigation 7) popTo 로 돌아간다
+  const goBackToStart = () => navigation.dispatch(StackActions.popTo(backTarget));
 
   if (state.phase === 'done') {
     // 목표 미달(80% 미만): 완료 처리 여부를 사용자가 고른다 (원본 프로그램의 '힘들면 반복' 권장)
@@ -143,11 +153,11 @@ function WorkoutScreen(): React.JSX.Element {
           doneLabel="완료하고 다음으로"
           onDone={() => {
             completeProgramDay();
-            navigation.navigate('Program');
+            goBackToStart();
           }}
           secondaryAction={{
             label: '이 날 다시 하기',
-            onPress: () => navigation.navigate('Program'),
+            onPress: goBackToStart,
           }}
         />
       );
@@ -158,11 +168,7 @@ function WorkoutScreen(): React.JSX.Element {
         results={state.results}
         totalSeconds={totalSeconds.current}
         doneLabel={source.kind === 'program' ? '프로그램으로' : '홈으로'}
-        onDone={() =>
-          source.kind === 'program'
-            ? navigation.navigate('Program')
-            : navigation.navigate('Tabs' as never)
-        }
+        onDone={goBackToStart}
       />
     );
   }
@@ -200,7 +206,7 @@ function WorkoutScreen(): React.JSX.Element {
               <CustomButton style={styles.button} title="세트 종료" variant="stop" onPress={finishSet} />
             )}
           </View>
-          <Text style={styles.abort} onPress={handleAbort}>
+          <Text style={styles.abort} onPress={goBackToStart}>
             운동 그만두기
           </Text>
         </View>

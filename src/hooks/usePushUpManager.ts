@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useRef} from 'react';
 import {
   NativeModules,
   NativeEventEmitter,
@@ -18,6 +18,18 @@ function usePushUpManager() {
   const [isTracking, setIsTracking] = useState(false);
   const [isGoingDown, setIsGoingDown] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  // 화면을 떠날 때(언마운트) 네이티브 세션이 켜진 채 남지 않도록 추적 여부를 따로 들고 있는다
+  const sessionActive = useRef(false);
+
+  useEffect(
+    () => () => {
+      if (sessionActive.current) {
+        sessionActive.current = false;
+        PushupManager?.stopPushupSession();
+      }
+    },
+    [],
+  );
 
   // 타이머
   const {
@@ -100,6 +112,7 @@ function usePushUpManager() {
       return;
     }
 
+    sessionActive.current = true;
     setIsTracking(true);
     setIsPaused(false);
     setPushUpCount(INITIAL_COUNT);
@@ -127,6 +140,7 @@ function usePushUpManager() {
   };
 
   const stopTracking = () => {
+    sessionActive.current = false;
     setIsTracking(false);
     setIsPaused(false);
     handleStopTimer();

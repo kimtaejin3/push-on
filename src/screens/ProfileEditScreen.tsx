@@ -1,295 +1,269 @@
-import React, {useState, useEffect} from 'react';
+import React, {useRef, useState} from 'react';
 import {
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
+  StyleSheet,
   TextInput,
-  TouchableOpacity,
-  Alert,
+  View,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {useQuery} from '@tanstack/react-query';
-import Fontawesome5 from '@react-native-vector-icons/fontawesome5';
-import {colors} from '../constants/colors';
+import {AccountAvatar} from '../components/features/account/AccountAvatar';
+import {Button} from '../components/ui/Button';
+import {Icon} from '../components/ui/Icon';
+import {ScreenHeader} from '../components/ui/ScreenHeader';
+import {Text} from '../components/ui/Text';
+import {ErrorState} from '../components/ui/feedback/ErrorState';
+import {Skeleton} from '../components/ui/feedback/Skeleton';
+import {useToast} from '../components/ui/feedback/ToastProvider';
 import {useSession} from '../hooks/useSession';
-import Header from '../components/common/Header';
-import {profileQueryOptions} from '../tanstack-query/queryOptions/profile';
-import {useUpdateProfileMutation} from '../tanstack-query/mutationHooks/profile';
 import {checkNicknameAvailability} from '../remote/profile';
-import {validateNickname, NICKNAME_MAX_LENGTH} from '../utils/nickname';
+import {useUpdateProfileMutation} from '../tanstack-query/mutationHooks/profile';
+import {profileQueryOptions} from '../tanstack-query/queryOptions/profile';
+import {color, fontFamilyFor, layout, radius, space} from '../theme';
+import {
+  NICKNAME_MAX_LENGTH,
+  NICKNAME_MIN_LENGTH,
+  validateNickname,
+} from '../utils/nickname';
+
+type SaveError = 'duplicate' | 'check' | 'update';
+
+const messages = {
+  duplicate: '이미 쓰는 닉네임이에요',
+  check: '확인하지 못했어요. 잠시 뒤 다시 시도해 주세요.',
+  update: '바꾸지 못했어요. 다시 시도해 주세요.',
+};
 
 function ProfileEditScreen() {
   const navigation = useNavigation();
-  const {user} = useSession();
-
-  const [nickname, setNickname] = useState('');
-  const [isCheckingNickname, setIsCheckingNickname] = useState(false);
-
-  const {
-    data: profileData,
-    isLoading,
-    error,
-  } = useQuery({
+  const {user, loading} = useSession();
+  const profileQuery = useQuery({
     ...profileQueryOptions(user?.id || ''),
     enabled: !!user?.id,
   });
 
-  const updateProfileMutation = useUpdateProfileMutation(
-    user?.id || '',
-    () => {
-      Alert.alert('성공', '닉네임이 변경되었어요');
-    },
-    () => {
-      Alert.alert('오류', '닉네임 변경에 실패했어요');
-    },
-  );
-
-  // 프로필 데이터가 로드되면 로컬 상태 업데이트
-  useEffect(() => {
-    if (profileData) {
-      setNickname(profileData.nickname || '');
-    }
-  }, [profileData]);
-
-  const handleSave = async () => {
-    const trimmed = nickname.trim();
-
-    const validationError = validateNickname(trimmed);
-    if (validationError) {
-      Alert.alert('오류', validationError);
-      return;
-    }
-
-    if (trimmed === profileData?.nickname) {
-      Alert.alert('알림', '변경된 내용이 없어요');
-      return;
-    }
-
-    setIsCheckingNickname(true);
-    try {
-      const isAvailable = await checkNicknameAvailability(trimmed);
-      if (!isAvailable) {
-        Alert.alert('오류', '이미 사용 중인 닉네임이에요');
-        return;
-      }
-    } catch (e) {
-      Alert.alert('오류', '닉네임 확인 중 오류가 발생했어요');
-      return;
-    } finally {
-      setIsCheckingNickname(false);
-    }
-
-    updateProfileMutation.mutate({nickname: trimmed});
-  };
-
-  const isSaving = isCheckingNickname || updateProfileMutation.isPending;
-
-  if (isLoading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Header title="프로필 수정" onBackPress={() => navigation.goBack()} />
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>프로필 정보를 불러오는 중...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (error) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Header title="프로필 수정" onBackPress={() => navigation.goBack()} />
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>
-            프로필 정보를 불러올 수 없습니다.
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   return (
-    <SafeAreaView style={styles.container}>
-      <Header title="프로필 수정" onBackPress={() => navigation.goBack()} />
-
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.content}>
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>닉네임 설정</Text>
-            <View style={styles.infoContainer}>
-              <Text style={styles.inputLabel}>닉네임</Text>
-              <TextInput
-                style={styles.textInput}
-                value={nickname}
-                onChangeText={setNickname}
-                placeholder="예: 푸쉬업 사랑"
-                placeholderTextColor={colors.textSecondary}
-                maxLength={NICKNAME_MAX_LENGTH}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              <Text style={styles.inputDescription}>
-                2~{NICKNAME_MAX_LENGTH}글자. 리더보드에 표시되는 이름이에요.
-              </Text>
+    <SafeAreaView style={styles.screen}>
+      <ScreenHeader title="프로필 수정" onBack={() => navigation.goBack()} />
+      <KeyboardAvoidingView
+        style={styles.screen}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.content}>
+          {!profileQuery.data && (loading || profileQuery.isFetching) ? (
+            <View style={styles.loading}>
+              <Skeleton width={72} height={72} radius={radius.pill} />
+              <Skeleton width={60} height={12} />
+              <Skeleton width="fill" height={52} radius={radius.m} />
             </View>
-          </View>
-
-          <TouchableOpacity
-            style={[styles.saveButton, isSaving && styles.disabledButton]}
-            onPress={handleSave}
-            disabled={isSaving}>
-            <Fontawesome5
-              name="save"
-              size={16}
-              iconStyle="solid"
-              color={colors.textLight}
+          ) : user && profileQuery.data ? (
+            <ProfileForm
+              key={user.id}
+              userId={user.id}
+              savedNickname={profileQuery.data.nickname || ''}
+              onSaved={() => {
+                if (navigation.isFocused()) {
+                  navigation.goBack();
+                }
+              }}
             />
-            <Text style={styles.saveButtonText}>
-              {isSaving ? '저장 중...' : '저장하기'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+          ) : (
+            <ErrorState
+              title="프로필을 불러오지 못했어요"
+              message="잠시 뒤 다시 시도해 주세요."
+              actionLabel={user ? '다시 시도' : undefined}
+              onAction={profileQuery.refetch}
+            />
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
+function ProfileForm({
+  userId,
+  savedNickname,
+  onSaved,
+}: {
+  userId: string;
+  savedNickname: string;
+  onSaved: () => void;
+}) {
+  const toast = useToast();
+  const [draft, setDraft] = useState<string>();
+  const [focused, setFocused] = useState(false);
+  const [showValidation, setShowValidation] = useState(false);
+  const [saveError, setSaveError] = useState<SaveError>();
+  const [isSaving, setIsSaving] = useState(false);
+  const inFlight = useRef(false);
+  const updateProfile = useUpdateProfileMutation(userId);
+
+  const nickname = draft ?? savedNickname;
+  const trimmed = nickname.trim();
+  const validationError = showValidation ? validateNickname(nickname) : null;
+  const message = validationError || (saveError && messages[saveError]);
+  const hasInputError = !!validationError || saveError === 'duplicate';
+
+  const handleSave = async () => {
+    if (inFlight.current || trimmed === savedNickname) {
+      return;
+    }
+    setShowValidation(true);
+    if (validateNickname(nickname)) {
+      return;
+    }
+
+    inFlight.current = true;
+    setIsSaving(true);
+    setSaveError(undefined);
+    try {
+      try {
+        if (!(await checkNicknameAvailability(trimmed))) {
+          setSaveError('duplicate');
+          return;
+        }
+      } catch {
+        setSaveError('check');
+        return;
+      }
+
+      try {
+        await updateProfile.mutateAsync({nickname: trimmed});
+        toast.show('닉네임을 바꿨어요');
+        onSaved();
+      } catch {
+        setSaveError('update');
+      }
+    } finally {
+      inFlight.current = false;
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <>
+      <View style={styles.avatar}>
+        <AccountAvatar name={trimmed || savedNickname} size={88} />
+      </View>
+      <View style={styles.field}>
+        <Text variant="label" color="textMuted">
+          닉네임
+        </Text>
+        <View
+          style={[
+            styles.inputBox,
+            focused && styles.focused,
+            hasInputError && styles.invalid,
+            isSaving && styles.saving,
+          ]}>
+          <TextInput
+            accessibilityLabel="닉네임"
+            style={styles.input}
+            value={nickname}
+            onChangeText={value => {
+              setDraft(value);
+              setSaveError(undefined);
+            }}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            editable={!isSaving}
+            placeholder="닉네임을 입력해 주세요"
+            placeholderTextColor={color.textMuted}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          <Text
+            variant="caption"
+            color={
+              trimmed.length > NICKNAME_MAX_LENGTH ? 'alert' : 'textMuted'
+            }>
+            {trimmed.length}/{NICKNAME_MAX_LENGTH}
+          </Text>
+        </View>
+        {message ? (
+          <View accessibilityLiveRegion="polite" style={styles.message}>
+            <Icon
+              name={saveError === 'check' ? 'wifi-off' : 'info'}
+              size={14}
+              color={saveError === 'check' ? 'record' : 'alert'}
+            />
+            <Text
+              variant="caption"
+              style={styles.messageCopy}
+              color={saveError === 'check' ? 'record' : 'alert'}>
+              {message}
+            </Text>
+          </View>
+        ) : (
+          <Text variant="caption" color="textMuted">
+            {NICKNAME_MIN_LENGTH}~{NICKNAME_MAX_LENGTH}글자. 리더보드에 이
+            이름이 보여요.
+          </Text>
+        )}
+      </View>
+      <View style={styles.footer}>
+        <Button
+          variant="primary"
+          title={
+            isSaving
+              ? '저장 중…'
+              : saveError === 'update'
+              ? '다시 저장'
+              : '저장'
+          }
+          loading={isSaving}
+          disabled={trimmed === savedNickname}
+          onPress={handleSave}
+        />
+      </View>
+    </>
+  );
+}
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.backgroundDark,
-  },
-  scrollView: {
-    flex: 1,
-  },
+  screen: {flex: 1, backgroundColor: color.bg},
   content: {
-    padding: 20,
+    flexGrow: 1,
+    paddingHorizontal: layout.screenPadding,
+    paddingTop: space[24],
+    paddingBottom: space[24],
   },
-  loadingContainer: {
+  loading: {alignItems: 'center', gap: space[12]},
+  avatar: {alignItems: 'center', marginBottom: space[32]},
+  field: {gap: space[8]},
+  inputBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[8],
+    paddingHorizontal: space[16],
+    borderRadius: radius.m,
+    backgroundColor: color.surface,
+    borderWidth: 1,
+    borderColor: color.border,
+  },
+  focused: {borderColor: color.active},
+  invalid: {borderColor: color.alert},
+  saving: {opacity: 0.5},
+  input: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
+    minHeight: 52,
+    color: color.text,
     fontSize: 16,
-    color: colors.textSecondary,
+    fontFamily: fontFamilyFor(
+      'ko',
+      700,
+      Platform.OS === 'ios' ? 'ios' : 'android',
+    ),
+    paddingVertical: space[12],
   },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorText: {
-    fontSize: 16,
-    color: colors.error,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.textLight,
-    marginBottom: 12,
-  },
-  infoContainer: {
-    backgroundColor: colors.overlayLight,
-    borderRadius: 12,
-    padding: 16,
-  },
-  infoItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.overlayMedium,
-  },
-  infoLabel: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  infoValue: {
-    fontSize: 14,
-    color: colors.textLight,
-    fontWeight: '500',
-  },
-  settingsContainer: {
-    backgroundColor: colors.overlayLight,
-    borderRadius: 12,
-    padding: 16,
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.textLight,
-    marginBottom: 8,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  textInput: {
-    flex: 1,
-    fontSize: 16,
-    color: colors.textLight,
-    padding: 0,
-    marginTop: 5,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.overlayMedium,
-    paddingBottom: 10,
-  },
-  inputSuffix: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    marginLeft: 8,
-  },
-  inputDescription: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 4,
-  },
-  summaryContainer: {
-    backgroundColor: colors.overlayLight,
-    borderRadius: 12,
-    padding: 16,
-  },
-  summaryItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  summaryText: {
-    fontSize: 16,
-    color: colors.textLight,
-    marginLeft: 12,
-    fontWeight: '500',
-  },
-  saveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.primary,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    marginTop: 20,
-  },
-  disabledButton: {
-    opacity: 0.6,
-  },
-  saveButtonText: {
-    fontSize: 16,
-    color: colors.textLight,
-    marginLeft: 8,
-    fontWeight: '600',
-  },
+  message: {flexDirection: 'row', alignItems: 'center', gap: space[8]},
+  messageCopy: {flexShrink: 1},
+  footer: {marginTop: 'auto', paddingTop: space[24]},
 });
 
 export default ProfileEditScreen;

@@ -4,109 +4,104 @@ import {
   statusCodes,
 } from '@react-native-google-signin/google-signin';
 import {supabase} from '../lib/supabase';
-import {Alert} from 'react-native';
 import {login, logout} from '@react-native-seoul/kakao-login';
 import {appleAuth} from '@invertase/react-native-apple-authentication';
 import {Provider} from '../types/auth';
 import {linkAppleToken} from '../remote/apple';
 
+type SignInFailure = {
+  status: 'failed';
+  reason: 'play-services-unavailable' | 'sign-in';
+  error?: unknown;
+};
+
+type SignInResult = {status: 'success'} | {status: 'cancelled'} | SignInFailure;
+
+const getErrorCode = (error: unknown) =>
+  typeof error === 'object' && error !== null && 'code' in error
+    ? error.code
+    : undefined;
+
 export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (): Promise<SignInResult> => {
     try {
       setIsLoading(true);
 
-      // Google Play Services 확인
-      await GoogleSignin.hasPlayServices();
-
-      // Google 로그인 실행
-      const {data: userInfo} = await GoogleSignin.signIn();
-
-      if (userInfo === null) {
-        throw new Error('사용자 정보를 받지 못했습니다.');
+      if (!(await GoogleSignin.hasPlayServices())) {
+        return {status: 'failed', reason: 'play-services-unavailable'};
       }
-      if (userInfo.idToken === null) {
+
+      const {type, data: userInfo} = await GoogleSignin.signIn();
+      if (type === 'cancelled') {
+        return {status: 'cancelled'};
+      }
+      if (!userInfo?.idToken) {
         throw new Error('Google ID 토큰을 받지 못했습니다.');
       }
 
-    const {data, error} = await supabase.auth.signInWithIdToken({
+      const {error} = await supabase.auth.signInWithIdToken({
         provider: 'google',
         token: userInfo.idToken,
-    });
+      });
 
-    if (error) {
-        console.error('Google 로그인 에러:', error);
-        console.error(error.message);
-        Alert.alert('로그인 실패', error.message);
-    } else {
-        Alert.alert('로그인 성공', 'Google 계정으로 로그인되었습니다.');
-    }
-
-    return {data, error};
-} catch (error: any) {
-      console.error('Google 로그인 에러:', error);
-
-      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        // 사용자가 로그인을 취소함
-      } else if (error.code === statusCodes.IN_PROGRESS) {
-        // 이미 로그인 진행 중
-      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        // Google Play Services가 사용 불가능
-        Alert.alert('오류', 'Google Play Services를 사용할 수 없습니다.');
-      } else {
-        // 기타 오류
-        Alert.alert('로그인 실패', 'Google 로그인 중 오류가 발생했습니다.');
+      if (error) {
+        throw error;
       }
+      return {status: 'success'};
+    } catch (error) {
+      const code = getErrorCode(error);
+      if (
+        code !== undefined &&
+        (code === statusCodes.SIGN_IN_CANCELLED ||
+          code === statusCodes.IN_PROGRESS)
+      ) {
+        return {status: 'cancelled'};
+      }
+      if (
+        code !== undefined &&
+        code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE
+      ) {
+        return {status: 'failed', reason: 'play-services-unavailable', error};
+      }
+      console.error('Google 로그인 에러:', error);
+      return {status: 'failed', reason: 'sign-in', error};
     } finally {
       setIsLoading(false);
     }
   };
 
-  const signInWithKakao = async () => {
+  const signInWithKakao = async (): Promise<SignInResult> => {
     try {
       setIsLoading(true);
 
       const token = await login();
-
-      if (token.idToken) {
-        // Supabase에 카카오 ID 토큰으로 로그인
-        const {data, error} = await supabase.auth.signInWithIdToken({
-          provider: 'kakao',
-          token: token.idToken,
-        });
-
-        if (error) {
-          console.error('Supabase 로그인 에러:', error);
-          Alert.alert('로그인 실패', error.message);
-        } else {
-          Alert.alert('로그인 성공', '카카오 계정으로 로그인되었습니다.');
-        }
-
-        return {data, error};
-      } else {
+      if (!token.idToken) {
         throw new Error('카카오 ID 토큰을 받지 못했습니다.');
       }
-    } catch (error: any) {
-      console.error('카카오 로그인 에러:', error);
-      console.error('에러 상세:', JSON.stringify(error, null, 2));
 
-      if (error.code === 'CANCELLED') {
-        // 사용자가 카카오 로그인을 취소했습니다.
-      } else if (error.message) {
-        console.error('에러 메시지:', error.message);
-        Alert.alert('로그인 실패', `카카오 로그인 오류: ${error.message}`);
-      } else {
-        Alert.alert('로그인 실패', '카카오 로그인 중 오류가 발생했습니다.');
+      const {error} = await supabase.auth.signInWithIdToken({
+        provider: 'kakao',
+        token: token.idToken,
+      });
+
+      if (error) {
+        throw error;
       }
-
-      throw error;
+      return {status: 'success'};
+    } catch (error) {
+      if (getErrorCode(error) === 'CANCELLED') {
+        return {status: 'cancelled'};
+      }
+      console.error('카카오 로그인 에러:', error);
+      return {status: 'failed', reason: 'sign-in', error};
     } finally {
       setIsLoading(false);
     }
   };
 
-  const signInWithApple = async () => {
+  const signInWithApple = async (): Promise<SignInResult> => {
     try {
       setIsLoading(true);
 
@@ -122,33 +117,29 @@ export const useAuth = () => {
       }
 
       // identityToken 에 nonce 클레임이 들어 있으므로 원본 nonce 를 같이 넘겨야 한다.
-      // 빠뜨리면 Supabase 가 "Passed nonce and nonce in id_token should either both exist or not" 로 거절한다.
-      const {data, error} = await supabase.auth.signInWithIdToken({
+      const {error} = await supabase.auth.signInWithIdToken({
         provider: 'apple',
         token: credential.identityToken,
         nonce: credential.nonce,
       });
 
       if (error) {
-        console.error('Supabase 애플 로그인 에러:', error);
-        Alert.alert('로그인 실패', error.message);
-        return {data, error};
+        throw error;
       }
 
       // 회원 탈퇴 시 애플 토큰을 revoke 하려면 authorizationCode 가 필요하다.
-      // 실패해도 로그인 자체는 성공으로 둔다 (다음 로그인 때 다시 시도된다).
       if (credential.authorizationCode) {
         await linkAppleToken(credential.authorizationCode);
       }
 
-      return {data, error};
-    } catch (error: any) {
-      // 사용자가 취소한 경우는 조용히 넘어간다
-      if (error?.code === appleAuth.Error?.CANCELED) {
-        return;
+      return {status: 'success'};
+    } catch (error) {
+      const code = getErrorCode(error);
+      if (code !== undefined && code === appleAuth.Error?.CANCELED) {
+        return {status: 'cancelled'};
       }
       console.error('애플 로그인 에러:', error);
-      Alert.alert('로그인 실패', 'Apple 로그인 중 오류가 발생했습니다.');
+      return {status: 'failed', reason: 'sign-in', error};
     } finally {
       setIsLoading(false);
     }

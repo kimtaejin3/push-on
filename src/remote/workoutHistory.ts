@@ -50,12 +50,18 @@ export const getPreviousWorkoutTotal = async (
 
 export const getBestSetBefore = async (
   beforeIso: string,
+  mode?: WorkoutMode,
 ): Promise<number | null> => {
   const userId = await getUserId();
-  const {data, error} = await supabase
+  const query = supabase
     .from('pushup_sets')
     .select('reps')
-    .eq('user_id', userId)
+    .eq('user_id', userId);
+  if (mode) {
+    query.eq('mode', mode);
+  }
+
+  const {data, error} = await query
     .lt('created_at', beforeIso)
     .order('reps', {ascending: false})
     .limit(1)

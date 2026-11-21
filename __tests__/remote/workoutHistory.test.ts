@@ -99,6 +99,15 @@ describe('getBestSetBefore', () => {
     expect(lookup.order).toHaveBeenCalledWith('reps', {ascending: false});
     expect(lookup.limit).toHaveBeenCalledWith(1);
   });
+  it('모드를 지정하면 해당 모드에서만 최고 횟수를 조회한다', async () => {
+    lookup.maybeSingle.mockResolvedValue({data: {reps: 41}, error: null});
+
+    await expect(getBestSetBefore(beforeIso, 'challenge')).resolves.toBe(41);
+    expect(lookup.eq.mock.calls).toEqual([
+      ['user_id', 'u1'],
+      ['mode', 'challenge'],
+    ]);
+  });
 });
 
 describe.each([

@@ -1,425 +1,292 @@
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {
   FlatList,
-  StyleSheet,
-  Text,
-  View,
+  Pressable,
   RefreshControl,
-  TouchableOpacity,
-  ActivityIndicator,
+  StyleSheet,
+  View,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {useQuery} from '@tanstack/react-query';
-import {colors} from '../constants/colors';
-import Header from '../components/common/Header';
 import {useNavigation} from '@react-navigation/native';
-import FontAwesome5 from '@react-native-vector-icons/fontawesome5';
+import {useQuery} from '@tanstack/react-query';
+import {Crown} from 'lucide-react-native';
+import {Button} from '../components/ui/Button';
+import {Icon} from '../components/ui/Icon';
+import {ScreenHeader} from '../components/ui/ScreenHeader';
+import {SegmentedControl} from '../components/ui/SegmentedControl';
+import {Text} from '../components/ui/Text';
+import {BottomSheet} from '../components/ui/feedback/BottomSheet';
+import {EmptyState} from '../components/ui/feedback/EmptyState';
+import {ErrorState} from '../components/ui/feedback/ErrorState';
+import {Skeleton} from '../components/ui/feedback/Skeleton';
+import {colors} from '../constants/colors';
+import {useNow} from '../hooks/useNow';
+import {useSession} from '../hooks/useSession';
+import type {LeaderboardItem} from '../remote/pushup';
 import {
   dailyLeaderboardQueryOptions,
   monthlyLeaderboardQueryOptions,
   yearlyLeaderboardQueryOptions,
 } from '../tanstack-query';
-import {useSession} from '../hooks/useSession';
+import {color, layout, radius, space} from '../theme';
 
-type LeaderItem = {
-  rank: number;
-  username: string;
-  reps: number;
-  isMe: boolean; // 내 순위 행 강조용
-};
-
-type LeaderBoardType = 'daily' | 'monthly' | 'yearly';
-
-// 1~3등 아바타 테두리 색. 1등은 여기에 왕관 뱃지까지 붙는다.
-function medalColor(rank: number): string | null {
-  switch (rank) {
-    case 1:
-      return colors.gold;
-    case 2:
-      return colors.silver;
-    case 3:
-      return colors.bronze;
-    default:
-      return null;
-  }
-}
-
-const LEADERBOARD_MODES: {key: LeaderBoardType; label: string}[] = [
+const modes = [
   {key: 'daily', label: '오늘'},
   {key: 'monthly', label: '이번 달'},
   {key: 'yearly', label: '올해'},
 ];
+const medals = [colors.gold, colors.silver, colors.bronze];
+const kstDate = new Intl.DateTimeFormat('ko-KR', {
+  timeZone: 'Asia/Seoul',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+function LeaderboardSkeleton() {
+  return (
+    <View
+      accessibilityLabel="순위를 불러오는 중"
+      accessibilityState={{busy: true}}>
+      {Array.from({length: 6}, (_, index) => (
+        <View style={styles.row} key={index}>
+          <Skeleton width={28} height={22} />
+          <Skeleton width={36} height={36} radius={radius.pill} />
+          <View style={styles.name}>
+            <Skeleton width={108} height={14} />
+          </View>
+          <Skeleton width={42} height={24} />
+        </View>
+      ))}
+    </View>
+  );
+}
 
 export default function LeaderboardScreen() {
-  const [leaderBoardMode, setLeaderBoardMode] = useState<LeaderBoardType>('daily');
-  const {user} = useSession();
-
-  // 현재 날짜 정보 (KST 기준)
-  const {todayKst, currentYear, currentMonth} = useMemo(() => {
-    const now = new Date();
-
-    // KST 날짜 문자열 (YYYY-MM-DD)
-    const todayKstStr = now.toLocaleDateString('en-CA', {
-      timeZone: 'Asia/Seoul',
-    });
-
-    // KST 기준으로 연도와 월 추출
-    const kstFormatter = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'Asia/Seoul',
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric',
-    });
-
-    const parts = kstFormatter.formatToParts(now);
-    const year = parseInt(parts.find(p => p.type === 'year')?.value || '0', 10);
-    const month = parseInt(parts.find(p => p.type === 'month')?.value || '0', 10);
-
-    return {
-      todayKst: todayKstStr,
-      currentYear: year,
-      currentMonth: month,
-    };
-  }, []);
-
-  // 일일 리더보드 조회
-  const {
-    data: dailyData,
-    isLoading: isLoadingDaily,
-    refetch: refetchDaily,
-    isRefetching: isRefetchingDaily,
-  } = useQuery({
-    ...dailyLeaderboardQueryOptions(todayKst),
-    enabled: leaderBoardMode === 'daily',
-  });
-
-  // 월간 리더보드 조회
-  const {
-    data: monthlyData,
-    isLoading: isLoadingMonthly,
-    refetch: refetchMonthly,
-    isRefetching: isRefetchingMonthly,
-  } = useQuery({
-    ...monthlyLeaderboardQueryOptions(currentYear, currentMonth),
-    enabled: leaderBoardMode === 'monthly',
-  });
-
-  // 연간 리더보드 조회
-  const {
-    data: yearlyData,
-    isLoading: isLoadingYearly,
-    refetch: refetchYearly,
-    isRefetching: isRefetchingYearly,
-  } = useQuery({
-    ...yearlyLeaderboardQueryOptions(currentYear),
-    enabled: leaderBoardMode === 'yearly',
-  });
-
-  // 현재 모드에 따른 로딩/리프레시 상태
-  const isLoading = useMemo(() => {
-    switch (leaderBoardMode) {
-      case 'daily':
-        return isLoadingDaily;
-      case 'monthly':
-        return isLoadingMonthly;
-      case 'yearly':
-        return isLoadingYearly;
-      default:
-        return false;
-    }
-  }, [leaderBoardMode, isLoadingDaily, isLoadingMonthly, isLoadingYearly]);
-
-  const isRefetching = useMemo(() => {
-    switch (leaderBoardMode) {
-      case 'daily':
-        return isRefetchingDaily;
-      case 'monthly':
-        return isRefetchingMonthly;
-      case 'yearly':
-        return isRefetchingYearly;
-      default:
-        return false;
-    }
-  }, [
-    leaderBoardMode,
-    isRefetchingDaily,
-    isRefetchingMonthly,
-    isRefetchingYearly,
-  ]);
-
-  // 리더보드 데이터를 LeaderItem 형식으로 변환
-  const items: LeaderItem[] = useMemo(() => {
-    let data;
-    switch (leaderBoardMode) {
-      case 'daily':
-        data = dailyData;
-        break;
-      case 'monthly':
-        data = monthlyData;
-        break;
-      case 'yearly':
-        data = yearlyData;
-        break;
-      default:
-        data = null;
-    }
-
-    if (!data) {
-      return [];
-    }
-
-    return data.map((row, idx) => ({
-      rank: idx + 1,
-      username: row.nickname || '익명',
-      reps: row.total_reps,
-      isMe: row.user_id === user?.id,
-    }));
-  }, [leaderBoardMode, dailyData, monthlyData, yearlyData, user?.id]);
-
-  const onRefresh = () => {
-    switch (leaderBoardMode) {
-      case 'daily':
-        refetchDaily();
-        break;
-      case 'monthly':
-        refetchMonthly();
-        break;
-      case 'yearly':
-        refetchYearly();
-        break;
-    }
-  };
   const navigation = useNavigation();
-  const getHeaderTitle = () => {
-    switch (leaderBoardMode) {
-      case 'daily':
-        return '오늘의 순위';
-      case 'monthly':
-        return '이번 달 순위';
-      case 'yearly':
-        return '올해 순위';
-      default:
-        return '순위';
-    }
+  const {user} = useSession();
+  const {now} = useNow();
+  const [period, setPeriod] = useState('daily');
+  const [showRules, setShowRules] = useState(false);
+
+  const parts = kstDate.formatToParts(now);
+  const year = parts.find(part => part.type === 'year')!.value;
+  const month = parts.find(part => part.type === 'month')!.value;
+  const day = parts.find(part => part.type === 'day')!.value;
+  const periods = {
+    daily: {
+      options: dailyLeaderboardQueryOptions(`${year}-${month}-${day}`),
+      label: `${Number(month)}월 ${Number(day)}일 · 하루 총 개수`,
+    },
+    monthly: {
+      options: monthlyLeaderboardQueryOptions(Number(year), Number(month)),
+      label: `${year}년 ${Number(month)}월 · 이번 달 총 개수`,
+    },
+    yearly: {
+      options: yearlyLeaderboardQueryOptions(Number(year)),
+      label: `${year}년 · 올해 총 개수`,
+    },
   };
+  const {options, label} = periods[period as keyof typeof periods];
+  const query = useQuery<LeaderboardItem[]>(options);
+  const items = query.data ?? [];
+  const refresh = () => {
+    query.refetch();
+  };
+  const closeRules = () => setShowRules(false);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <Header title={getHeaderTitle()} onBackPress={() => navigation.goBack()} />
-
+    <SafeAreaView style={styles.screen}>
+      <ScreenHeader
+        title="리더보드"
+        onBack={() => navigation.goBack()}
+        right={
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="순위 기준"
+            onPress={() => setShowRules(true)}
+            style={({pressed}) => [styles.info, pressed && styles.pressed]}>
+            <Icon name="info" size={22} />
+          </Pressable>
+        }
+      />
       <View style={styles.segments}>
-        {LEADERBOARD_MODES.map(mode => {
-          const active = leaderBoardMode === mode.key;
+        <SegmentedControl options={modes} value={period} onChange={setPeriod} />
+      </View>
+
+      <FlatList
+        key={period}
+        data={items}
+        keyExtractor={item => item.user_id}
+        contentContainerStyle={styles.list}
+        refreshControl={
+          <RefreshControl
+            refreshing={query.isRefetching}
+            onRefresh={refresh}
+            tintColor={color.active}
+            colors={[color.active]}
+          />
+        }
+        ListHeaderComponent={
+          query.isPending ? (
+            <Skeleton width={150} height={14} />
+          ) : query.data ? (
+            <Text variant="label" color="textMuted" weight={700}>
+              {label}
+            </Text>
+          ) : null
+        }
+        ListEmptyComponent={
+          <View style={[styles.empty, !query.isPending && styles.centered]}>
+            {query.isPending ? (
+              <LeaderboardSkeleton />
+            ) : query.isError ? (
+              <ErrorState
+                title="순위를 불러오지 못했어요"
+                message="연결을 확인하고 다시 시도해 주세요."
+                actionLabel="다시 시도"
+                onAction={refresh}
+              />
+            ) : period === 'daily' ? (
+              <>
+                <EmptyState
+                  title="오늘 첫 기록의 주인공이 되어 보세요"
+                  message={
+                    '0시에 새로 시작했어요.\n아직 아무도 기록하지 않았어요.'
+                  }
+                  actionLabel="오늘 운동 시작"
+                  onAction={() => navigation.navigate('Challenge')}
+                />
+                <Button
+                  variant="text"
+                  title="이번 달 순위 보기"
+                  icon="chevron-right"
+                  onPress={() => setPeriod('monthly')}
+                />
+              </>
+            ) : (
+              <EmptyState
+                title="아직 기록이 없어요"
+                message="이 기간에는 아무도 기록하지 않았어요."
+              />
+            )}
+          </View>
+        }
+        renderItem={({item, index}) => {
+          const rank = index + 1;
+          const name = item.nickname?.trim() || '익명';
+          const initial = Array.from(name)[0].toUpperCase();
+          const isMe = item.user_id === user?.id;
+          const medal = medals[index];
           return (
-            <TouchableOpacity
-              key={mode.key}
-              style={[styles.segment, active && styles.segmentActive]}
-              onPress={() => setLeaderBoardMode(mode.key)}>
-              <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
-                {mode.label}
+            <View style={[styles.row, isMe && styles.ownRow]}>
+              <Text
+                numeric
+                weight={800}
+                color={medal ? 'record' : isMe ? 'active' : 'textMuted'}
+                style={styles.rank}>
+                {rank}
               </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      <View style={styles.tableHeader}>
-        <Text style={[styles.th, styles.thRank]}>순위</Text>
-        <Text style={[styles.th, styles.thUser]}>닉네임</Text>
-        <Text style={[styles.th, styles.thReps]}>푸쉬업 횟수</Text>
-      </View>
-
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>데이터를 불러오는 중...</Text>
-        </View>
-      ) : items.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>리더보드 데이터가 없습니다</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={items}
-          keyExtractor={item => String(item.rank)}
-          contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={onRefresh}
-              tintColor={colors.primary}
-              colors={[colors.primary]}
-            />
-          }
-          renderItem={({item}) => {
-            const medal = medalColor(item.rank);
-            return (
-              <View style={[styles.row, item.isMe && styles.rowMe]}>
-                <Text
-                  style={[styles.cell, styles.cellRank, item.isMe && styles.cellMe]}>
-                  {item.rank}
+              <View
+                style={[
+                  styles.avatar,
+                  isMe && styles.ownAvatar,
+                  medal && styles.medal,
+                  medal && {borderColor: medal},
+                ]}>
+                <Text variant="label" weight={700}>
+                  {initial}
                 </Text>
-                <View style={styles.cellUser}>
-                  <View style={styles.avatarWrap}>
-                    <View
-                      style={[
-                        styles.avatar,
-                        medal !== null && styles.avatarMedal,
-                        medal !== null && {borderColor: medal},
-                      ]}>
-                      <FontAwesome5
-                        name="user"
-                        size={16}
-                        color={colors.overlayMedium}
-                      />
-                    </View>
-                    {item.rank === 1 && (
-                      <View style={styles.crownBadge}>
-                        <FontAwesome5
-                          name="crown"
-                          iconStyle="solid"
-                          size={11}
-                          color={colors.gold}
-                        />
-                      </View>
-                    )}
+                {rank === 1 && (
+                  <View style={styles.crown}>
+                    <Crown color={medal} size={16} accessible={false} />
                   </View>
-                  <Text style={[styles.username, item.isMe && styles.cellMe]}>
-                    {item.username}
-                    {item.isMe ? ' (나)' : ''}
-                  </Text>
-                </View>
-                <Text
-                  style={[styles.cell, styles.cellReps, item.isMe && styles.cellMe]}>
-                  {item.reps.toLocaleString()}
+                )}
+              </View>
+              <View style={styles.name}>
+                <Text weight={700}>
+                  {name}
+                  {isMe ? ' (나)' : ''}
                 </Text>
               </View>
-            );
-          }}
-        />
-      )}
+              <View style={styles.count}>
+                <Text numeric weight={800} style={styles.reps}>
+                  {item.total_reps.toLocaleString()}
+                </Text>
+                <Text variant="caption" color="textMuted" weight={600}>
+                  개
+                </Text>
+              </View>
+            </View>
+          );
+        }}
+      />
+
+      <BottomSheet
+        visible={showRules}
+        title="순위는 이렇게 정해요"
+        onClose={closeRules}>
+        <Text variant="label" color="textMuted" style={styles.rules}>
+          오늘 탭은 하루 총 개수로 줄 세워요. 한국 시간 0시에 새로 시작해요.
+          {'\n'}이번 달 · 올해 탭은 그 기간 합계예요.
+        </Text>
+        <Button variant="primary" title="알겠어요" onPress={closeRules} />
+      </BottomSheet>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.backgroundDark,
-  },
-  tableHeader: {
-    flexDirection: 'row',
+  screen: {flex: 1, backgroundColor: color.bg},
+  info: {
+    width: layout.touchMin,
+    height: layout.touchMin,
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    justifyContent: 'center',
   },
-  th: {
-    color: colors.textLight,
-    fontSize: 12,
-    opacity: 0.8,
+  pressed: {opacity: 0.7},
+  segments: {paddingHorizontal: layout.screenPadding, paddingTop: space[8]},
+  list: {
+    flexGrow: 1,
+    paddingHorizontal: layout.screenPadding,
+    paddingTop: space[16],
+    paddingBottom: space[24],
   },
-  thRank: {width: 50},
-  thUser: {flex: 1},
-  thReps: {width: 110, textAlign: 'right'},
-
-  listContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 24,
-  },
+  empty: {marginTop: space[16], flex: 1},
+  centered: {justifyContent: 'center'},
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
+    minHeight: 60,
+    paddingVertical: space[8],
+    gap: space[12],
     borderBottomWidth: 1,
-    borderColor: colors.overlayMedium,
+    borderBottomColor: color.border,
   },
-  // 내 순위 행: 배경을 연보라로 칠하고 글자를 강조한다
-  rowMe: {
-    backgroundColor: colors.primaryOverlayMedium,
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    marginHorizontal: -8,
+  ownRow: {
+    backgroundColor: color.activeSoft,
+    borderRadius: radius.m,
     borderBottomWidth: 0,
   },
-  cellMe: {
-    color: colors.primaryLight,
-    fontWeight: '700',
-  },
-  cell: {
-    color: colors.textLight,
-    fontSize: 14,
-  },
-  cellRank: {width: 50, fontWeight: '700'},
-  cellUser: {flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10},
-  cellReps: {width: 110, textAlign: 'right', fontWeight: '700'},
-  // 왕관 뮩지를 아바타 모서리에 걸치게 놓기 위한 기준 박스
-  avatarWrap: {
-    width: 40,
-    height: 40,
-  },
-  avatarMedal: {
-    borderWidth: 2,
-  },
-  crownBadge: {
-    position: 'absolute',
-    top: -7,
-    right: -5,
-  },
+  rank: {width: 28, textAlign: 'center', fontSize: 22, lineHeight: 26},
   avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: colors.overlayMedium,
-    justifyContent: 'center',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: color.surface2,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  username: {color: colors.textLight, fontSize: 14, fontWeight: '600'},
-  // 통계 화면의 기간 선택과 같은 규격의 세그먼트 컨트롤
-  segments: {
+  medal: {borderWidth: 2},
+  ownAvatar: {backgroundColor: color.activeFill},
+  crown: {position: 'absolute', right: -6, top: -8},
+  name: {flex: 1},
+  count: {
     flexDirection: 'row',
-    backgroundColor: colors.overlayLight,
-    borderRadius: 12,
-    padding: 4,
-    marginHorizontal: 20,
-    marginTop: 8,
-    marginBottom: 16,
+    alignItems: 'baseline',
+    gap: 3,
+    paddingRight: 2,
   },
-  segment: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  segmentActive: {
-    backgroundColor: colors.primaryDark,
-  },
-  segmentText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textSecondary,
-  },
-  segmentTextActive: {
-    color: colors.textLight,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: colors.textSecondary,
-  },
+  reps: {fontSize: 24, lineHeight: 28},
+  rules: {marginBottom: space[12]},
 });

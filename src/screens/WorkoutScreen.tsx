@@ -27,9 +27,11 @@ import {
   missedSets,
   moveRecord,
   moveTo,
+  planMatches,
   Position,
 } from '../domain/hundredPushups';
-import {downgradeNotice, nextStepLabel} from '../domain/programMessages';
+import {downgradeNotice, nextStepLabel, withJosa} from '../domain/programMessages';
+import {shouldConfirmLeave} from '../domain/workoutSession';
 import {AppStackParamList} from '../navigations/AppNavigation';
 import {currentProgramQueryOptions, useUpdateProgramMutation} from '../tanstack-query';
 import {queryKeys} from '../tanstack-query/queryKeys';
@@ -108,14 +110,23 @@ function WorkoutScreen(): React.JSX.Element {
   // 모든 세트를 채웠을 때만 다음 Day 로 넘어가고, 못 채웠으면 위치는 그대로 둔다.
   // 한 운동에 기록은 1건 — 재시도는 같은 내용을 다시 보낸다 (기록을 새로 만들지 않는다).
   const [outcome, setOutcome] = useState<DayOutcome | null>(null);
+  // 운동하는 사이에 프로그램이 없어졌거나 위치가 바뀌어, 이 결과를 진행에 반영할 수 없는 경우
+  const [unrecordable, setUnrecordable] = useState(false);
   const recorded = useRef(false);
   const {mutate: saveRecord} = recordMutation;
+  // undefined = 아직 모름, null = 프로그램 없음이 확인됨 (재조회 실패여도 캐시된 값이 있으면 그걸 쓴다)
+  const programLoaded = programQuery.data !== undefined;
   useEffect(() => {
-    if (state.phase !== 'done' || !isProgram || !programRow || recorded.current) {
+    if (state.phase !== 'done' || !isProgram || !programLoaded || recorded.current) {
       return;
     }
     recorded.current = true;
-    const current = toProgramState(programRow);
+    const current = programRow ? toProgramState(programRow) : null;
+    // 방금 한 세트가 지금 위치의 세트가 아니면 기록하지 않는다 (다른 Day 를 통과 처리하면 안 된다)
+    if (!programRow || !current || !planMatches(current, plan.sets)) {
+      setUnrecordable(true);
+      return;
+    }
     const record = attemptRecord(current, plan.sets, state.results, new Date().toISOString());
     const passed = record.passed === true;
     setOutcome({
@@ -131,7 +142,7 @@ function WorkoutScreen(): React.JSX.Element {
       completedDay: record,
       existing: programRow.completed_days,
     });
-  }, [state.phase, state.results, isProgram, programRow, plan.sets, saveRecord]);
+  }, [state.phase, state.results, isProgram, programLoaded, programRow, plan.sets, saveRecord]);
 
   const retrySave = () => {
     if (recordMutation.variables) {
@@ -148,7 +159,7 @@ function WorkoutScreen(): React.JSX.Element {
 
   // 운동 중(카운팅·휴식)에는 어떤 경로로 나가든 — 버튼, 안드로이드 뒤로가기, iOS 스와이프 —
   // 확인을 거친다. 확인창은 여기 한 곳에서만 띄운다.
-  usePreventRemove(state.phase !== 'done', ({data}) => {
+  usePreventRemove(shouldConfirmLeave(state), ({data}) => {
     const message = isProgram
       ? '지금까지 끝낸 세트는 기록에 남아요.\n오늘 운동은 처음부터 다시 해야 해요.'
       : '지금까지 끝낸 세트는 기록에 남아요.';
@@ -205,6 +216,19 @@ function WorkoutScreen(): React.JSX.Element {
         />
       );
     }
+    if (unrecordable) {
+      return (
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.pending}>
+            <Text style={styles.pendingText}>
+              운동하는 사이에 프로그램 진행 위치가 바뀌어서{'\n'}이번 운동은 진행에 반영하지 않았어요.{'\n'}
+              세트 기록은 히스토리에 그대로 남아 있어요.
+            </Text>
+            <CustomButton title="프로그램으로" variant="start" onPress={() => goBackToStart()} />
+          </View>
+        </SafeAreaView>
+      );
+    }
     if (!outcome) {
       // 프로그램 정보를 아직 못 받았다 — 받아야 판정·기록을 할 수 있다
       return (
@@ -258,7 +282,7 @@ function WorkoutScreen(): React.JSX.Element {
     const current = programRow ? toProgramState(programRow) : null;
     const note = firstMiss
       ? current
-        ? `오늘은 모든 세트를 채워야 다음(${nextStepLabel(current)})으로 넘어가요.\n이번엔 Day ${current.day}를 다시 하게 되지만, 남은 세트도 끝까지 하면 다음 도전이 쉬워져요.`
+        ? `오늘은 모든 세트를 채워야 다음(${nextStepLabel(current)})으로 넘어가요.\n이번엔 Day ${withJosa(current.day, '을')} 다시 하게 되지만, 남은 세트도 끝까지 하면 다음 도전이 쉬워져요.`
         : '오늘은 모든 세트를 채워야 다음으로 넘어가요.\n이번엔 같은 Day를 다시 하게 되지만, 남은 세트도 끝까지 하면 다음 도전이 쉬워져요.'
       : undefined;
     return (

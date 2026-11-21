@@ -92,6 +92,14 @@ function ProgramTestResult({reps, duration}: ProgramTestResultProps): React.JSX.
     }
     try {
       if (result.createNew) {
+        // 다시 시도일 때: 앞선 요청이 늦게 성공했을 수 있으니 먼저 확인한다 (프로그램 중복 생성 방지)
+        if (saveFailed) {
+          const {data: latest} = await query.refetch();
+          if (latest?.status === 'active') {
+            goProgram();
+            return;
+          }
+        }
         await createProgram.mutateAsync({userId: user.id, state: result.next});
       } else if (result.row) {
         await updateProgram.mutateAsync({id: result.row.id, state: result.next});

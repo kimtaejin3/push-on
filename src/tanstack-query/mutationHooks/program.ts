@@ -2,6 +2,10 @@ import {useMutation, useQueryClient} from '@tanstack/react-query';
 import {abandonProgram, createProgram, updateProgram, CompletedDay, ProgramRow} from '../../remote/program';
 import {ProgramState} from '../../domain/hundredPushups';
 import {queryKeys} from '../queryKeys';
+import {withTimeout} from '../../utils/withTimeout';
+
+/** 이 시간 안에 응답이 없으면 실패로 보고 화면의 "다시 시도"로 넘긴다 */
+const SAVE_TIMEOUT_MS = 15000;
 
 /**
  * 저장에 성공하면 돌려받은 행으로 캐시를 즉시 바꾼다.
@@ -18,7 +22,8 @@ const useSetCurrentProgram = () => {
 export const useCreateProgramMutation = () => {
   const setCurrent = useSetCurrentProgram();
   return useMutation({
-    mutationFn: ({userId, state}: {userId: string; state: ProgramState}) => createProgram(userId, state),
+    mutationFn: ({userId, state}: {userId: string; state: ProgramState}) =>
+      withTimeout(createProgram(userId, state), SAVE_TIMEOUT_MS),
     onSuccess: setCurrent,
     onError: error => console.error('프로그램 생성 실패:', error),
   });
@@ -29,7 +34,7 @@ export const useUpdateProgramMutation = () => {
   return useMutation({
     mutationFn: ({id, state, completedDay, existing}: {
       id: string; state: ProgramState; completedDay?: CompletedDay; existing?: CompletedDay[];
-    }) => updateProgram(id, state, completedDay, existing),
+    }) => withTimeout(updateProgram(id, state, completedDay, existing), SAVE_TIMEOUT_MS),
     onSuccess: setCurrent,
     onError: error => console.error('프로그램 갱신 실패:', error),
   });

@@ -37,6 +37,13 @@ export const targetFor = (state: WorkoutState) => {
   return {reps: sets[state.setIndex], isMax: lastIsMax && isLast};
 };
 
+/**
+ * 화면을 나갈 때 확인이 필요한가: 운동을 시작했고 아직 끝내지 않았을 때만.
+ * (들어오자마자 아무것도 안 하고 나가는 경우에는 묻지 않는다)
+ */
+export const shouldConfirmLeave = (state: WorkoutState): boolean =>
+  state.phase !== 'done' && (state.phase !== 'idle' || state.results.length > 0);
+
 const finishSet = (state: WorkoutState): WorkoutState => {
   const results = [...state.results, state.currentCount];
   const isLast = state.setIndex === state.plan.sets.length - 1;

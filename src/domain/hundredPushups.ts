@@ -337,3 +337,15 @@ export const resolveTest = (
 /** 그 위치(주차·Day·레벨)의 세트 구성 문자열. 하향·주차 변경 안내에서 "바꾸면 이렇게 돼요"를 보여줄 때 쓴다 */
 export const describeSetsAt = (to: Position): string =>
   describeSets(PROGRAM[to.week - 1][to.day - 1].sets[to.level - 1], true);
+
+/**
+ * 방금 운동한 세트가 지금 프로그램 위치의 세트와 같은가.
+ * 운동하는 사이에 다른 기기에서 위치가 바뀌었으면 false — 그 결과로 다른 Day 를 통과 처리하면 안 된다.
+ */
+export const planMatches = (state: ProgramState, sets: number[]): boolean => {
+  if (state.status !== 'active' || state.testDue) {
+    return false;
+  }
+  const expected = todayPlan(state).sets;
+  return expected.length === sets.length && expected.every((n, i) => n === sets[i]);
+};

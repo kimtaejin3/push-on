@@ -1,5 +1,14 @@
-import React, {useEffect} from 'react';
-import {ActivityIndicator, Alert, SafeAreaView, ScrollView, StyleSheet, Text, View} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {useQuery} from '@tanstack/react-query';
 import Header from '../components/common/Header';
@@ -32,8 +41,19 @@ import {cancelWorkoutReminders} from '../services/workoutReminder';
 function ProgramScreen() {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<AppStackParamList, 'Program'>>();
-  const notice = route.params?.notice;
   const {user} = useSession();
+
+  // 하향·주차 변경 직후의 안내는 한 번만 보여준다:
+  // 파라미터로 받으면 화면 상태로 옮기고, 닫거나 다른 화면으로 가면 사라진다.
+  const [notice, setNotice] = useState<string>();
+  const paramNotice = route.params?.notice;
+  useEffect(() => {
+    if (paramNotice) {
+      setNotice(paramNotice);
+      navigation.setParams({notice: undefined});
+    }
+  }, [paramNotice, navigation]);
+  useEffect(() => navigation.addListener('blur', () => setNotice(undefined)), [navigation]);
 
   const programQuery = useQuery(currentProgramQueryOptions(user?.id ?? ''));
   const programRow = programQuery.data ?? null;
@@ -76,6 +96,7 @@ function ProgramScreen() {
         text: '그만두기',
         style: 'destructive',
         onPress: () => {
+          setNotice(undefined);
           abandonProgram.mutate(programRow.id);
           cancelWorkoutReminders().catch(() => {});
         },
@@ -102,7 +123,7 @@ function ProgramScreen() {
         completedDay: moveRecord(moved, new Date().toISOString()),
         existing: programRow.completed_days,
       },
-      {onSuccess: () => navigation.setParams({notice: downgradeNotice(from, to)})},
+      {onSuccess: () => setNotice(downgradeNotice(from, to))},
     );
   };
 
@@ -218,9 +239,10 @@ function ProgramScreen() {
       <Header title="100개 챌린지" onBackPress={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         {notice ? (
-          <Text style={styles.notice} onPress={() => navigation.setParams({notice: undefined})}>
-            {notice}
-          </Text>
+          <Pressable style={styles.notice} onPress={() => setNotice(undefined)}>
+            <Text style={styles.noticeText}>{notice}</Text>
+            <Text style={styles.noticeClose}>닫기</Text>
+          </Pressable>
         ) : null}
         {renderBody()}
         {inProgress && <ReminderSettingsCard />}
@@ -259,15 +281,16 @@ const styles = StyleSheet.create({
   link: {textAlign: 'center', fontSize: 14, color: colors.primaryLight, paddingTop: 8},
   abandon: {textAlign: 'center', fontSize: 14, color: colors.gray400, padding: 8},
   notice: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: colors.textLight,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     backgroundColor: colors.primaryOverlayMedium,
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    overflow: 'hidden',
   },
+  noticeText: {flex: 1, fontSize: 14, lineHeight: 20, color: colors.textLight},
+  noticeClose: {fontSize: 13, color: colors.primaryLight},
 });
 
 export default ProgramScreen;

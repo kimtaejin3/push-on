@@ -13,7 +13,7 @@ import {
   ProgramState,
   todayPlan,
 } from '../../../domain/hundredPushups';
-import {nextStepLabel} from '../../../domain/programMessages';
+import {nextStepLabel, withJosa} from '../../../domain/programMessages';
 import {cardStyles as styles} from './cardStyles';
 
 interface ProgramTodayCardProps {
@@ -60,7 +60,7 @@ function ProgramTodayCard({
         <View style={styles.callout}>
           <Text style={styles.calloutTitle}>
             지난번({monthDay(failure.completed_at)})에 세트 {missed.map(m => m.set).join('·')}에서 목표를 못
-            채워서 Day {state.day}를 다시 해요
+            채워서 Day {withJosa(state.day, '을')} 다시 해요
           </Text>
           {missed.map(m => (
             <Text key={m.set} style={styles.calloutRow}>
@@ -82,14 +82,14 @@ function ProgramTodayCard({
         <>
           <View style={styles.callout}>
             <Text style={styles.calloutTitle}>
-              Day {state.day}를 {streak === 2 ? '두' : streak}번 연속 못 채웠어요.{' '}
+              Day {withJosa(state.day, '을')} {streak === 2 ? '두 ' : streak}번 연속 못 채웠어요.{' '}
               {target.week === state.week
                 ? `지금 레벨(${state.level})이 조금 버거울 수 있어요.`
                 : `${state.week}주차가 지금은 조금 버거울 수 있어요.`}
             </Text>
             <Text style={styles.hint}>
               {target.week === state.week
-                ? `레벨 ${target.level}로 낮추면 오늘 세트는 ${describeSetsAt(target)} 예요`
+                ? `레벨 ${withJosa(target.level, '으로')} 낮추면 오늘 세트는 ${describeSetsAt(target)} 예요`
                 : `${target.week}주차 Day ${target.day}부터 다시 하면 ${describeSetsAt(target)} 예요`}
             </Text>
           </View>
@@ -101,7 +101,7 @@ function ProgramTodayCard({
               downgradePending
                 ? '바꾸는 중…'
                 : target.week === state.week
-                ? `레벨 ${target.level}로 낮추기`
+                ? `레벨 ${withJosa(target.level, '으로')} 낮추기`
                 : '이전 주차로 돌아가기'
             }
             variant="start"
@@ -116,7 +116,10 @@ function ProgramTodayCard({
       ) : (
         <>
           {stuck ? (
-            <Text style={styles.hint}>지금이 가장 쉬운 단계예요. 같은 Day를 다시 해요.</Text>
+            <Text style={styles.hint}>
+              Day {withJosa(state.day, '을')} {streak === 2 ? '두 ' : streak}번 연속 못 채웠어요. 지금이 가장 쉬운
+              단계라 같은 Day를 다시 해요.
+            </Text>
           ) : null}
           <CustomButton title="오늘 운동 시작" variant="start" style={styles.button} onPress={onStart} />
         </>

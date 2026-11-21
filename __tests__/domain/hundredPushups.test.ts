@@ -1,7 +1,7 @@
 import {
   assignLevel, startProgram, todayPlan, completeDay, applyTest, describeSets, retestLevel, initialTestPreview, programTable,
   isDayPassed, missedSets, attemptRecord, moveRecord, failStreak, lastFailure, passedDayCount,
-  downgradeTarget, moveTo, levelRange, testThreshold, resolveTest, describeSetsAt,
+  downgradeTarget, moveTo, levelRange, testThreshold, resolveTest, describeSetsAt, planMatches,
 } from '../../src/domain/hundredPushups';
 import {PROGRAM} from '../../src/constants/hundredPushups';
 
@@ -304,5 +304,20 @@ describe('describeSetsAt', () => {
   it('주차·Day·레벨 위치의 세트를 문자열로 돌려준다', () => {
     expect(describeSetsAt({week: 2, day: 2, level: 2})).toBe('10 · 12 · 9 · 9 · 13+');
     expect(describeSetsAt({week: 2, day: 2, level: 3})).toBe('14 · 16 · 12 · 12 · 17+');
+  });
+});
+
+describe('planMatches (운동한 세트가 지금 프로그램 위치의 세트인가)', () => {
+  const s = {week: 2, day: 2, level: 3 as const, lastTestReps: 12, testDue: false, status: 'active' as const};
+  it('지금 위치의 세트와 같으면 true', () => {
+    expect(planMatches(s, [14, 16, 12, 12, 17])).toBe(true);
+  });
+  it('운동 중에 위치가 바뀌었으면(다른 Day·레벨) false', () => {
+    expect(planMatches({...s, day: 3}, [14, 16, 12, 12, 17])).toBe(false);
+    expect(planMatches({...s, level: 2}, [14, 16, 12, 12, 17])).toBe(false);
+  });
+  it('테스트 차례이거나 완료 상태면 false', () => {
+    expect(planMatches({...s, testDue: true}, [14, 16, 12, 12, 17])).toBe(false);
+    expect(planMatches({...s, status: 'completed'}, [14, 16, 12, 12, 17])).toBe(false);
   });
 });

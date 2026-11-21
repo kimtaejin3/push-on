@@ -1,4 +1,4 @@
-import {testOutcomeMessage, nextStepLabel, downgradeNotice, jumpNotice} from '../../src/domain/programMessages';
+import {testOutcomeMessage, nextStepLabel, downgradeNotice, jumpNotice, withJosa} from '../../src/domain/programMessages';
 
 const body = (reps: number, o: Parameters<typeof testOutcomeMessage>[1]) => testOutcomeMessage(reps, o).body;
 
@@ -32,6 +32,8 @@ describe('testOutcomeMessage', () => {
     expect(body(17, {kind: 'retest', week: 3, level: 1, prevLevel: 3}))
       .toBe('이번 주 레벨이 3 → 1로 내려가요. 지금 기록에 맞는 세트로 바뀌어요');
     expect(body(8, {kind: 'retest', week: 1, level: 2, prevLevel: 2})).toBe('레벨은 그대로 2예요');
+    expect(body(3, {kind: 'retest', week: 1, level: 1, prevLevel: 1})).toBe('레벨은 그대로 1이에요');
+    expect(body(30, {kind: 'retest', week: 3, level: 3, prevLevel: 3})).toBe('레벨은 그대로 3이에요');
   });
 });
 
@@ -56,5 +58,21 @@ describe('downgradeNotice / jumpNotice', () => {
   });
   it('주차를 직접 고른 경우', () => {
     expect(jumpNotice({week: 4, day: 1, level: 2})).toBe('4주차 · 레벨 2 · Day 1부터 다시 진행해요');
+  });
+});
+
+describe('withJosa (숫자 뒤 조사)', () => {
+  it('을/를: 받침 있는 숫자(1·3·6·7·8·0)는 을', () => {
+    expect([1, 2, 3].map(n => withJosa(n, '을'))).toEqual(['1을', '2를', '3을']);
+    expect([4, 5, 6, 7, 8, 9, 10].map(n => withJosa(n, '을'))).toEqual(['4를', '5를', '6을', '7을', '8을', '9를', '10을']);
+  });
+  it('은/는', () => {
+    expect([1, 2, 3].map(n => withJosa(n, '은'))).toEqual(['1은', '2는', '3은']);
+  });
+  it('이에요/예요', () => {
+    expect([1, 2, 3].map(n => withJosa(n, '이에요'))).toEqual(['1이에요', '2예요', '3이에요']);
+  });
+  it('(으)로: ㄹ 받침(1·7·8)은 로', () => {
+    expect([1, 2, 3, 6, 7, 8].map(n => withJosa(n, '으로'))).toEqual(['1로', '2로', '3으로', '6으로', '7로', '8로']);
   });
 });

@@ -4,6 +4,7 @@ import {ScrollView, StyleSheet, Text, View} from 'react-native';
 import CustomButton from '../../common/CustomButton';
 import {colors} from '../../../constants/colors';
 import {describeSetsAt, DOWNGRADE_AFTER, missedSets, Position} from '../../../domain/hundredPushups';
+import {withJosa} from '../../../domain/programMessages';
 import {formatTime} from '../../../utils/time';
 
 interface ProgramDaySummaryProps {
@@ -53,7 +54,7 @@ function ProgramDaySummary({
   const title = passed
     ? `${week}주차 Day ${day} 통과`
     : streak >= DOWNGRADE_AFTER
-    ? `${week}주차 Day ${day} · ${streak === 2 ? '두' : streak}번 연속 못 채웠어요`
+    ? `${week}주차 Day ${day} · ${streak === 2 ? '두 ' : streak}번 연속 못 채웠어요`
     : `${week}주차 Day ${day} · 한 번 더`;
 
   const subtitle = passed
@@ -69,13 +70,14 @@ function ProgramDaySummary({
     const rule = `모든 세트를 채워야 다음(${nextLabel})으로 넘어가요.`;
     if (offerDowngrade && downgrade) {
       return downgrade.week === week
-        ? `${rule}\n지금 레벨(${level})이 조금 버거울 수 있어요.\n레벨 ${downgrade.level}로 낮추면 Day ${day}는 ${describeSetsAt(downgrade)} 예요.`
+        ? `${rule}\n지금 레벨(${level})이 조금 버거울 수 있어요.\n레벨 ${withJosa(downgrade.level, '으로')} 낮추면 Day ${withJosa(day, '은')} ${describeSetsAt(downgrade)} 예요.`
         : `${rule}\n${week}주차가 지금은 조금 버거울 수 있어요.\n${downgrade.week}주차 Day ${downgrade.day}부터 다시 하면 ${describeSetsAt(downgrade)} 예요.`;
     }
     if (!downgrade) {
-      return `${rule}\n지금이 가장 쉬운 단계예요. 다음 운동도 Day ${day}를 다시 해요.`;
+      return `${rule}\n지금이 가장 쉬운 단계예요. 다음 운동도 Day ${withJosa(day, '을')} 다시 해요.`;
     }
-    return `${rule} 다음 운동도 Day ${day}예요.\n한 번 더 못 채우면 레벨을 낮추는 걸 권할게요.`;
+    const nextOffer = downgrade.week === week ? '레벨을 낮추는 걸' : '이전 주차로 돌아가는 걸';
+    return `${rule} 다음 운동도 Day ${withJosa(day, '이에요')}.\n한 번 더 못 채우면 ${nextOffer} 권할게요.`;
   };
 
   const renderActions = () => {
@@ -98,7 +100,7 @@ function ProgramDaySummary({
               move.pending
                 ? '바꾸는 중…'
                 : downgrade.week === week
-                ? `레벨 ${downgrade.level}로 낮추기`
+                ? `레벨 ${withJosa(downgrade.level, '으로')} 낮추기`
                 : '이전 주차로 돌아가기'
             }
             variant="start"

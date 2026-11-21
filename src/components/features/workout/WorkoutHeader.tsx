@@ -15,7 +15,7 @@ const remainingText = (target: {reps: number; isMax: boolean}, count: number): s
   if (left > 0) {
     return `${left}개 남음`;
   }
-  return target.isMax ? '최소 달성, 가능한 만큼 더' : '달성';
+  return target.isMax ? '최소 달성' : '달성';
 };
 
 function WorkoutHeader({setNumber, totalSets, target, count}: WorkoutHeaderProps) {

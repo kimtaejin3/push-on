@@ -1,8 +1,32 @@
 import {WEEKS} from '../constants/hundredPushups';
 import {completeDay, Level, Position, ProgramState, TestOutcome} from './hundredPushups';
 
-/** 숫자 뒤 조사 "(으)로": 3(삼)만 받침이 있어 "으로" */
-const ro = (level: Level): string => (level === 3 ? '으로' : '로');
+type Josa = '을' | '은' | '이에요' | '으로';
+
+/** 한 자리 숫자를 읽었을 때의 받침: 영·일·삼·육·칠·팔 은 받침이 있고, 그중 일·칠·팔 은 ㄹ 받침 */
+const HAS_BATCHIM = new Set([0, 1, 3, 6, 7, 8]);
+const RIEUL_BATCHIM = new Set([1, 7, 8]);
+
+/**
+ * 숫자 뒤에 맞는 조사를 붙인다. "Day 1을 / Day 2를", "레벨 2예요 / 3이에요", "레벨 2로 / 3으로".
+ * 끝자리 숫자의 읽는 소리로 판단한다.
+ */
+export const withJosa = (n: number, josa: Josa): string => {
+  const last = Math.abs(n) % 10;
+  const batchim = HAS_BATCHIM.has(last);
+  switch (josa) {
+    case '을':
+      return `${n}${batchim ? '을' : '를'}`;
+    case '은':
+      return `${n}${batchim ? '은' : '는'}`;
+    case '이에요':
+      return `${n}${batchim ? '이에요' : '예요'}`;
+    case '으로':
+      return `${n}${batchim && !RIEUL_BATCHIM.has(last) ? '으로' : '로'}`;
+  }
+};
+
+const ro = (level: Level): string => withJosa(level, '으로').slice(String(level).length);
 
 const levelAdjusted = (prev: Level, level: Level): string =>
   prev === level ? '' : `. 이번 결과에 맞춰 레벨도 ${prev} → ${level}${ro(level)} 조정했어요`;
@@ -35,7 +59,7 @@ export const testOutcomeMessage = (reps: number, outcome: TestOutcome): {title: 
     case 'retest': {
       const {prevLevel, level} = outcome;
       if (level === prevLevel) {
-        return {title, body: `레벨은 그대로 ${level}예요`};
+        return {title, body: `레벨은 그대로 ${withJosa(level, '이에요')}`};
       }
       return level > prevLevel
         ? {title, body: `이번 주 레벨이 ${prevLevel} → ${level}${ro(level)} 바뀌어요`}

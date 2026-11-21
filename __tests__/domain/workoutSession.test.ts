@@ -1,4 +1,4 @@
-import {createWorkout, workoutReducer, targetFor, WorkoutState} from '../../src/domain/workoutSession';
+import {createWorkout, workoutReducer, targetFor, shouldConfirmLeave, WorkoutState} from '../../src/domain/workoutSession';
 
 const plan = {sets: [3, 3, 5], restSeconds: 2, lastIsMax: true};
 const run = (events: Parameters<typeof workoutReducer>[1][], from = createWorkout(plan)) =>
@@ -73,5 +73,26 @@ describe('workoutSession', () => {
     expect(workoutReducer(idle, {type: 'count', count: 5})).toBe(idle);
     expect(workoutReducer(idle, {type: 'finishSet'})).toBe(idle);
     expect(workoutReducer(idle, {type: 'skipRest'})).toBe(idle);
+  });
+});
+
+describe('shouldConfirmLeave (나갈 때 확인이 필요한가)', () => {
+  it('아직 아무것도 시작하지 않았으면 확인 없이 나간다', () => {
+    expect(shouldConfirmLeave(createWorkout(plan))).toBe(false);
+  });
+  it('카운팅 중·휴식 중·다음 세트 대기 중에는 확인한다', () => {
+    expect(shouldConfirmLeave(run([{type: 'start'}]))).toBe(true);
+    const resting = run([{type: 'start'}, {type: 'count', count: 3}]);
+    expect(shouldConfirmLeave(resting)).toBe(true);
+    expect(shouldConfirmLeave(run([{type: 'skipRest'}], resting))).toBe(true); // idle 이지만 끝낸 세트가 있다
+  });
+  it('운동을 끝낸 뒤에는 확인하지 않는다', () => {
+    const done = run([
+      {type: 'start'}, {type: 'count', count: 3}, {type: 'skipRest'},
+      {type: 'start'}, {type: 'count', count: 3}, {type: 'skipRest'},
+      {type: 'start'}, {type: 'finishSet'},
+    ]);
+    expect(done.phase).toBe('done');
+    expect(shouldConfirmLeave(done)).toBe(false);
   });
 });

@@ -1,6 +1,6 @@
 import {User} from '@supabase/supabase-js';
 import {ProviderInfo} from '../types/auth';
-import {colors} from '../constants/colors';
+import {color} from '../theme';
 
 export const getProviderInfo = (providerType: string): ProviderInfo => {
   switch (providerType) {
@@ -16,21 +16,21 @@ export const getProviderInfo = (providerType: string): ProviderInfo => {
         name: '구글',
         icon: 'search',
         iconStyle: 'solid',
-        color: colors.primary,
+        color: color.activeFill,
       };
     case 'apple':
       return {
         name: 'Apple',
         icon: 'apple',
         iconStyle: 'brand',
-        color: colors.textLight,
+        color: color.onBrand,
       };
     default:
       return {
         name: '이메일',
         icon: 'envelope',
         iconStyle: 'solid',
-        color: colors.primary,
+        color: color.activeFill,
       };
   }
 };

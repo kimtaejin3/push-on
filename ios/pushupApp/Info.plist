@@ -82,12 +82,6 @@
 	<string>전면 카메라로 얼굴을 인식해 푸쉬업 횟수를 자동으로 셉니다. 영상은 기기 안에서만 처리되며 저장·전송되지 않습니다.</string>
 	<key>UIAppFonts</key>
 	<array>
-		<string>FontAwesome5_Brands.ttf</string>
-		<string>FontAwesome5_Regular.ttf</string>
-		<string>FontAwesome5_Solid.ttf</string>
-		<string>FontAwesome6_Brands.ttf</string>
-		<string>FontAwesome6_Regular.ttf</string>
-		<string>FontAwesome6_Solid.ttf</string>
 		<string>BigShoulders-ExtraBold.ttf</string>
 		<string>BigShoulders-Black.ttf</string>
 		<string>AstaSans-Medium.ttf</string>

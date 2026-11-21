@@ -19,7 +19,6 @@ import {BottomSheet} from '../components/ui/feedback/BottomSheet';
 import {EmptyState} from '../components/ui/feedback/EmptyState';
 import {ErrorState} from '../components/ui/feedback/ErrorState';
 import {Skeleton} from '../components/ui/feedback/Skeleton';
-import {colors} from '../constants/colors';
 import {useNow} from '../hooks/useNow';
 import {useSession} from '../hooks/useSession';
 import type {LeaderboardItem} from '../remote/pushup';
@@ -35,7 +34,8 @@ const modes = [
   {key: 'monthly', label: '이번 달'},
   {key: 'yearly', label: '올해'},
 ];
-const medals = [colors.gold, colors.silver, colors.bronze];
+// 1~3위 메달 색은 기존 화면 그대로 둔다(테마 토큰에 메달 색이 없어 여기서만 쓴다)
+const medals = ['#FFD700', '#C0C0C0', '#CD7F32'];
 const kstDate = new Intl.DateTimeFormat('ko-KR', {
   timeZone: 'Asia/Seoul',
   year: 'numeric',

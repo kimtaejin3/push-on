@@ -15,7 +15,6 @@ import {
 import {queryKeys} from '../../src/tanstack-query/queryKeys';
 import {DEFAULT_REMINDER_SETTINGS} from '../../src/utils/reminder';
 
-jest.mock('@react-native-vector-icons/fontawesome5', () => () => null);
 jest.mock('../../src/components/ui/Icon', () => ({Icon: () => null}));
 
 const mockToast = jest.fn();

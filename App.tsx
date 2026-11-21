@@ -35,10 +35,12 @@ function App(): React.JSX.Element {
   // 업데이트 모달 상태
   const [updateInfo, setUpdateInfo] = useState<{
     show: boolean;
+    version: string | null;
     releaseNotes: string | null;
     forceUpdate: boolean;
   }>({
     show: false,
+    version: null,
     releaseNotes: null,
     forceUpdate: false,
   });
@@ -98,6 +100,7 @@ function App(): React.JSX.Element {
         // 업데이트 모달 표시
         setUpdateInfo({
           show: true,
+          version: latestVersion.version,
           releaseNotes: latestVersion.release_notes,
           forceUpdate: latestVersion.force_update,
         });
@@ -127,6 +130,7 @@ function App(): React.JSX.Element {
         {/* 업데이트 알림 모달 */}
         <UpdateModal
           visible={updateInfo.show}
+          version={updateInfo.version ?? undefined}
           releaseNotes={updateInfo.releaseNotes}
           forceUpdate={updateInfo.forceUpdate}
           onUpdate={() => {

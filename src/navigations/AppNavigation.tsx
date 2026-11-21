@@ -28,6 +28,7 @@ import {Text} from '../components/ui/Text';
 import {color, radius, space} from '../theme';
 import StreakRuntime from '../components/features/streak/StreakRuntime';
 import {useEnsureProfile} from '../hooks/useEnsureProfile';
+import {navigationRef} from './navigationRef';
 
 const AppStack = createNativeStackNavigator({
   initialRouteName: 'Tabs',
@@ -136,7 +137,7 @@ const ConditionalNavigation = () => {
   // 보관 중인 운동 재전송은 로그인된 동안에만 돈다
   return (
     <>
-      <AppNavigation />
+      <AppNavigation ref={navigationRef} />
       <StreakRuntime />
     </>
   );

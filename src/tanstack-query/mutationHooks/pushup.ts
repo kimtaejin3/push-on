@@ -3,7 +3,7 @@ import {saveWorkout} from '../../remote/pushup';
 import {queryKeys} from '../queryKeys';
 
 export const useSavePushupSessionMutation = (
-  onSuccess?: () => void,
+  onSuccess?: (status: Awaited<ReturnType<typeof saveWorkout>>) => void,
   onError?: (error: any) => void,
 ) => {
   const queryClient = useQueryClient();
@@ -12,9 +12,9 @@ export const useSavePushupSessionMutation = (
   // 보관한 운동의 날짜도 스트릭에 들어가야 하므로 두 경우 모두 무효화한다.
   return useMutation({
     mutationFn: saveWorkout,
-    onSuccess: () => {
+    onSuccess: status => {
       queryClient.invalidateQueries({queryKey: queryKeys.pushup.all});
-      onSuccess?.();
+      onSuccess?.(status);
     },
     onError: error => {
       onError?.(error);

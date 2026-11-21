@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {StyleSheet, View} from 'react-native';
+import {Platform, StyleSheet, View} from 'react-native';
 import {useQueryClient} from '@tanstack/react-query';
 import {computeStreak, type StreakState} from '../../../domain/streak';
 import {celebrationCopy} from '../../../domain/streakMessages';
@@ -159,7 +159,10 @@ export function StreakCelebrationProvider({
       return;
     }
     setVisible(false);
-    celebration.next(); // 한 번만 실행되도록 감싸 두어 연타해도 두 번 이동하지 않는다
+    // iOS 에서는 축하 모달이 닫혀야 추적 안내 모달을 열 수 있다
+    if (Platform.OS !== 'ios') {
+      celebration.next();
+    }
   };
 
   const handleEnableReminder = async () => {
@@ -196,7 +199,10 @@ export function StreakCelebrationProvider({
   return (
     <CelebrationContext.Provider value={value}>
       {children}
-      <BottomSheet visible={visible} onClose={handleContinue}>
+      <BottomSheet
+        visible={visible}
+        onClose={handleContinue}
+        onDismiss={celebration?.next}>
         {celebration && (
           <CelebrationContent
             celebration={celebration}

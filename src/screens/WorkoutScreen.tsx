@@ -69,7 +69,7 @@ import {
   useUpdateProgramMutation,
 } from '../tanstack-query';
 import {queryKeys} from '../tanstack-query/queryKeys';
-import {useStreakCelebration} from '../components/features/streak/StreakCelebrationProvider';
+import {useResultExit} from '../components/features/ads/AdExitFlowProvider';
 
 /** 프로그램 운동 한 번의 판정 결과. 운동이 끝난 순간의 상태로 한 번만 정한다 */
 type DayOutcome = {
@@ -347,7 +347,7 @@ function Workout({prefs}: {prefs: WorkoutPrefs}): React.JSX.Element {
 
   // 운동을 마친 요약 화면을 떠날 때: 1개라도 했으면 그날 첫 운동일 때 축하 화면을 거친다.
   // 운동 중 그만두기(usePreventRemove)·반영 못 한 화면은 이걸 거치지 않는다
-  const {celebrateThen} = useStreakCelebration();
+  const exit = useResultExit();
   const didAny = state.results.some(reps => reps > 0);
   // [기록에서 보기]는 같은 순서로 기록 탭에 간다
   const leaveSummary = (notice?: string, to?: 'History') => {
@@ -356,7 +356,13 @@ function Workout({prefs}: {prefs: WorkoutPrefs}): React.JSX.Element {
         ? navigation.dispatch(StackActions.popTo('Tabs', {screen: to}))
         : goBackToStart(notice);
     if (didAny) {
-      celebrateThen(go);
+      exit({
+        reps: state.results.reduce((sum, reps) => sum + reps, 0),
+        detail: outcome ? `${outcome.position.week}주차 Day ${outcome.position.day}` : undefined,
+        queued: saveError === 'queued',
+        destination: to ?? (isProgram ? 'Program' : 'Home'),
+        go,
+      });
     } else {
       go();
     }

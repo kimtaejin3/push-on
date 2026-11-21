@@ -14,6 +14,7 @@ import {Text} from '../Text';
 interface BottomSheetProps {
   visible: boolean;
   onClose: () => void;
+  onDismiss?: () => void;
   title?: string;
   children: ReactNode;
 }
@@ -21,6 +22,7 @@ interface BottomSheetProps {
 export function BottomSheet({
   visible,
   onClose,
+  onDismiss,
   title,
   children,
 }: BottomSheetProps) {
@@ -47,6 +49,7 @@ export function BottomSheet({
       statusBarTranslucent
       navigationBarTranslucent
       animationType="fade"
+      onDismiss={onDismiss}
       onRequestClose={onClose}>
       <View style={styles.overlay}>
         <Pressable

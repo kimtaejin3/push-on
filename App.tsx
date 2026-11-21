@@ -8,6 +8,7 @@ import {getCurrentAppVersion, isVersionNewer} from './src/utils/version';
 import {UpdateModal} from './src/components/common/UpdateModal';
 import {useReminderSync} from './src/hooks/useReminderSync';
 import {StreakCelebrationProvider} from './src/components/features/streak/StreakCelebrationProvider';
+import {AdExitFlowProvider} from './src/components/features/ads/AdExitFlowProvider';
 import {useAds} from './src/hooks/useAds';
 import {useAdConfigRefresh} from './src/hooks/useAdConfigRefresh';
 import {loadConsentFlowDone} from './src/utils/adsConsent';
@@ -18,7 +19,7 @@ export const queryClient = new QueryClient();
 
 /**
  * 광고 화면이 열리기 전에 미리 광고 설정을 읽고, 서버에서 광고를 켰을 때만
- * UMP 동의 확인과 AdMob SDK 초기화를 1회 시작한다(실제 처리는 useAds → utils/adsSdk).
+ * 동의 흐름을 마친 뒤 AdMob SDK 를 초기화한다(실제 처리는 useAds → utils/adsSdk).
  * 꺼져 있으면 SDK 를 건드리지 않으며, 어느 경우에도 앱 시작을 막지 않는다.
  * 서버에서 광고를 끄면 바로 반영되도록 포그라운드 복귀 때와 5분마다 설정을 다시 읽는다.
  */
@@ -127,7 +128,9 @@ function App(): React.JSX.Element {
           {/* 배너가 표시되면 내비게이션의 안전 영역을 새 위치에서 계산한다 */}
           <SafeAreaProvider>
             <StreakCelebrationProvider>
-              <AppNavigation />
+              <AdExitFlowProvider>
+                <AppNavigation />
+              </AdExitFlowProvider>
             </StreakCelebrationProvider>
           </SafeAreaProvider>
         </ToastProvider>

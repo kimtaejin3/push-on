@@ -20,7 +20,7 @@ import {
 } from '../../../domain/hundredPushups';
 import {testOutcomeMessage} from '../../../domain/programMessages';
 import {canStartNewProgram, resolveProgramView} from '../../../domain/programView';
-import {useStreakCelebration} from '../streak/StreakCelebrationProvider';
+import {useResultExit} from '../ads/AdExitFlowProvider';
 import {Card} from '../../ui/Card';
 import {Text} from '../../ui/Text';
 import {NextWorkout, ResultLayout} from '../result/ResultLayout';
@@ -60,6 +60,7 @@ function ProgramTestResult({reps, duration, beforeIso}: ProgramTestResultProps):
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   const sessionSaved = useRef(false);
+  const sessionQueued = useRef(false);
 
   // 결과 해석은 화면에 들어왔을 때의 프로그램 상태로 한 번만 정한다.
   // (저장에 성공하면 캐시가 바뀌는데, 그때 문구가 다시 계산되면 안 된다)
@@ -77,12 +78,18 @@ function ProgramTestResult({reps, duration, beforeIso}: ProgramTestResultProps):
 
   const goTo = (to: Destination) =>
     navigation.dispatch(StackActions.popTo('Tabs', {screen: to}));
-  const {celebrateThen} = useStreakCelebration();
+  const exit = useResultExit();
 
   // [확인]은 프로그램으로, [기록에서 보기]는 기록 탭으로 — 둘 다 결과를 반영한 뒤 떠난다
   const handleSave = async (to: Destination) => {
     // 반영에 성공해 떠날 때만 축하 화면을 거친다 (0개 결과는 goTo 로 바로 간다)
-    const finish = () => celebrateThen(() => goTo(to));
+    const finish = () => exit({
+      reps,
+      queued: sessionQueued.current,
+      test: true,
+      destination: to,
+      go: () => goTo(to),
+    });
     if (saving || !result || !user) {
       return;
     }
@@ -93,7 +100,8 @@ function ProgramTestResult({reps, duration, beforeIso}: ProgramTestResultProps):
     if (!sessionSaved.current) {
       sessionSaved.current = true;
       try {
-        await saveWorkout({reps, duration_seconds: duration, mode: 'program_test'});
+        const status = await saveWorkout({reps, duration_seconds: duration, mode: 'program_test'});
+        sessionQueued.current = status === 'queued';
         queryClient.invalidateQueries({queryKey: queryKeys.pushup.all});
       } catch (error) {
         console.error('테스트 기록 저장 실패:', error);

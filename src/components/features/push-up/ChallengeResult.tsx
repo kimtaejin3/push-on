@@ -1,7 +1,7 @@
 import React, {useRef} from 'react';
 import {StackActions, useNavigation} from '@react-navigation/native';
 import {useSavePushupSessionMutation} from '../../../tanstack-query';
-import {useStreakCelebration} from '../streak/StreakCelebrationProvider';
+import {useResultExit} from '../ads/AdExitFlowProvider';
 import {Card} from '../../ui/Card';
 import {Text} from '../../ui/Text';
 import {ResultLayout} from '../result/ResultLayout';
@@ -23,14 +23,23 @@ function ChallengeResult({pushUpCount, duration, beforeIso}: ChallengeResultProp
   const destination = useRef<Destination>('Home');
   const goNext = () =>
     navigation.dispatch(StackActions.popTo('Tabs', {screen: destination.current}));
-  const {celebrateThen} = useStreakCelebration();
+  const exit = useResultExit();
 
   // 저장(또는 폰에 보관)됐으면 오늘 운동한 것이다 → 그날 첫 운동이면 축하 화면을 거친다.
   // 저장하지 않는 0개 결과와 저장 실패(로그인 안 됨)는 바로 이동한다
-  const savePushupMutation = useSavePushupSessionMutation(() => celebrateThen(goNext), error => {
-    console.error('푸쉬업 세션 저장 실패:', error);
-    goNext();
-  });
+  const savePushupMutation = useSavePushupSessionMutation(
+    status => exit({
+      reps: pushUpCount,
+      queued: status === 'queued',
+      test: true,
+      destination: destination.current,
+      go: goNext,
+    }),
+    error => {
+      console.error('푸쉬업 세션 저장 실패:', error);
+      goNext();
+    },
+  );
 
   // 이 화면에서는 한 번만 저장한다. 다시 누르면 새 시각으로 한 번 더 저장되어 중복 확인으로도 걸러지지 않는다.
   // 저장이 끝난 뒤에도 축하 화면 준비(최대 1.5초) 동안 이 화면에 머무르므로 isPending 만으로는 막지 못한다

@@ -1,4 +1,4 @@
-import {flushPendingSaves, onPendingFlushed, savePushupSession, saveWorkout} from '../../src/remote/pushup';
+import {flushPendingSaves, getSetsInRange, onPendingFlushed, savePushupSession, saveWorkout} from '../../src/remote/pushup';
 import {supabase} from '../../src/lib/supabase';
 import {addPendingSave, loadPendingSaves, removePendingSave} from '../../src/utils/pendingSaves';
 
@@ -70,6 +70,80 @@ const pending = (created_at: string, reps: number, userId = 'u1') => ({
   workout_date: created_at.slice(0, 10),
   created_at,
   data: {reps, duration_seconds: 5},
+});
+
+describe('getSetsInRange', () => {
+  const startDate = '2026-11-01';
+  const endDate = '2026-11-30';
+  const set = {
+    id: 'set-1',
+    user_id: 'u1',
+    workout_date: startDate,
+    reps: 12,
+    duration_seconds: 30,
+    created_at: '2026-11-01T10:00:00Z',
+    mode: 'sets',
+    workout_id: null,
+    set_index: null,
+    target_reps: null,
+  };
+
+  const mockRangeQuery = () => {
+    const query = {
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      gte: jest.fn().mockReturnThis(),
+      lte: jest.fn().mockReturnThis(),
+      order: jest.fn().mockReturnThis(),
+      range: jest.fn(),
+    };
+    mockFrom.mockReturnValue(query);
+    return query;
+  };
+
+  it('로그인한 사용자와 양끝을 포함한 운동 날짜로 조회한다', async () => {
+    const rows = [set, {...set, id: 'set-2', workout_date: endDate}];
+    const query = mockRangeQuery();
+    query.range.mockResolvedValue({data: rows, error: null});
+
+    await expect(getSetsInRange(startDate, endDate)).resolves.toEqual(rows);
+    expect(mockFrom).toHaveBeenCalledWith('pushup_sets');
+    expect(query.eq).toHaveBeenCalledWith('user_id', 'u1');
+    expect(query.gte).toHaveBeenCalledWith('workout_date', startDate);
+    expect(query.lte).toHaveBeenCalledWith('workout_date', endDate);
+  });
+
+  it('한 페이지가 가득 차면 다음 페이지의 세트도 반환한다', async () => {
+    const firstPage = Array.from({length: 1000}, (_, i) => ({
+      ...set,
+      id: `first-${i}`,
+    }));
+    const lastSet = {...set, id: 'last'};
+    const query = mockRangeQuery();
+    query.range
+      .mockResolvedValueOnce({data: firstPage, error: null})
+      .mockResolvedValueOnce({data: [lastSet], error: null});
+
+    await expect(getSetsInRange(startDate, endDate)).resolves.toEqual([
+      ...firstPage,
+      lastSet,
+    ]);
+    expect(query.range.mock.calls).toEqual([[0, 999], [1000, 1999]]);
+  });
+
+  it('로그인하지 않으면 데이터를 조회하지 않는다', async () => {
+    mockGetUser.mockResolvedValue({data: {user: null}});
+    await expect(getSetsInRange(startDate, endDate)).rejects.toThrow(
+      '사용자가 로그인되지 않았습니다.',
+    );
+    expect(mockFrom).not.toHaveBeenCalled();
+  });
+
+  it('조회 오류를 전달한다', async () => {
+    const error = {message: 'network'};
+    mockRangeQuery().range.mockResolvedValue({data: null, error});
+    await expect(getSetsInRange(startDate, endDate)).rejects.toBe(error);
+  });
 });
 
 describe('savePushupSession', () => {

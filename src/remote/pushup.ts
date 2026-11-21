@@ -76,6 +76,41 @@ export const getTodayPushupSets = async ({
   }
 };
 
+export const getSetsInRange = async (
+  startDate: string,
+  endDate: string,
+): Promise<PushupSetData[]> => {
+  const {data: {user}} = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('사용자가 로그인되지 않았습니다.');
+  }
+
+  // 조회 한도에 걸려도 월 요약에 필요한 세트가 빠지지 않도록 나눠 가져온다.
+  const pageSize = 1000;
+  const sets: PushupSetData[] = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const {data, error} = await supabase
+      .from('pushup_sets')
+      .select('*')
+      .eq('user_id', user.id)
+      .gte('workout_date', startDate)
+      .lte('workout_date', endDate)
+      .order('workout_date', {ascending: true})
+      .order('created_at', {ascending: true})
+      .order('id', {ascending: true})
+      .range(offset, offset + pageSize - 1);
+    if (error) {
+      throw error;
+    }
+    if (data) {
+      sets.push(...data);
+    }
+    if (!data || data.length < pageSize) {
+      return sets;
+    }
+  }
+};
+
 export interface WeeklyStatsData {
   date: string;
   totalReps: number;

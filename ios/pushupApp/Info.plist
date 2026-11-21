@@ -88,6 +88,12 @@
 		<string>FontAwesome6_Brands.ttf</string>
 		<string>FontAwesome6_Regular.ttf</string>
 		<string>FontAwesome6_Solid.ttf</string>
+		<string>BigShoulders-ExtraBold.ttf</string>
+		<string>BigShoulders-Black.ttf</string>
+		<string>AstaSans-Medium.ttf</string>
+		<string>AstaSans-ExtraBold.ttf</string>
+		<string>AstaSans-SemiBold.ttf</string>
+		<string>AstaSans-Bold.ttf</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>

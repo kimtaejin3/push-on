@@ -15,6 +15,12 @@
 		B5F797D22E753131005F3219 /* PushupManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F797D02E753131005F3219 /* PushupManager.swift */; };
 		B5F797D32E753131005F3219 /* PushupRecognition.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F797D12E753131005F3219 /* PushupRecognition.swift */; };
 		B5F797D42E753131005F3219 /* PushupManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B5F797CF2E753131005F3219 /* PushupManager.m */; };
+		320BAC21392F46378D021A4B /* BigShoulders-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1EE193304D494A8FA3C284F2 /* BigShoulders-ExtraBold.ttf */; };
+		70041D7F75E84CF2AE6191A8 /* BigShoulders-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5D18A45DFE6E48169A488FA2 /* BigShoulders-Black.ttf */; };
+		0E51B6BA2D8F4C06B67CADEA /* AstaSans-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CD0D122D4E2B4BF584C1ACA5 /* AstaSans-Medium.ttf */; };
+		8F5AC48BE3D3416F9D248828 /* AstaSans-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3E0537297D644EFE96CDC922 /* AstaSans-ExtraBold.ttf */; };
+		1B72B93A6DBF4F77B3075AAC /* AstaSans-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 25AF8AF71AD54E8594C34493 /* AstaSans-SemiBold.ttf */; };
+		1506EBA5E5324DB989447948 /* AstaSans-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EDB6CE15B8AF4582A25CF498 /* AstaSans-Bold.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +40,12 @@
 		B5F797D52E753134005F3219 /* pushupApp-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "pushupApp-Bridging-Header.h"; sourceTree = "<group>"; };
 		B5F797D62E7532F9005F3219 /* PushupManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PushupManager.h; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		1EE193304D494A8FA3C284F2 /* BigShoulders-ExtraBold.ttf */ = {isa = PBXFileReference; name = "BigShoulders-ExtraBold.ttf"; path = "../assets/fonts/BigShoulders/BigShoulders-ExtraBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		5D18A45DFE6E48169A488FA2 /* BigShoulders-Black.ttf */ = {isa = PBXFileReference; name = "BigShoulders-Black.ttf"; path = "../assets/fonts/BigShoulders/BigShoulders-Black.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		CD0D122D4E2B4BF584C1ACA5 /* AstaSans-Medium.ttf */ = {isa = PBXFileReference; name = "AstaSans-Medium.ttf"; path = "../assets/fonts/AstaSans/AstaSans-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		3E0537297D644EFE96CDC922 /* AstaSans-ExtraBold.ttf */ = {isa = PBXFileReference; name = "AstaSans-ExtraBold.ttf"; path = "../assets/fonts/AstaSans/AstaSans-ExtraBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		25AF8AF71AD54E8594C34493 /* AstaSans-SemiBold.ttf */ = {isa = PBXFileReference; name = "AstaSans-SemiBold.ttf"; path = "../assets/fonts/AstaSans/AstaSans-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		EDB6CE15B8AF4582A25CF498 /* AstaSans-Bold.ttf */ = {isa = PBXFileReference; name = "AstaSans-Bold.ttf"; path = "../assets/fonts/AstaSans/AstaSans-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +87,20 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		4B1EB9C913634C38862B11E6 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				1EE193304D494A8FA3C284F2 /* BigShoulders-ExtraBold.ttf */,
+				5D18A45DFE6E48169A488FA2 /* BigShoulders-Black.ttf */,
+				CD0D122D4E2B4BF584C1ACA5 /* AstaSans-Medium.ttf */,
+				3E0537297D644EFE96CDC922 /* AstaSans-ExtraBold.ttf */,
+				25AF8AF71AD54E8594C34493 /* AstaSans-SemiBold.ttf */,
+				EDB6CE15B8AF4582A25CF498 /* AstaSans-Bold.ttf */,
+			);
+			name = Resources;
+			path = "";
+			sourceTree = "<group>";
+		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
@@ -90,6 +116,7 @@
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
+				4B1EB9C913634C38862B11E6 /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -177,6 +204,12 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				81762657F60FE502ABCCBFAF /* PrivacyInfo.xcprivacy in Resources */,
+				320BAC21392F46378D021A4B /* BigShoulders-ExtraBold.ttf in Resources */,
+				70041D7F75E84CF2AE6191A8 /* BigShoulders-Black.ttf in Resources */,
+				0E51B6BA2D8F4C06B67CADEA /* AstaSans-Medium.ttf in Resources */,
+				8F5AC48BE3D3416F9D248828 /* AstaSans-ExtraBold.ttf in Resources */,
+				1B72B93A6DBF4F77B3075AAC /* AstaSans-SemiBold.ttf in Resources */,
+				1506EBA5E5324DB989447948 /* AstaSans-Bold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

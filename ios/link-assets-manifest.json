@@ -1,0 +1,29 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/AstaSans/AstaSans-Bold.ttf",
+      "sha1": "5986b60904d1a48150ff2f5193f5daa581f20342"
+    },
+    {
+      "path": "assets/fonts/AstaSans/AstaSans-ExtraBold.ttf",
+      "sha1": "bf263b630fba55af16c3f1fba8418cb3f54f759e"
+    },
+    {
+      "path": "assets/fonts/AstaSans/AstaSans-Medium.ttf",
+      "sha1": "d8268b81a6241e72a82ac7bc2bed03199fb4b337"
+    },
+    {
+      "path": "assets/fonts/AstaSans/AstaSans-SemiBold.ttf",
+      "sha1": "2e5b7385bf34cd29784f9d0290bec393216b9997"
+    },
+    {
+      "path": "assets/fonts/BigShoulders/BigShoulders-Black.ttf",
+      "sha1": "7d842dc0b5ec4ac183ca510cb743bb3852b52533"
+    },
+    {
+      "path": "assets/fonts/BigShoulders/BigShoulders-ExtraBold.ttf",
+      "sha1": "1a5e78432764715aaf6d0de6218f059e248ad16a"
+    }
+  ]
+}

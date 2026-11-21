@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect} from 'react';
 import {Alert, SafeAreaView, ScrollView, StyleSheet, Text, View} from 'react-native';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {useQuery} from '@tanstack/react-query';
@@ -7,21 +7,9 @@ import CustomButton from '../components/common/CustomButton';
 import {colors} from '../constants/colors';
 import {useSession} from '../hooks/useSession';
 import {AppStackParamList} from '../navigations/AppNavigation';
-import {
-  currentProgramQueryOptions,
-  useAbandonProgramMutation,
-  useCreateProgramMutation,
-  useUpdateProgramMutation,
-} from '../tanstack-query';
+import {currentProgramQueryOptions, useAbandonProgramMutation} from '../tanstack-query';
 import {toProgramState} from '../remote/program';
-import {
-  applyTest,
-  describeSets,
-  initialTestPreview,
-  retestLevel,
-  startProgram,
-  todayPlan,
-} from '../domain/hundredPushups';
+import {describeSets, initialTestPreview, todayPlan} from '../domain/hundredPushups';
 import ReminderSettingsCard from '../components/features/program/ReminderSettingsCard';
 import {cancelWorkoutReminders} from '../services/workoutReminder';
 import {WEEKS} from '../constants/hundredPushups';
@@ -29,33 +17,11 @@ import {WEEKS} from '../constants/hundredPushups';
 function ProgramScreen() {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<AppStackParamList, 'Program'>>();
-  const testReps = route.params?.testReps;
+  const notice = route.params?.notice;
   const {user} = useSession();
 
   const {data: programRow, isLoading} = useQuery(currentProgramQueryOptions(user?.id ?? ''));
-  const createProgram = useCreateProgramMutation();
-  const updateProgram = useUpdateProgramMutation();
   const abandonProgram = useAbandonProgramMutation();
-
-  // 챌린지 화면(테스트)에서 돌아온 결과 반영 — 같은 결과를 두 번 처리하지 않는다
-  const handledTest = useRef<number | undefined>(undefined);
-  useEffect(() => {
-    if (testReps === undefined || isLoading || !user || handledTest.current === testReps) {
-      return;
-    }
-    handledTest.current = testReps;
-    navigation.setParams({testReps: undefined} as never);
-    if (!programRow) {
-      createProgram.mutate({userId: user.id, state: startProgram(testReps)});
-      return;
-    }
-    const state = toProgramState(programRow);
-    // 테스트 차례면 주차 진행, 아니면 "레벨 다시 재기" 결과로 현재 주차의 열만 재배정
-    const next = state.testDue ? applyTest(state, testReps) : retestLevel(state, testReps);
-    if (next !== state) {
-      updateProgram.mutate({id: programRow.id, state: next});
-    }
-  }, [testReps, isLoading, programRow, user, navigation, createProgram, updateProgram]);
 
   // 진행 중인 프로그램이 없으면(완료/중단 포함) 걸려 있던 운동 알림을 정리한다
   useEffect(() => {
@@ -197,6 +163,11 @@ function ProgramScreen() {
     <SafeAreaView style={styles.container}>
       <Header title="100개 챌린지" onBackPress={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
+        {notice ? (
+          <Text style={styles.notice} onPress={() => navigation.setParams({notice: undefined})}>
+            {notice}
+          </Text>
+        ) : null}
         {renderBody()}
         {programRow && programRow.status === 'active' && <ReminderSettingsCard />}
         {programRow && programRow.status === 'active' && (
@@ -234,6 +205,16 @@ const styles = StyleSheet.create({
   retest: {textAlign: 'center', fontSize: 14, color: colors.primaryLight, paddingTop: 4},
   link: {textAlign: 'center', fontSize: 14, color: colors.primaryLight, paddingTop: 8},
   abandon: {textAlign: 'center', fontSize: 14, color: colors.gray400, padding: 8},
+  notice: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.textLight,
+    backgroundColor: colors.primaryOverlayMedium,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    overflow: 'hidden',
+  },
 });
 
 export default ProgramScreen;

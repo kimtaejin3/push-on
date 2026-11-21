@@ -15,30 +15,17 @@ import {
 interface ChallengeResultProps {
   pushUpCount: number;
   duration: number;
-  /** 100개 프로그램의 초기/재테스트로 쓰일 때 */
-  purpose?: 'program-test';
 }
 
-function ChallengeResult({
-  pushUpCount,
-  duration,
-  purpose,
-}: ChallengeResultProps): React.JSX.Element {
+/** 챌린지 모드 결과 화면. (100개 챌린지의 테스트 결과는 ProgramTestResult 가 맡는다) */
+function ChallengeResult({pushUpCount, duration}: ChallengeResultProps): React.JSX.Element {
   const [iconAnim, titleAnim, subtitleAnim] = useSequentialAnimation(3, {
     durations: [500, 400, 300],
   });
   const navigation = useNavigation();
 
-  const isProgramTest = purpose === 'program-test';
-
   // navigate 는 기존 화면으로 돌아가지 않고 새로 쌓으므로(React Navigation 7) popTo 로 돌아간다
-  const goNext = () => {
-    if (isProgramTest) {
-      navigation.dispatch(StackActions.popTo('Program', {testReps: pushUpCount}));
-    } else {
-      navigation.dispatch(StackActions.popTo('Tabs'));
-    }
-  };
+  const goNext = () => navigation.dispatch(StackActions.popTo('Tabs'));
 
   const savePushupMutation = useSavePushupSessionMutation(goNext, error => {
     console.error('푸쉬업 세션 저장 실패:', error);
@@ -52,7 +39,7 @@ function ChallengeResult({
     savePushupMutation.mutate({
       reps: pushUpCount,
       duration_seconds: duration,
-      mode: isProgramTest ? 'program_test' : 'challenge',
+      mode: 'challenge',
     });
   };
 
@@ -106,25 +93,9 @@ function ChallengeResult({
         <View style={styles.footer}>
           <CustomButton
             style={styles.saveButton}
-            title={
-              pushUpCount > 0
-                ? isProgramTest
-                  ? '기록하고 프로그램으로'
-                  : '기록하고 홈으로 이동'
-                : isProgramTest
-                ? '프로그램으로'
-                : '홈으로 이동'
-            }
+            title={pushUpCount > 0 ? '기록하고 홈으로 이동' : '홈으로 이동'}
             variant="start"
-            onPress={() => {
-              if (pushUpCount > 0) {
-                handleSaveAndGoHome();
-              } else if (isProgramTest) {
-                navigation.dispatch(StackActions.popTo('Program'));
-              } else {
-                navigation.dispatch(StackActions.popTo('Tabs'));
-              }
-            }}
+            onPress={pushUpCount > 0 ? handleSaveAndGoHome : goNext}
           />
         </View>
       </View>

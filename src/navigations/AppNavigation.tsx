@@ -117,7 +117,8 @@ export type AppStackParamList = {
   Challenge: {purpose?: 'program-test'} | undefined;
   SetsSetup: undefined;
   Workout: {plan: WorkoutPlan; source: WorkoutSource};
-  Program: {testReps?: number} | undefined;
+  /** notice: 하향·주차 변경 직후 한 번 보여줄 안내 */
+  Program: {notice?: string} | undefined;
   ProgramTable: undefined;
   Setting: undefined;
   TermsOfService: undefined;

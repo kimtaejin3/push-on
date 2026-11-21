@@ -5,6 +5,7 @@ import usePushUpManager from '../hooks/usePushUpManager';
 import CustomButton from '../components/common/CustomButton';
 import Engagement from '../components/features/push-up/Engagement';
 import ChallengeResult from '../components/features/push-up/ChallengeResult';
+import ProgramTestResult from '../components/features/program/ProgramTestResult';
 import {colors} from '../constants/colors';
 import Count from '../components/features/push-up/Count';
 import TimerContainer from '../components/features/push-up/TimerContainer';
@@ -34,12 +35,11 @@ function ChallengeScreen(): React.JSX.Element {
   };
 
   if (isPushUpFinished) {
-    return (
-      <ChallengeResult
-        pushUpCount={pushUpCount}
-        duration={elapsedTime}
-        purpose={purpose}
-      />
+    // 100개 챌린지의 테스트는 결과를 해석해 프로그램에 반영하는 전용 화면을 쓴다
+    return purpose === 'program-test' ? (
+      <ProgramTestResult reps={pushUpCount} duration={elapsedTime} />
+    ) : (
+      <ChallengeResult pushUpCount={pushUpCount} duration={elapsedTime} />
     );
   }
 

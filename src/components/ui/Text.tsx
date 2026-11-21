@@ -40,6 +40,7 @@ export function Text({
         {
           color: color[textColor],
           fontSize: typography.fontSize,
+          lineHeight: typography.lineHeight,
           fontFamily: fontFamilyFor(
             role,
             weight ?? typography.weight,

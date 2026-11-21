@@ -34,10 +34,16 @@ export function Stepper({
         <Text variant="caption" color="textMuted" weight={600}>
           {label}
         </Text>
-        <Text variant="title" style={styles.value}>
-          {value}
-          {unit}
-        </Text>
+        <View style={styles.valueRow}>
+          <Text variant="headline" numeric weight={800} style={styles.number}>
+            {value}
+          </Text>
+          {unit ? (
+            <Text variant="headline" weight={800} style={styles.unit}>
+              {unit}
+            </Text>
+          ) : null}
+        </View>
       </View>
       {directions.map(({delta, icon, action}) => {
         const next = Math.max(min, Math.min(max, value + delta * step));
@@ -72,7 +78,9 @@ const styles = StyleSheet.create({
     borderBottomColor: color.border,
   },
   copy: {flex: 1, gap: space[4]},
-  value: {fontSize: 24},
+  valueRow: {flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline'},
+  number: {fontSize: 26},
+  unit: {fontSize: 24},
   button: {
     width: layout.touchMin,
     height: layout.touchMin,

@@ -25,22 +25,24 @@ export function Row({
 }: RowProps) {
   const content = (
     <>
-      {icon && <Icon name={icon} color={destructive ? 'alert' : 'textMuted'} />}
+      {icon ? (
+        <Icon name={icon} color={destructive ? 'alert' : 'textMuted'} />
+      ) : null}
       <View style={styles.copy}>
         <Text weight={600} color={destructive ? 'alert' : 'text'}>
           {title}
         </Text>
-        {subtitle && (
+        {subtitle ? (
           <Text variant="caption" color="textMuted">
             {subtitle}
           </Text>
-        )}
+        ) : null}
       </View>
-      {value && (
+      {value ? (
         <Text variant="label" color="textMuted" style={styles.value}>
           {value}
         </Text>
-      )}
+      ) : null}
       {right ??
         (onPress && <Icon name="chevron-right" size={18} color="textMuted" />)}
     </>

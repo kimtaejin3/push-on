@@ -110,7 +110,8 @@ export const useAuth = () => {
     try {
       setIsLoading(true);
 
-      // nonce 는 넘기지 않는다 — Supabase 의 React Native 애플 로그인 예제와 동일한 방식
+      // 라이브러리는 기본값(nonceEnabled: true)으로 nonce 를 만들어 해시를 애플에 보내고,
+      // 원본을 credential.nonce 로 돌려준다.
       const credential = await appleAuth.performRequest({
         requestedOperation: appleAuth.Operation.LOGIN,
         requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
@@ -120,9 +121,12 @@ export const useAuth = () => {
         throw new Error('Apple ID 토큰을 받지 못했습니다.');
       }
 
+      // identityToken 에 nonce 클레임이 들어 있으므로 원본 nonce 를 같이 넘겨야 한다.
+      // 빠뜨리면 Supabase 가 "Passed nonce and nonce in id_token should either both exist or not" 로 거절한다.
       const {data, error} = await supabase.auth.signInWithIdToken({
         provider: 'apple',
         token: credential.identityToken,
+        nonce: credential.nonce,
       });
 
       if (error) {

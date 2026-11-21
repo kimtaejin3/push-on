@@ -48,8 +48,15 @@ describe('useAuth 애플 로그인', () => {
     (supabase.auth.signOut as jest.Mock).mockResolvedValue({error: null});
   });
 
-  it('identityToken 으로 Supabase 에 로그인하고 authorizationCode 를 서버에 연결한다', async () => {
-    mockPerform.mockResolvedValue({identityToken: 'id-token', authorizationCode: 'auth-code'});
+  it('identityToken 과 nonce 로 Supabase 에 로그인하고 authorizationCode 를 서버에 연결한다', async () => {
+    // 라이브러리는 기본값(nonceEnabled: true)으로 nonce 를 만들어 해시를 애플에 보내고,
+    // 원본을 응답의 nonce 로 돌려준다. identityToken 에 nonce 클레임이 들어 있으므로
+    // Supabase 에 원본 nonce 를 같이 넘기지 않으면 로그인이 거절된다.
+    mockPerform.mockResolvedValue({
+      identityToken: 'id-token',
+      authorizationCode: 'auth-code',
+      nonce: 'raw-nonce',
+    });
     const result = await renderHook(() => useAuth());
 
     await act(async () => {
@@ -59,6 +66,7 @@ describe('useAuth 애플 로그인', () => {
     expect(mockSignInWithIdToken).toHaveBeenCalledWith({
       provider: 'apple',
       token: 'id-token',
+      nonce: 'raw-nonce',
     });
     expect(mockLink).toHaveBeenCalledWith('auth-code');
   });

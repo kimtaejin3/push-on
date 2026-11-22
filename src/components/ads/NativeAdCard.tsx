@@ -50,6 +50,9 @@ const asta = (weight: 500 | 700) =>
 export function NativeAdCard({unitId, style}: NativeAdCardProps) {
   const {adsEnabled} = useAds();
   const [load, setLoad] = useState<LoadState>(LOADING);
+  // iOS 광고 검사기는 카드 높이가 소수(예: 637.33)이면 자산이 광고 뷰 밖에 있다고 본다
+  // (invertase/react-native-google-mobile-ads#700) → 잰 높이를 정수로 올려 고정한다
+  const [cardHeight, setCardHeight] = useState<number>();
 
   useEffect(() => {
     if (!adsEnabled) {
@@ -103,7 +106,15 @@ export function NativeAdCard({unitId, style}: NativeAdCardProps) {
 
   // 클릭 영역은 NativeAsset 으로 감싼 제목·아이콘·미디어·CTA 뿐이다. 카드 패딩·빈 곳·본문은 감싸지 않는다
   return (
-    <NativeAdView nativeAd={ad} style={[styles.card, style]}>
+    <NativeAdView
+      nativeAd={ad}
+      style={[styles.card, style, cardHeight !== undefined && {height: cardHeight}]}
+      onLayout={event => {
+        const {height} = event.nativeEvent.layout;
+        if (cardHeight === undefined && !Number.isInteger(height)) {
+          setCardHeight(Math.ceil(height));
+        }
+      }}>
       <View style={styles.top}>
         <AdBadge />
         <View style={styles.adChoicesSlot} />

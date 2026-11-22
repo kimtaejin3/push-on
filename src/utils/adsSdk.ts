@@ -15,6 +15,16 @@ export const isAdsSdkReady = (): boolean => ready;
  * 이때는 결과를 기억하지 않아, 동의가 끝난 뒤 다시 부르면 초기화한다.
  * 어떤 실패도 밖으로 던지지 않고 false 를 돌려준다 → 광고 비노출, 앱은 정상 동작.
  */
+const refreshConsentInfo = async () => {
+  try {
+    return await AdsConsent.requestInfoUpdate();
+  } catch (error) {
+    // 네트워크 등으로 갱신에 실패하면 문서 권장대로 저장된 동의 상태로 판단한다
+    console.warn('[광고] 동의 정보 갱신 실패:', error);
+    return AdsConsent.getConsentInfo();
+  }
+};
+
 export const initializeAdsSdk = (): Promise<boolean> => {
   if (!isConsentFlowDone()) {
     return Promise.resolve(false);
@@ -22,8 +32,9 @@ export const initializeAdsSdk = (): Promise<boolean> => {
   if (!initPromise) {
     initPromise = (async () => {
       try {
-        // UMP 양식은 동의 흐름에서 이미 돌았다. 그 결과(또는 이전 세션의 동의)로 요청 가능 여부만 본다
-        const {canRequestAds} = await AdsConsent.getConsentInfo();
+        // UMP 양식은 동의 흐름에서 이미 돌았다. 여기서는 양식 없이 동의 정보만 새로 받는다.
+        // 앱을 다시 켜면 UMP 상태가 UNKNOWN(canRequestAds false)이라, 구글 권장대로 실행마다 갱신해야 한다
+        const {canRequestAds} = await refreshConsentInfo();
         if (!canRequestAds) {
           return false;
         }

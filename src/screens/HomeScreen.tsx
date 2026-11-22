@@ -14,7 +14,6 @@ import {Skeleton} from '../components/ui/feedback/Skeleton';
 import {NATIVE_HOME_AD_UNIT_ID} from '../constants/ads';
 import {WEEKS} from '../constants/hundredPushups';
 import {
-  describeSets,
   passedDayCount,
   testThreshold,
   todayPlan,
@@ -147,18 +146,13 @@ function HomeScreen(): React.JSX.Element {
       now,
     );
     if (progress !== 'open') {
-      const nextSets = describeSets(plan.sets, plan.lastIsMax);
+      // 오늘 할 일을 끝냈어도 같은 카드 모양으로 내일 운동을 보여 준다
       return (
         <TodayHero
-          title={
-            progress === 'doneWorkout'
-              ? '오늘 운동 완료'
-              : '오늘은 테스트를 했어요'
-          }
-          description={`내일 이어서 해요\n${state.week}주차 · Day ${state.day} · ${nextSets}`}
-          actionLabel="미리 하기"
-          actionVariant="text"
-          onAction={startWorkout}
+          state={state}
+          plan={plan}
+          onStart={startWorkout}
+          done={progress === 'doneWorkout' ? 'workout' : 'test'}
         />
       );
     }

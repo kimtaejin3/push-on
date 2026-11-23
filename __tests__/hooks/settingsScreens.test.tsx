@@ -68,7 +68,9 @@ async function render(screen: React.ReactElement) {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  client = new QueryClient();
+  // 미리 넣은 캐시를 마운트 때 다시 읽지 않게 한다. 다시 읽으면 AsyncStorage 목(빈 값)이 기본 설정으로 덮어써
+  // 테스트가 부하에 따라 가끔 실패한다
+  client = new QueryClient({defaultOptions: {queries: {staleTime: Infinity, retry: false}}});
   client.setQueryData(queryKeys.workoutPrefs, {autoNextSet: true});
   client.setQueryData(reminderSettingsQuery.queryKey, DEFAULT_REMINDER_SETTINGS);
 });

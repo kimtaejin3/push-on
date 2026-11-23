@@ -4,6 +4,8 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-feature android:name="android.hardware.camera.ar" android:required="true" />
+    <!-- netinfo 의 ACCESS_WIFI_STATE 가 와이파이를 필수 기능으로 만든다. 와이파이 없는 기기도 설치할 수 있게 선택으로 둔다 -->
+    <uses-feature android:name="android.hardware.wifi" android:required="false" />
 
     <application
       android:name=".MainApplication"

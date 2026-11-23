@@ -25,10 +25,11 @@ import {useSession} from '../hooks/useSession';
 import {Button} from '../components/ui/Button';
 import {Icon} from '../components/ui/Icon';
 import {Text} from '../components/ui/Text';
-import {color, radius, space} from '../theme';
+import {color, space} from '../theme';
 import StreakRuntime from '../components/features/streak/StreakRuntime';
 import {useEnsureProfile} from '../hooks/useEnsureProfile';
 import {navigationRef} from './navigationRef';
+import {IndeterminateBar} from '../components/ui/feedback/IndeterminateBar';
 
 const AppStack = createNativeStackNavigator({
   initialRouteName: 'Tabs',
@@ -91,9 +92,7 @@ const ConditionalNavigation = () => {
         <View
           style={[styles.loading, {bottom: bottom + space[48]}]}
           accessibilityRole="progressbar">
-          <View style={styles.loadingTrack}>
-            <View style={styles.loadingIndicator} />
-          </View>
+          <IndeterminateBar width={160} />
           <Text variant="caption" color="textMuted">
             앱 데이터를 불러오고 있어요
           </Text>
@@ -153,18 +152,6 @@ const styles = StyleSheet.create({
   brand: {alignItems: 'center', gap: space[8], paddingHorizontal: space[24]},
   wordmark: {fontSize: 52, lineHeight: 64, textAlign: 'center'},
   loading: {position: 'absolute', alignItems: 'center', gap: space[12]},
-  loadingTrack: {
-    width: 160,
-    height: 4,
-    borderRadius: radius.pill,
-    backgroundColor: color.surface2,
-  },
-  loadingIndicator: {
-    width: '45%',
-    height: '100%',
-    borderRadius: radius.pill,
-    backgroundColor: color.active,
-  },
   profileError: {flex: 1, backgroundColor: color.bg},
   profileErrorContent: {
     flexGrow: 1,

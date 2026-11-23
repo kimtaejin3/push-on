@@ -1,6 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import {AccessibilityInfo, Animated, Easing, StyleSheet, View} from 'react-native';
-import Svg, {Defs, Ellipse, Path, RadialGradient, Stop} from 'react-native-svg';
+import Svg, {Defs, Ellipse, G, Path, RadialGradient, Stop} from 'react-native-svg';
 import {color} from '../../../theme';
 
 /*
@@ -40,20 +40,22 @@ const DOTS: Layer[] = [
 const fillFor = (fill: Layer['fill']) =>
   fill === 'line' ? LINE : fill === 'active' ? color.active : fill === 'bg' ? color.bg : BODY;
 
+// 조각마다 디자인의 위치·크기에 맞춰 경로를 옮긴다.
+// (react-native-svg 는 안쪽 <Svg> 의 x·y·viewBox 를 기기에서 무시해 조각이 원점에 겹쳐 그려졌다)
+const layerTransform = (layer: Layer): string => {
+  const [vx, vy, vw, vh] = layer.viewBox.split(' ').map(Number);
+  const sx = layer.w / vw;
+  const sy = layer.h / vh;
+  return `matrix(${sx} 0 0 ${sy} ${layer.x - vx * sx} ${layer.y - vy * sy})`;
+};
+
 function Layers({layers}: {layers: Layer[]}) {
   return (
     <Svg width="100%" height="100%" viewBox={`0 0 ${WIDTH} ${HEIGHT}`}>
       {layers.map((layer, index) => (
-        <Svg
-          key={index}
-          x={layer.x}
-          y={layer.y}
-          width={layer.w}
-          height={layer.h}
-          viewBox={layer.viewBox}
-          preserveAspectRatio="none">
+        <G key={index} transform={layerTransform(layer)}>
           <Path d={layer.d} fill={fillFor(layer.fill)} />
-        </Svg>
+        </G>
       ))}
     </Svg>
   );

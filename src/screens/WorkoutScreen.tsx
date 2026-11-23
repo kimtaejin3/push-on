@@ -33,6 +33,7 @@ import {
 import Count from '../components/features/push-up/Count';
 import TimerContainer from '../components/features/push-up/TimerContainer';
 import WorkoutHeader from '../components/features/workout/WorkoutHeader';
+import {SetupIllustration} from '../components/features/workout/SetupIllustration';
 import RestTimer from '../components/features/workout/RestTimer';
 import WorkoutSummary from '../components/features/workout/WorkoutSummary';
 import ProgramDaySummary from '../components/features/program/ProgramDaySummary';
@@ -567,6 +568,7 @@ function Workout({prefs}: {prefs: WorkoutPrefs}): React.JSX.Element {
                   </>
                 ) : (
                   <>
+                    {phase === 'idle' && <SetupIllustration />}
                     {phase !== 'idle' && (
                       <Count
                         value={

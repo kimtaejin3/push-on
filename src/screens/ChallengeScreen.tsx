@@ -9,6 +9,7 @@ import {Text} from '../components/ui/Text';
 import ChallengeResult from '../components/features/push-up/ChallengeResult';
 import ProgramTestResult from '../components/features/program/ProgramTestResult';
 import Count from '../components/features/push-up/Count';
+import {SetupIllustration} from '../components/features/workout/SetupIllustration';
 import TimerContainer from '../components/features/push-up/TimerContainer';
 import WorkoutHeader from '../components/features/workout/WorkoutHeader';
 import {WorkoutAction} from '../components/features/workout/WorkoutAction';
@@ -178,6 +179,7 @@ function ChallengeScreen(): React.JSX.Element {
             </>
           ) : (
             <>
+              {!tracking && countdown === 0 && <SetupIllustration />}
               {(tracking || countdown > 0) && (
                 <Count
                   value={tracking ? pushUpCount : countdown}

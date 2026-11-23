@@ -56,7 +56,7 @@ import {
   type Position,
 } from '../domain/hundredPushups';
 import {downgradeNotice, jumpNotice} from '../domain/programMessages';
-import {resolveProgramView} from '../domain/programView';
+import {resolveProgramView, weekRestartTarget} from '../domain/programView';
 import {cancelWorkoutReminders} from '../services/workoutReminder';
 import {color, layout, radius, space} from '../theme';
 import {weekJumpConfirmation} from './ProgramTableScreen';
@@ -323,8 +323,9 @@ function ProgramScreen() {
       );
     };
 
-    const confirmWeekRestart = () => {
-      const to: Position = {week: state.week, day: 1, level: state.level};
+    // 주차 첫날이면 같은 주차를 다시 하는 게 의미 없어 앞 주차로 보낸다 (1주차 첫날이면 없음)
+    const restartTo = weekRestartTarget(state);
+    const confirmWeekRestart = (to: Position) => {
       setDialog({
         ...weekJumpConfirmation(state, to),
         onConfirm: () =>
@@ -430,12 +431,18 @@ function ProgramScreen() {
             남아요.
           </Text>
           <View style={styles.pathActions}>
-            <PathAction
-              title={`${state.week}주차 다시 하기`}
-              icon="rotate-ccw"
-              disabled={busy}
-              onPress={confirmWeekRestart}
-            />
+            {restartTo && (
+              <PathAction
+                title={
+                  restartTo.week === state.week
+                    ? `${state.week}주차 다시 하기`
+                    : `${restartTo.week}주차로 돌아가기`
+                }
+                icon="rotate-ccw"
+                disabled={busy}
+                onPress={() => confirmWeekRestart(restartTo)}
+              />
+            )}
             {view !== 'testDue' && (
               <PathAction
                 title="지금 다시 테스트"

@@ -1,164 +1,243 @@
--- 리더보드 시드(가상 참여자) — 30일 동안 하루 2~3명이 새로 합류해 페르소나별로 운동하는 것처럼 보이게 한다.
--- Supabase SQL Editor 에서 한 번 실행. 실행해도 스위치(leaderboard_seeds_enabled)는 꺼진 채로 만들어진다.
+-- 리더보드 시드(가상 참여자) — pg_cron 이 매일 00:05(KST) 그날 합류할 시드와 그날 운동 기록을 만든다.
+-- Supabase SQL Editor 에서 한 번 실행. 스위치(leaderboard_seeds_enabled)는 꺼진 채로 만들어진다.
 --
 -- 실제 데이터와의 분리
---   • 시드는 seed_users / seed_workouts 두 테이블에만 있다. auth.users·profiles·pushup_sets·pushup_daily_totals 는 건드리지 않는다
+--   • 시드는 seed_* 테이블에만 있다. auth.users·profiles·pushup_sets·pushup_daily_totals 는 건드리지 않는다
 --     → 가입자·리텐션·운동량 분석은 지금 쿼리 그대로 실제 사용자만 본다.
---   • 두 테이블은 RLS 를 켜고 정책을 두지 않아 앱(anon·authenticated)에서 직접 읽을 수 없다.
+--   • seed_* 테이블은 RLS 를 켜고 정책을 두지 않아 앱(anon·authenticated)에서 직접 읽을 수 없다.
 --   • 리더보드 함수 3개(일간·월간·연간)만 실제 집계에 시드를 더해 돌려준다. 반환 형태는 그대로라 앱 수정이 없다.
 --   • 시드 비율·분포는 admin 스키마의 뷰로 본다(API 에 노출되지 않는 스키마).
 --
--- 자연스럽게 보이게
---   • 운동마다 시각(workout_at)을 두고, 그 시각이 지난 기록만 보인다 → 하루 동안 순위가 조금씩 움직인다.
---   • 페르소나 6종(빈도·개수·시간대·성장·이탈이 다름). 시드 한 명의 한 달 합계는 1,500개를 넘지 않는다.
---   • 난수 시드를 고정해, 같은 날 다시 만들면 같은 데이터가 나온다.
+-- 매일 하는 일 (seed_generate_day)
+--   • 합류 기간(기본 30일) 동안 하루 2~3명이 새로 합류한다.
+--   • 남아 있는 시드마다 페르소나 규칙으로 그날 운동할지·몇 개·몇 시에 할지 정한다. 그 시각이 지나야 리더보드에 보인다.
+--   • 합류 기간이 끝나면 새 시드는 없고, 남은 시드가 하루 3%씩 자연스럽게 그만둔다.
+--   • 시드 한 명의 한 달 합계는 1,500개를 넘지 않는다.
+--   • 설정(seed_config)·페르소나(seed_personas)·닉네임(seed_users)을 바꾸면 다음 실행부터 반영된다.
 
 -- ─────────────────────────────────────────────────────────────
--- 0. 스위치 (기본 꺼짐)
+-- 0. 확장·스위치
 -- ─────────────────────────────────────────────────────────────
+CREATE EXTENSION IF NOT EXISTS pg_cron WITH SCHEMA pg_catalog;
 ALTER TABLE app_config ADD COLUMN IF NOT EXISTS leaderboard_seeds_enabled boolean NOT NULL DEFAULT false;
 
 -- ─────────────────────────────────────────────────────────────
--- 1. 시드 테이블
+-- 1. 설정·페르소나·시드 테이블
 -- ─────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS seed_config (
+  id                 text PRIMARY KEY DEFAULT 'default',
+  start_day          date NOT NULL DEFAULT (now() AT TIME ZONE 'Asia/Seoul')::date,  -- 합류 1일차
+  join_days          int  NOT NULL DEFAULT 30,     -- 새 시드가 들어오는 기간
+  join_min           int  NOT NULL DEFAULT 2,      -- 하루 합류 최소
+  join_max           int  NOT NULL DEFAULT 3,      -- 하루 합류 최대
+  month_cap          int  NOT NULL DEFAULT 1500,   -- 시드 한 명의 한 달 합계 상한
+  after_churn_daily  real NOT NULL DEFAULT 0.03,   -- 합류 기간이 끝난 뒤 하루 이탈 확률
+  generating         boolean NOT NULL DEFAULT true -- false 면 매일 작업이 아무것도 만들지 않는다
+);
+INSERT INTO seed_config (id) VALUES ('default') ON CONFLICT (id) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS seed_personas (
+  persona        text PRIMARY KEY,
+  label          text NOT NULL,
+  weight         real NOT NULL,   -- 새 시드가 이 페르소나일 비율
+  p_day          real NOT NULL,   -- 운동하는 날 비율
+  base_min       int  NOT NULL,   -- 시작 개수 범위
+  base_max       int  NOT NULL,
+  weekly_growth  real NOT NULL,   -- 주당 증가율 (challenge 는 아래 weekly_add 사용)
+  weekly_add     int  NOT NULL DEFAULT 0,
+  cap_daily      int  NOT NULL,   -- 하루 최대
+  hour_from      int  NOT NULL,   -- 운동 시간대 (KST)
+  hour_to        int  NOT NULL,
+  weekend_factor real NOT NULL DEFAULT 1,
+  churn_p        real NOT NULL    -- 합류 3~14일 사이 그만둘 확률
+);
+INSERT INTO seed_personas VALUES
+  ('office',    '퇴근 후 직장인',      0.30, 0.55, 30, 60, 1.03, 0,  80, 19, 23, 0.4, 0.35),
+  ('student',   '대학생·취준생',       0.20, 0.45, 20, 60, 1.02, 0,  90, 13, 24, 1.0, 0.40),
+  ('challenge', '100개 챌린지 입문',   0.18, 0.80, 25, 40, 1.00, 12, 100, 7, 23, 1.0, 0.30),
+  ('hometrain', '꾸준한 홈트',         0.15, 0.90, 50, 90, 1.02, 0, 110,  6, 10, 1.0, 0.10),
+  ('military',  '입대·체력시험 준비',  0.12, 0.85, 60, 90, 1.05, 0, 120,  6, 22, 1.0, 0.15),
+  ('master',    '고수',                0.05, 0.70, 90, 110, 1.00, 0, 120,  5, 23, 1.0, 0.05)
+ON CONFLICT (persona) DO NOTHING;
+
 CREATE TABLE IF NOT EXISTS seed_users (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   nickname   text NOT NULL UNIQUE,
-  persona    text NOT NULL,           -- office | student | challenge | hometrain | military | master
-  joined_on  date NOT NULL,           -- 합류일 (KST)
-  churn_on   date,                    -- 마지막 운동 가능일. null = 끝까지 남음
+  persona    text NOT NULL REFERENCES seed_personas(persona),
+  base_reps  int  NOT NULL,          -- 이 시드의 시작 개수
+  joined_on  date NOT NULL,          -- 합류일 (KST)
+  churn_on   date,                   -- 마지막 운동 가능일. null = 계속
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS seed_workouts (
   seed_id    uuid NOT NULL REFERENCES seed_users(id) ON DELETE CASCADE,
-  workout_at timestamptz NOT NULL,    -- 이 시각이 지나야 리더보드에 보인다
+  workout_at timestamptz NOT NULL,   -- 이 시각이 지나야 리더보드에 보인다
   reps       int NOT NULL CHECK (reps > 0),
   PRIMARY KEY (seed_id, workout_at)
 );
 CREATE INDEX IF NOT EXISTS seed_workouts_at_idx ON seed_workouts (workout_at);
 
+-- 날짜별 실행 기록 — 같은 날 두 번 돌아도 한 번만 만든다
+CREATE TABLE IF NOT EXISTS seed_runs (
+  day       date PRIMARY KEY,
+  joined    int NOT NULL,
+  workouts  int NOT NULL,
+  ran_at    timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE seed_config   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE seed_personas ENABLE ROW LEVEL SECURITY;
 ALTER TABLE seed_users    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE seed_workouts ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON seed_users, seed_workouts FROM anon, authenticated;
+ALTER TABLE seed_runs     ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON seed_config, seed_personas, seed_users, seed_workouts, seed_runs FROM anon, authenticated;
 
 -- ─────────────────────────────────────────────────────────────
--- 2. 데이터 생성 (이미 있으면 건너뜀)
+-- 2. 하루치 생성 함수 (pg_cron 이 매일 부른다)
 -- ─────────────────────────────────────────────────────────────
-DO $$
+CREATE OR REPLACE FUNCTION seed_new_nickname()
+RETURNS text
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
 DECLARE
-  start_day  date := (now() AT TIME ZONE 'Asia/Seoul')::date;   -- 실행한 날이 1일차
-  total_days int  := 30;
-  month_cap  int  := 1500;                                       -- 시드 한 명의 한 달 합계 상한
   adjs  text[] := ARRAY['새벽','퇴근후','매일','꾸준','불꽃','근육','작심삼일','오늘도','하루한번','무쇠',
                         '헬린이','홈트','아침','야근후','주말','강철','열정','느긋한','도전','튼튼'];
   nouns text[] := ARRAY['푸쉬업','팔굽혀','곰','다람쥐','감자','고양이','거북이','호랑이','직장인','대학생',
                         '토끼','펭귄','루키','챌린저','운동러','근육맨','두부','만두','콩떡','청년'];
   alnum text := 'abcdefghijklmnopqrstuvwxyz0123456789';
-  d int; i int; k int; n int; tries int;
-  r float; persona text; nick text; sid uuid;
-  join_day date; churn date; cur date; dow int;
-  p_day float; base int; growth float; cap_daily int; h_lo int; h_hi int; churn_p float;
-  weeks int; reps int; hh int; mm int; month_sum int;
+  nick  text;
+  k     int;
 BEGIN
-  IF EXISTS (SELECT 1 FROM seed_users) THEN
-    RAISE NOTICE '시드가 이미 있어 생성을 건너뜁니다';
-    RETURN;
+  FOR tries IN 1..50 LOOP
+    -- 절반은 기본 닉네임(user-xxxxxxxx), 절반은 한글 별명 — 실제 사용자 닉네임 비율과 비슷하게
+    IF random() < 0.5 THEN
+      nick := 'user-';
+      FOR k IN 1..8 LOOP
+        nick := nick || substr(alnum, 1 + floor(random() * 36)::int, 1);
+      END LOOP;
+    ELSE
+      nick := adjs[1 + floor(random() * array_length(adjs, 1))::int]
+           || nouns[1 + floor(random() * array_length(nouns, 1))::int]
+           || CASE WHEN random() < 0.35 THEN (1 + floor(random() * 99))::int::text ELSE '' END;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM seed_users WHERE nickname = nick)
+       AND NOT EXISTS (SELECT 1 FROM profiles WHERE nickname = nick) THEN
+      RETURN nick;
+    END IF;
+  END LOOP;
+  RETURN nick || floor(random() * 10000)::int::text;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION seed_generate_day(target date DEFAULT (now() AT TIME ZONE 'Asia/Seoul')::date)
+RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  cfg       seed_config%ROWTYPE;
+  per       seed_personas%ROWTYPE;
+  su        record;
+  day_index int;
+  n_join    int;
+  r         float;
+  acc       float;
+  total_w   float;
+  joined    int := 0;
+  made      int := 0;
+  weeks     int;
+  v_reps    int;
+  p         float;
+  month_sum int;
+  hh        int;
+  mm        int;
+BEGIN
+  SELECT * INTO cfg FROM seed_config WHERE id = 'default';
+  IF NOT FOUND OR NOT cfg.generating THEN
+    RETURN 'skipped: generating off';
+  END IF;
+  IF target < cfg.start_day THEN
+    RETURN 'skipped: before start_day';
+  END IF;
+  IF EXISTS (SELECT 1 FROM seed_runs WHERE day = target) THEN
+    RETURN 'skipped: already ran';
   END IF;
 
-  PERFORM setseed(0.4242);
+  day_index := target - cfg.start_day;   -- 0 = 1일차
 
-  FOR d IN 0..total_days - 1 LOOP
-    join_day := start_day + d;
-    n := 2 + floor(random() * 2)::int;                          -- 하루 2~3명
-
-    FOR i IN 1..n LOOP
-      -- 페르소나: 직장인 30 · 학생 20 · 100개 챌린지 18 · 홈트 15 · 입대·체력시험 12 · 고수 5 (%)
-      r := random();
-      persona := CASE WHEN r < 0.30 THEN 'office'   WHEN r < 0.50 THEN 'student'
-                      WHEN r < 0.68 THEN 'challenge' WHEN r < 0.83 THEN 'hometrain'
-                      WHEN r < 0.95 THEN 'military'  ELSE 'master' END;
-
-      -- p_day: 운동하는 날 비율, base: 시작 개수, growth: 주당 증가율, h_lo~h_hi: 운동 시간대, churn_p: 중도 이탈 확률
-      CASE persona
-        WHEN 'office'    THEN p_day := 0.55; base := 30 + floor(random()*31)::int; growth := 1.03; cap_daily := 80;  h_lo := 19; h_hi := 23; churn_p := 0.35;
-        WHEN 'student'   THEN p_day := 0.45; base := 20 + floor(random()*41)::int; growth := 1.02; cap_daily := 90;  h_lo := 13; h_hi := 24; churn_p := 0.40;
-        WHEN 'challenge' THEN p_day := 0.80; base := 25 + floor(random()*16)::int; growth := 1.00; cap_daily := 100; h_lo := 7;  h_hi := 23; churn_p := 0.30;
-        WHEN 'hometrain' THEN p_day := 0.90; base := 50 + floor(random()*41)::int; growth := 1.02; cap_daily := 110; h_lo := 6;  h_hi := 10; churn_p := 0.10;
-        WHEN 'military'  THEN p_day := 0.85; base := 60 + floor(random()*31)::int; growth := 1.05; cap_daily := 120; h_lo := 6;  h_hi := 22; churn_p := 0.15;
-        ELSE                  p_day := 0.70; base := 90 + floor(random()*21)::int; growth := 1.00; cap_daily := 120; h_lo := 5;  h_hi := 23; churn_p := 0.05;
-      END CASE;
-
-      -- 닉네임: 절반은 기본 닉네임(user-xxxxxxxx), 절반은 한글 별명. 실제 사용자·다른 시드와 겹치지 않게
-      tries := 0;
-      LOOP
-        tries := tries + 1;
-        IF random() < 0.5 THEN
-          nick := 'user-';
-          FOR k IN 1..8 LOOP
-            nick := nick || substr(alnum, 1 + floor(random() * 36)::int, 1);
-          END LOOP;
-        ELSE
-          nick := adjs[1 + floor(random() * array_length(adjs, 1))::int]
-               || nouns[1 + floor(random() * array_length(nouns, 1))::int]
-               || CASE WHEN random() < 0.35 THEN (1 + floor(random() * 99))::int::text ELSE '' END;
-        END IF;
-        EXIT WHEN NOT EXISTS (SELECT 1 FROM seed_users WHERE nickname = nick)
-              AND NOT EXISTS (SELECT 1 FROM profiles   WHERE nickname = nick);
-        IF tries > 50 THEN
-          nick := nick || floor(random() * 1000)::int::text;
-          EXIT;
-        END IF;
+  -- 1) 새 시드 합류 (합류 기간 안에서만)
+  IF day_index < cfg.join_days THEN
+    n_join := cfg.join_min + floor(random() * (cfg.join_max - cfg.join_min + 1))::int;
+    SELECT sum(weight) INTO total_w FROM seed_personas;
+    FOR i IN 1..n_join LOOP
+      r := random() * total_w;
+      acc := 0;
+      FOR per IN SELECT * FROM seed_personas ORDER BY persona LOOP
+        acc := acc + per.weight;
+        EXIT WHEN r <= acc;
       END LOOP;
-
-      -- 이탈: 합류 3~14일 뒤 그만둠 (페르소나별 확률)
-      churn := CASE WHEN random() < churn_p THEN join_day + (3 + floor(random() * 12))::int ELSE NULL END;
-
-      INSERT INTO seed_users (nickname, persona, joined_on, churn_on)
-      VALUES (nick, persona, join_day, churn)
-      RETURNING id INTO sid;
-
-      -- 운동 기록: 합류일부터 30일 끝까지(이탈하면 그날까지)
-      cur := join_day;
-      WHILE cur <= start_day + total_days - 1 LOOP
-        EXIT WHEN churn IS NOT NULL AND cur > churn;
-        dow := extract(isodow FROM cur)::int;                    -- 6·7 = 주말
-
-        IF (cur = join_day AND random() < 0.9)
-           OR (cur > join_day AND random() < p_day * CASE WHEN persona = 'office' AND dow >= 6 THEN 0.4 ELSE 1 END) THEN
-          weeks := (cur - join_day) / 7;
-          IF persona = 'challenge' THEN
-            reps := base + weeks * 12;                            -- 100개 챌린지 표처럼 주마다 늘어남
-          ELSE
-            reps := round(base * power(growth, weeks))::int;
-          END IF;
-          reps := round(reps * (0.85 + random() * 0.3))::int;     -- 날마다 ±15%
-          reps := greatest(5, least(reps, cap_daily));
-
-          -- 한 달 합계 상한 (KST 달 기준)
-          SELECT COALESCE(sum(w.reps), 0) INTO month_sum
-          FROM seed_workouts w
-          WHERE w.seed_id = sid
-            AND date_trunc('month', (w.workout_at AT TIME ZONE 'Asia/Seoul')) = date_trunc('month', cur::timestamp);
-
-          IF month_sum + reps <= month_cap THEN
-            hh := h_lo + floor(random() * (h_hi - h_lo))::int;
-            mm := floor(random() * 60)::int;
-            INSERT INTO seed_workouts (seed_id, workout_at, reps)
-            VALUES (sid, (cur + make_interval(hours => hh, mins => mm)) AT TIME ZONE 'Asia/Seoul', reps)
-            ON CONFLICT DO NOTHING;
-          END IF;
-        END IF;
-
-        cur := cur + 1;
-      END LOOP;
+      INSERT INTO seed_users (nickname, persona, base_reps, joined_on, churn_on)
+      VALUES (
+        seed_new_nickname(),
+        per.persona,
+        per.base_min + floor(random() * (per.base_max - per.base_min + 1))::int,
+        target,
+        CASE WHEN random() < per.churn_p THEN target + (3 + floor(random() * 12))::int ELSE NULL END
+      );
+      joined := joined + 1;
     END LOOP;
+  ELSE
+    -- 합류 기간이 끝나면 남은 시드가 조금씩 그만둔다
+    UPDATE seed_users
+    SET churn_on = target
+    WHERE churn_on IS NULL AND random() < cfg.after_churn_daily;
+  END IF;
+
+  -- 2) 오늘 운동 기록
+  FOR su IN
+    SELECT s.id, s.base_reps, s.joined_on, s.persona
+    FROM seed_users s
+    WHERE s.joined_on <= target AND (s.churn_on IS NULL OR s.churn_on >= target)
+  LOOP
+    SELECT * INTO per FROM seed_personas WHERE persona = su.persona;
+
+    p := CASE WHEN su.joined_on = target THEN 0.9 ELSE per.p_day END;
+    IF extract(isodow FROM target) >= 6 THEN
+      p := p * per.weekend_factor;
+    END IF;
+    CONTINUE WHEN random() >= p;
+
+    weeks := (target - su.joined_on) / 7;
+    v_reps := round((su.base_reps + per.weekly_add * weeks) * power(per.weekly_growth, weeks))::int;
+    v_reps := round(v_reps * (0.85 + random() * 0.3))::int;      -- 날마다 ±15%
+    v_reps := greatest(5, least(v_reps, per.cap_daily));
+
+    SELECT COALESCE(sum(w.reps), 0) INTO month_sum
+    FROM seed_workouts w
+    WHERE w.seed_id = su.id
+      AND date_trunc('month', w.workout_at AT TIME ZONE 'Asia/Seoul') = date_trunc('month', target::timestamp);
+    CONTINUE WHEN month_sum + v_reps > cfg.month_cap;
+
+    hh := per.hour_from + floor(random() * (per.hour_to - per.hour_from))::int;
+    mm := floor(random() * 60)::int;
+    INSERT INTO seed_workouts (seed_id, workout_at, reps)
+    VALUES (su.id, (target + make_interval(hours => hh, mins => mm)) AT TIME ZONE 'Asia/Seoul', v_reps)
+    ON CONFLICT DO NOTHING;
+    made := made + 1;
   END LOOP;
-END $$;
+
+  INSERT INTO seed_runs (day, joined, workouts) VALUES (target, joined, made);
+  RETURN format('day %s: joined %s, workouts %s', target, joined, made);
+END;
+$$;
+REVOKE EXECUTE ON FUNCTION seed_generate_day(date) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION seed_new_nickname() FROM PUBLIC, anon, authenticated;
 
 -- ─────────────────────────────────────────────────────────────
 -- 3. 지금 보여도 되는 시드 기록 (스위치가 켜져 있고, 시각이 지난 것만)
---    앱에서는 직접 부를 수 없고, 아래 리더보드 함수 안에서만 쓴다
 -- ─────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION seed_daily_totals_visible()
 RETURNS TABLE (seed_id uuid, nickname text, day date, reps bigint)
@@ -177,7 +256,7 @@ $$;
 REVOKE EXECUTE ON FUNCTION seed_daily_totals_visible() FROM PUBLIC, anon, authenticated;
 
 -- ─────────────────────────────────────────────────────────────
--- 4. 리더보드 함수 — 실행 전 원본을 admin.function_backups 에 보관한 뒤 교체
+-- 4. 리더보드 함수 — 원본을 admin.function_backups 에 보관한 뒤 교체
 -- ─────────────────────────────────────────────────────────────
 CREATE SCHEMA IF NOT EXISTS admin;
 REVOKE ALL ON SCHEMA admin FROM PUBLIC, anon, authenticated;
@@ -195,7 +274,7 @@ WHERE n.nspname = 'public'
   AND p.proname IN ('get_leaderboard', 'get_monthly_leaderboard', 'get_yearly_leaderboard')
   AND NOT EXISTS (SELECT 1 FROM admin.function_backups b WHERE b.name = p.proname);
 
--- 일간 리더보드: 원본 SQL 이 저장소에 없어 인자 형태가 다를 수 있다 → 기존 것을 모두 지우고 같은 이름·반환 형태로 다시 만든다
+-- 일간 리더보드: 원본 SQL 이 저장소에 없어 인자 형태가 다를 수 있다 → 기존 것을 지우고 같은 이름·반환 형태로 다시 만든다
 DO $$
 DECLARE f record;
 BEGIN
@@ -293,7 +372,6 @@ GRANT EXECUTE ON FUNCTION get_yearly_leaderboard(integer) TO anon, authenticated
 -- ─────────────────────────────────────────────────────────────
 -- 5. 분석용 뷰 (admin 스키마 — 앱 API 에 노출되지 않음, SQL Editor 에서만 조회)
 -- ─────────────────────────────────────────────────────────────
--- 날짜별 실제 vs 시드 활동 (시각이 지난 시드 기록만)
 CREATE OR REPLACE VIEW admin.daily_activity_split AS
 SELECT day,
        sum(CASE WHEN is_seed THEN 0 ELSE 1 END) AS real_active_users,
@@ -311,7 +389,6 @@ FROM (
 GROUP BY day
 ORDER BY day DESC;
 
--- 이번 달 리더보드를 실제/시드 구분해서 (앱에 보이는 순위와 같은 순서)
 CREATE OR REPLACE VIEW admin.monthly_leaderboard_split AS
 SELECT rank() OVER (ORDER BY reps DESC) AS rank, is_seed, nickname, persona, reps
 FROM (
@@ -323,24 +400,34 @@ FROM (
   SELECT true, s.nickname, s.persona, sum(w.reps)::bigint
   FROM seed_workouts w JOIN seed_users s ON s.id = w.seed_id
   WHERE w.workout_at <= now()
-    AND date_trunc('month', (w.workout_at AT TIME ZONE 'Asia/Seoul')) = date_trunc('month', (now() AT TIME ZONE 'Asia/Seoul'))
+    AND date_trunc('month', w.workout_at AT TIME ZONE 'Asia/Seoul') = date_trunc('month', now() AT TIME ZONE 'Asia/Seoul')
   GROUP BY s.id, s.nickname, s.persona
 ) x;
 
 REVOKE ALL ON ALL TABLES IN SCHEMA admin FROM PUBLIC, anon, authenticated;
 
 -- ─────────────────────────────────────────────────────────────
--- 실행 뒤 확인 (SQL Editor 에서)
---   SELECT persona, count(*), count(churn_on) AS churned FROM seed_users GROUP BY persona;
---   SELECT * FROM admin.daily_activity_split LIMIT 7;
---   SELECT * FROM admin.monthly_leaderboard_split LIMIT 20;
---
--- 켜기 / 끄기 (앱 수정 없이 즉시 반영)
---   UPDATE app_config SET leaderboard_seeds_enabled = true  WHERE id = 'default';
---   UPDATE app_config SET leaderboard_seeds_enabled = false WHERE id = 'default';
---
--- 완전히 되돌리기
---   UPDATE app_config SET leaderboard_seeds_enabled = false WHERE id = 'default';
---   SELECT name, def FROM admin.function_backups;   -- 원본 함수 정의를 복사해 다시 실행
---   DROP TABLE seed_workouts; DROP TABLE seed_users; DROP FUNCTION seed_daily_totals_visible();
+-- 6. 매일 00:05 KST(= 15:05 UTC) 실행 등록, 오늘 치는 바로 만든다
+-- ─────────────────────────────────────────────────────────────
+SELECT cron.unschedule(jobid) FROM cron.job WHERE jobname = 'leaderboard-seeds-daily';
+SELECT cron.schedule('leaderboard-seeds-daily', '5 15 * * *', $$SELECT public.seed_generate_day()$$);
+SELECT seed_generate_day();
+
+-- ─────────────────────────────────────────────────────────────
+-- 운영 메모
+--   확인:   SELECT * FROM seed_runs ORDER BY day DESC;
+--           SELECT persona, count(*), count(churn_on) AS churned FROM seed_users GROUP BY persona;
+--           SELECT * FROM admin.daily_activity_split LIMIT 7;
+--           SELECT * FROM admin.monthly_leaderboard_split LIMIT 20;
+--           SELECT * FROM cron.job_run_details ORDER BY start_time DESC LIMIT 5;
+--   켜기:   UPDATE app_config SET leaderboard_seeds_enabled = true  WHERE id = 'default';
+--   끄기:   UPDATE app_config SET leaderboard_seeds_enabled = false WHERE id = 'default';
+--   닉네임: UPDATE seed_users SET nickname = '새이름' WHERE nickname = '옛이름';
+--   설정:   UPDATE seed_config SET join_max = 4 WHERE id = 'default';   -- 다음 실행부터
+--   생성 멈춤: UPDATE seed_config SET generating = false WHERE id = 'default';
+--   완전히 되돌리기:
+--     SELECT cron.unschedule('leaderboard-seeds-daily');
+--     UPDATE app_config SET leaderboard_seeds_enabled = false WHERE id = 'default';
+--     SELECT name, def FROM admin.function_backups;   -- 원본 함수 정의를 복사해 다시 실행
+--     DROP TABLE seed_workouts, seed_users, seed_runs, seed_personas, seed_config;
 -- ─────────────────────────────────────────────────────────────

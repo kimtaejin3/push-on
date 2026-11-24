@@ -1,11 +1,8 @@
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
 import {useQuery} from '@tanstack/react-query';
-import {
-  processMonthlyStats,
-  processWeeklyStats,
-  processYearlyStats,
-} from '../../../remote/pushup';
+import {dailyBuckets} from '../../../domain/historySummary';
+import {processYearlyStats} from '../../../remote/pushup';
 import {pushupStatsQueryOptions} from '../../../tanstack-query';
 import {queryKeys} from '../../../tanstack-query/queryKeys';
 import {space} from '../../../theme';
@@ -48,6 +45,7 @@ export function CachedAt({timestamp}: {timestamp: number}) {
 export function PeriodStats({userId, today}: {userId: string; today: string}) {
   const [period, setPeriod] = useState('weekly');
   const [metric, setMetric] = useState('totalReps');
+  const scrollRef = useRef<ScrollView>(null);
   const days = period === 'yearly' ? 365 : 30;
   const query = useQuery({
     ...pushupStatsQueryOptions(days),
@@ -65,13 +63,14 @@ export function PeriodStats({userId, today}: {userId: string; today: string}) {
       }));
       break;
     case 'monthly':
-      buckets = processMonthlyStats(data).map(row => {
-        const [start, end] = row.date.split('_');
-        return {...row, label: `${shortDate(start)}–${shortDate(end)}`};
-      });
+      // 최근 30일을 하루씩 (예전에는 8일씩 겹치고 빠지는 4주 묶음이었다)
+      buckets = dailyBuckets(data, 30, today).map(row => ({
+        ...row,
+        label: shortDate(row.date),
+      }));
       break;
     default:
-      buckets = processWeeklyStats(data).map(row => ({
+      buckets = dailyBuckets(data, 7, today).map(row => ({
         ...row,
         label: shortDate(row.date),
       }));
@@ -113,9 +112,18 @@ export function PeriodStats({userId, today}: {userId: string; today: string}) {
       ) : (
         <>
           {buckets.some(row => row.totalSets > 0) ? (
-            period === 'yearly' ? (
-              <ScrollView horizontal contentContainerStyle={styles.yearly}>
-                <View style={styles.yearlyChart}>
+            period !== 'weekly' ? (
+              // 막대가 많으면 옆으로 넘겨 본다. 최근 쪽(오른쪽 끝)부터 보여 준다
+              <ScrollView
+                key={period}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.scrolling}
+                onContentSizeChange={(width: number) =>
+                  width > 0 && scrollRef.current?.scrollToEnd({animated: false})
+                }
+                ref={scrollRef}>
+                <View style={period === 'yearly' ? styles.yearlyChart : styles.monthlyChart}>
                   <HistoryBars bars={bars} />
                 </View>
               </ScrollView>
@@ -136,6 +144,8 @@ export function PeriodStats({userId, today}: {userId: string; today: string}) {
 
 const styles = StyleSheet.create({
   section: {gap: space[12]},
-  yearly: {paddingBottom: space[8]},
+  scrolling: {paddingBottom: space[8]},
   yearlyChart: {width: 660},
+  // 하루 막대 30개 — 날짜(11/24)와 값(120)이 들어가는 폭
+  monthlyChart: {width: 30 * 44},
 });

@@ -73,3 +73,33 @@ export const weeklyTotals = (
     return {weekStart, total: totals.get(weekStart) ?? 0};
   });
 };
+
+export type DailyBucket = {
+  date: string; // YYYY-MM-DD (KST)
+  totalReps: number;
+  totalSets: number;
+  totalDuration: number;
+};
+
+type SetRow = {workout_date: string; reps: number; duration_seconds: number};
+
+/**
+ * 오늘(KST)까지 days 일을 하루 한 칸씩, 오래된 날부터 채운다. 운동하지 않은 날은 0.
+ * 기간별 통계의 주(7일)·월(30일) 막대에 쓴다.
+ */
+export const dailyBuckets = (rows: SetRow[], days: number, today: string): DailyBucket[] => {
+  const buckets = new Map<string, DailyBucket>();
+  for (let i = days - 1; i >= 0; i--) {
+    const date = addDays(today, -i);
+    buckets.set(date, {date, totalReps: 0, totalSets: 0, totalDuration: 0});
+  }
+  rows.forEach(row => {
+    const bucket = buckets.get(row.workout_date);
+    if (bucket) {
+      bucket.totalReps += row.reps;
+      bucket.totalSets += 1;
+      bucket.totalDuration += row.duration_seconds;
+    }
+  });
+  return [...buckets.values()];
+};

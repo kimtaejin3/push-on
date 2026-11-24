@@ -2,6 +2,7 @@ import {
   monthSummary,
   monthSummaryLine,
   weeklyTotals,
+  dailyBuckets,
 } from '../../src/domain/historySummary';
 
 const set = (date: string, reps: number) => ({
@@ -81,4 +82,41 @@ it('일요일에 끝나는 주를 연도가 바뀌어도 같은 주로 집계한
       1,
     ),
   ).toEqual([{weekStart: '2026-12-28', total: 50}]);
+});
+
+describe('dailyBuckets', () => {
+  const row = (workout_date: string, reps: number, duration_seconds = 30) => ({
+    workout_date,
+    reps,
+    duration_seconds,
+  });
+
+  it('오늘까지 N일을 빠짐없이 하루씩, 오래된 날부터 만든다', () => {
+    const buckets = dailyBuckets([], 30, '2026-11-24');
+    expect(buckets).toHaveLength(30);
+    expect(buckets[0].date).toBe('2026-10-26');
+    expect(buckets[29].date).toBe('2026-11-24');
+    const dates = new Set(buckets.map(b => b.date));
+    expect(dates.size).toBe(30);
+  });
+
+  it('달이 바뀌는 구간도 날짜가 끊기지 않는다', () => {
+    const dates = dailyBuckets([], 7, '2026-03-02').map(b => b.date);
+    expect(dates).toEqual([
+      '2026-02-24', '2026-02-25', '2026-02-26', '2026-02-27',
+      '2026-02-28', '2026-03-01', '2026-03-02',
+    ]);
+  });
+
+  it('같은 날 세트를 합치고, 범위 밖 기록은 버린다', () => {
+    const buckets = dailyBuckets(
+      [row('2026-11-24', 20, 40), row('2026-11-24', 15, 30), row('2026-11-23', 10), row('2026-10-01', 99)],
+      7,
+      '2026-11-24',
+    );
+    const today = buckets[buckets.length - 1];
+    expect(today).toEqual({date: '2026-11-24', totalReps: 35, totalSets: 2, totalDuration: 70});
+    expect(buckets[buckets.length - 2].totalReps).toBe(10);
+    expect(buckets.reduce((sum, b) => sum + b.totalReps, 0)).toBe(45);
+  });
 });

@@ -315,8 +315,9 @@ export function useAds() {
   }, []);
 
   useEffect(() => {
-    // 서버에서 광고를 켰고 동의 흐름을 마쳤을 때만 SDK 를 깨운다. 앱 시작·화면 이동은 기다리지 않는다
-    if (!serverAdsEnabled || !consentDone) {
+    // 서버에서 광고를 켰으면 첫 실행부터 SDK 를 깨운다. 앱 시작·화면 이동은 기다리지 않는다.
+    // 동의 흐름이 끝나면(consentDone) 한 번 더 시도한다: 동의가 필요한 지역은 그때부터 요청할 수 있다
+    if (!serverAdsEnabled) {
       return;
     }
     let active = true;
@@ -359,7 +360,7 @@ export function useAds() {
   }, []);
 
   return {
-    adsEnabled: serverAdsEnabled && consentDone && sdkReady,
+    adsEnabled: serverAdsEnabled && sdkReady,
     serverAdsEnabled,
     consentDone,
     showInterstitial,

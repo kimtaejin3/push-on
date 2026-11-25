@@ -620,29 +620,17 @@ describe('useAds 초기화와 운동 기록', () => {
     expect(mockCreateInterstitial).not.toHaveBeenCalled();
   });
 
-  it('동의 흐름 전에는 서버가 켜도 adsEnabled 가 false 이고 초기화하지 않는다', async () => {
-    // 업데이트로 처음 들어온 기존 사용자: 동의 흐름을 아직 안 돌았다
+  it('동의 흐름 전이라도 서버가 켜면 첫 실행부터 초기화하고 광고를 켠다', async () => {
+    // 처음 설치한 사용자: 동의 흐름(첫 결과 화면)을 아직 안 돌았다
     resetAdsConsentForTest();
     const hook = await renderUseAds();
 
     expect(hook.current.serverAdsEnabled).toBe(true);
     expect(hook.current.consentDone).toBe(false);
-    expect(hook.current.adsEnabled).toBe(false);
-    expect(mockInitialize).not.toHaveBeenCalled();
-
-    // 미리 불러오기·전면도 요청하지 않는다
-    act(() => hook.current.prepareInterstitial());
-    await act(() => hook.current.showInterstitial());
-    expect(mockCreateInterstitial).not.toHaveBeenCalled();
-
-    // 결과 화면에서 동의 흐름이 끝나면(완료 알림) 그때 초기화하고 광고를 켠다
-    await act(async () => {
-      await completeConsentFlow();
-      await flush();
-    });
-    expect(hook.current.consentDone).toBe(true);
     expect(mockInitialize).toHaveBeenCalledTimes(1);
     expect(hook.current.adsEnabled).toBe(true);
+    // 동의 양식은 첫 결과 화면의 동의 흐름이 띄운다
+    expect(mockGatherConsent).not.toHaveBeenCalled();
   });
 
   it('광고가 켜져 있고 동의 흐름을 마쳤으면 SDK 를 한 번만 초기화한다(동의 양식은 띄우지 않는다)', async () => {

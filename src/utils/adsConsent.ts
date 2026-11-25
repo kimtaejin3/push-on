@@ -83,7 +83,7 @@ export const requestTracking = async (
   }
 };
 
-/** 동의 흐름을 끝냈는지(메모리 값). 끝나기 전에는 SDK 초기화도, 광고 요청도 하지 않는다 */
+/** 동의 흐름(ATT·UMP 양식)을 끝냈는지(메모리 값). 광고는 이와 상관없이 첫 실행부터 나온다 */
 export const isConsentFlowDone = (): boolean => done;
 
 /** 저장된 완료 여부를 읽어 메모리에 채운다. 완료로 바뀌면 구독자에게 알린다. 실패해도 던지지 않는다 */

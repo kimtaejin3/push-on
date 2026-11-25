@@ -1,4 +1,4 @@
-# App Store Connect 입력 내용 — 푸쉬온 1.6.0
+# App Store Connect 입력 내용 — 푸쉬온 1.8.0 (iOS 첫 출시)
 
 각 항목의 글자 수 제한은 App Store Connect 기준. 괄호 안은 현재 글자 수.
 
@@ -22,93 +22,86 @@
 
 **번들 ID**: `com.pushon`  **SKU**: `pushon`
 
-## 버전 정보
+## 버전 정보 (1.8.0, iOS 첫 출시)
 
-**프로모션 텍스트** (170자 이하, 현재 약 120자 — 심사 없이 언제든 수정 가능)
+**프로모션 텍스트** (170자 이하 — 심사 없이 언제든 수정 가능)
 ```
-아이폰을 얼굴 앞 바닥에 놓고 푸쉬업을 하면 횟수가 자동으로 세어집니다. 챌린지 · 세트 · 100개 챌린지 중 원하는 방식으로, 기록과 리더보드까지 함께.
+폰을 바닥에 두고 푸쉬업만 하세요. 횟수는 자동으로 세어 드려요. 매일 하는 100개 챌린지와 연속 운동 기록(스트릭)으로 꾸준함을 만들어 보세요.
 ```
 
-**설명** (4000자 이하, 현재 약 950자)
+**설명** (4000자 이하)
 ```
 푸쉬온은 아이폰 하나로 푸쉬업 횟수를 자동으로 세어 주는 앱입니다.
 
-기기를 얼굴과 마주 보게 바닥에 두고 "시작하기"를 누른 뒤 푸쉬업만 하세요. 전면 카메라의 얼굴 추적으로 내려갔다 올라오는 동작을 인식해 한 개씩 정확히 카운트합니다. 손으로 세거나 스마트워치를 볼 필요가 없습니다.
+기기를 얼굴과 마주 보게 바닥에 두고 시작을 누른 뒤 푸쉬업만 하세요. 전면 카메라의 얼굴 추적으로 내려갔다 올라오는 동작을 인식해 한 개씩 세어 줍니다. 손으로 세거나 화면을 볼 필요가 없습니다.
 
-■ 세 가지 운동 모드
-• 챌린지 — 한 세트에 몇 개까지 되는지 최대 횟수 도전
-• 세트 — 세트 수와 목표 횟수를 정하면 목표 도달 시 자동 종료, 휴식 타이머까지
-• 100개 챌린지 — 연속 100개를 목표로 오늘 할 세트를 정해주는 프로그램
+■ 매일 하는 100개 챌린지
+• 처음 테스트로 지금 최대 횟수를 재고, 내 수준에 맞는 난이도로 시작
+• 매일 오늘 할 세트를 앱이 정해 줘요. 진행 경로를 한눈에 볼 수 있어요
+• 힘든 날은 한 단계 쉬운 주차로 돌아가거나 그날을 다시 할 수 있어요
 
-■ 100개 챌린지
-• 초기 테스트로 지금 최대 횟수를 재고, 결과에 맞춘 난이도로 시작
-• 주 3일, 하루 5세트. 오늘 할 세트를 앱이 정해줍니다
-• 중간 테스트로 난이도를 다시 맞추고, 힘들었던 날은 다시 도전할 수 있어요
-• 운동하는 날 원하는 시간에 알림
+■ 연속 운동 기록 (스트릭)
+• 하루라도 운동하면 연속 일수가 이어져요
+• 그날 첫 운동을 마치면 축하 화면과 이번 주 기록을 보여 줘요
+• 원하는 시간에 운동 알림
 
-■ 자동 카운트
-• 얼굴과 기기 사이의 거리를 측정해 푸쉬업 한 개를 정확히 인식
-• 개수가 올라갈 때마다 진동 피드백
-• 일시정지 / 재개, 세트별 소요 시간 기록
+■ 세 가지 운동 방식
+• 100개 챌린지 — 매일 정해 주는 프로그램
+• 자유 세트 — 세트 · 목표 · 휴식을 직접 정하면 자동으로 진행
+• 한 번에 몇 개? — 쉬지 않고 최대 개수 재기
 
-■ 기록과 통계
-• 달력을 월 · 주 단위로 보며 날짜별 운동을 세트 묶음으로 확인
-• 주간 · 월간 · 연간 그래프로 꾸준함을 확인
+■ 운동 중 편의
+• 일시정지 · 휴식 연장 · 휴식 뒤 자동 다음 세트
+• 개수가 올라갈 때마다 진동, 운동 중에는 화면이 꺼지지 않아요
+
+■ 결과와 기록
+• 결과 화면에서 지난번 대비 기록과 한 세트 최고 기록
+• 기록과 통계를 한 화면에서. 주간 · 월간 · 연간 흐름
 
 ■ 리더보드
-• 오늘 · 이번 달 · 올해 순위
-• 내 순위를 한눈에 확인하며 다른 사용자와 경쟁
+• 오늘 · 이번 달 · 올해 순위로 다른 사람과 함께
 
 ■ 간편한 시작
-• 구글 또는 카카오 계정으로 바로 로그인
+• Apple · 카카오 · Google 계정으로 바로 시작
 • 닉네임은 자동으로 만들어지고 언제든 변경 가능
 • 앱 안에서 계정 삭제 가능
 
-푸쉬온은 전면 카메라의 얼굴 추적 기능(TrueDepth)을 사용합니다. iPhone X 이후 모델에서 사용할 수 있으며, 카메라 영상은 기기 안에서만 처리되고 서버로 전송되지 않습니다.
+푸쉬온은 전면 카메라의 얼굴 추적(TrueDepth)을 사용합니다. Face ID 를 지원하는 iPhone 에서 쓸 수 있으며, 카메라 영상은 기기 안에서만 처리되고 저장하거나 전송하지 않습니다.
+일부 화면에 광고가 표시될 수 있으며, 운동 중에는 광고가 나오지 않습니다.
 
 매일 한 세트라도, 푸쉬온과 함께 꾸준히.
 ```
 
-**키워드** (100자 이하, 쉼표 구분, 현재 76자 — 앱 이름에 이미 있는 "푸쉬온/푸쉬업/카운터"는 넣지 않음)
+**키워드** (100자 이하, 쉼표 구분 — 앱 이름에 있는 "푸쉬온/푸쉬업/카운터"는 넣지 않음)
 ```
-팔굽혀펴기,푸시업,운동,홈트,홈트레이닝,맨몸운동,근력,운동기록,챌린지,피트니스,랭킹,상체,가슴운동,헬스,workout,pushup
-```
-
-**이 버전의 새로운 기능** (첫 출시이므로 간단히)
-```
-푸쉬온 첫 출시!
-• 아이폰을 바닥에 두면 푸쉬업 횟수를 자동으로 세어 드려요
-• 챌린지 · 세트 · 100개 챌린지, 세 가지 운동 모드
-• 달력 기록, 주간·월간 통계, 리더보드
+팔굽혀펴기,푸시업,홈트,홈트레이닝,맨몸운동,운동기록,100개챌린지,스트릭,습관,근력,가슴운동,피트니스,랭킹,workout,pushup
 ```
 
-**지원 URL**: `https://github.com/kimtaejin3/push-on` (또는 문의 페이지)
-**마케팅 URL** (선택): 비워도 됨
-**개인정보 처리방침 URL** (필수): 앱 내 PrivacyPolicyScreen 내용을 공개 페이지(GitHub Pages 등)에 올린 뒤 주소 입력 — **아직 없음, 준비 필요**
+**이 버전의 새로운 기능**
+```
+푸쉬온 iOS 첫 출시!
+• 폰을 바닥에 두면 푸쉬업 횟수를 자동으로 세어 드려요
+• 매일 하는 100개 챌린지와 연속 운동 기록(스트릭)
+• 결과 화면의 지난번 대비 기록, 기록·통계, 리더보드
+```
 
-## App Privacy (개인정보 설문)
-
-수집 항목 — 모두 "사용자 신원과 연결됨", 용도 "앱 기능":
-- 연락처 정보 > 이메일 주소 (구글/카카오 로그인)
-- 연락처 정보 > 이름 (프로필 표시명)
-- 식별자 > 사용자 ID (Supabase 계정)
-- 건강 및 피트니스 > 피트니스 (푸쉬업 기록)
-- 사용 데이터 > 제품 상호작용 (세트 기록 시간)
-
-추적(Tracking): 아니요. 카메라 영상은 기기 내 처리, 저장/전송 안 함.
+**지원 URL**: `https://kimtaejin3.github.io`
+**마케팅 URL** (선택): `https://kimtaejin3.github.io`
+**저작권**: `© 2026 PushOn`
 
 ## 심사 정보 (App Review Information)
 
-**로그인 필요**: 예 — 소셜 로그인만 제공하므로 심사용 구글 계정을 하나 만들어 아이디/비밀번호를 적어 주세요.
+**로그인 필요**: 예 — Sign in with Apple 로 심사자가 직접 가입할 수 있다. 데모 계정 칸은 비워 두고 메모에 적는다.
 
-**메모** (영문 권장):
+**메모** (영문):
 ```
-PushOn counts push-ups automatically using ARKit face tracking on the front (TrueDepth) camera.
-To test: place the iPhone on the floor facing your face, tap "시작하기" (Start), and do push-ups.
-Face tracking requires a physical iPhone X or later; it does not work on the Simulator.
-Demo video: https://github.com/kimtaejin3/push-on#데모
-Account deletion: 설정(Settings) > 계정 설정(Account) > 회원 탈퇴(Delete account).
-Sign in with Google or Kakao only (Sign in with Apple: see note in submission).
+PushOn counts push-ups automatically with ARKit face tracking on the front TrueDepth camera.
+Sign in: use "Apple로 계속하기" (Sign in with Apple) to create an account; no demo account is needed.
+To test counting: place the iPhone on the floor facing your face, tap the start button, and do push-ups.
+Face tracking needs a physical iPhone with Face ID; it does not work on the Simulator.
+Camera frames are processed on device only and are never stored or sent.
+Ads: AdMob native/interstitial ads appear after the first workouts. The App Tracking Transparency prompt is shown after the first workout result, never during a workout.
+Account deletion: 설정(Settings) > 계정(Account) > 계정 삭제(Delete account).
 ```
 
 ## 스크린샷

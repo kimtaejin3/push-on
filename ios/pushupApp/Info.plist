@@ -49,6 +49,8 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>KAKAO_APP_KEY</key>
 	<string>6857d8aa2f0467a3366f37ea36f7260f</string>
 	<key>LSApplicationQueriesSchemes</key>

@@ -21,7 +21,7 @@ type TodayHeroProps =
       state: ProgramState;
       plan: ReturnType<typeof todayPlan>;
       onStart: () => void;
-      /** 오늘 할 일을 이미 끝냈으면: 같은 모양으로 다음(내일) 운동을 보여 주고 '미리 하기'만 둔다 */
+      /** 오늘 할 일을 이미 끝냈으면: 같은 모양으로 다음(내일) 운동을 보여 주고 시작 버튼은 두지 않는다 */
       done?: 'workout' | 'test';
     };
 
@@ -112,9 +112,7 @@ export function TodayHero(props: TodayHeroProps) {
           ? '오늘 할 운동은 끝났어요. 내일 이어서 해요.'
           : `마지막 ${last}+는 최소 ${last}개예요. 더 할 수 있으면 더 해요.`}
       </Text>
-      {done ? (
-        <Button variant="secondary" title="미리 하기" onPress={onStart} />
-      ) : (
+      {!done && (
         <Button
           variant="primary"
           title="오늘 운동 시작"

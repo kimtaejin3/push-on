@@ -371,16 +371,8 @@ function ProgramScreen() {
         />
       );
     } else if (progress !== 'open') {
+      // 오늘 할 일을 끝냈으면 다음 운동을 미리 시작하는 버튼은 두지 않는다 (내일 이어서)
       todayCard = <ProgramDoneTodayCard kind={progress} next={state} />;
-      footer = (
-        <Button
-          variant="text"
-          title="미리 하기"
-          icon="chevron-right"
-          disabled={busy}
-          onPress={startWorkout}
-        />
-      );
     } else {
       todayCard = (
         <ProgramTodayCard

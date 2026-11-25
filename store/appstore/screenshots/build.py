@@ -2,7 +2,7 @@
 """
 App Store 6.9" 스크린샷 합성기.
 
-raw/ 의 시뮬레이터 캡처(1320x2868)를 배경 + 캡션 + 아이폰 프레임 안에 넣어
+raw/ 의 디자인 시안 내보내기(393pt 화면 3배, 1179x2556, 상태바 포함)를 배경 + 캡션 + 아이폰 프레임 안에 넣어
 6.9/NN.png (1320x2868) 으로 출력한다. Chrome 헤드리스로 HTML 을 렌더한다.
 
 실행: python3 store/appstore/screenshots/build.py
@@ -22,11 +22,11 @@ W, H = 1320, 2868
 
 # (출력 파일명, 원본 캡처, 헤드라인, 서브라인)
 SLIDES = [
-    ("01.png", "home.png", "폰을 바닥에 두고,\n푸쉬업만 하세요", "횟수는 얼굴 추적으로 자동으로 세어 드려요"),
-    ("02.png", "challenge.png", "한 개, 한 개\n정확하게", "내려갔다 올라올 때마다 진동으로 알려줘요"),
-    ("03.png", "program.png", "연속 100개까지\n오늘 할 세트를 정해드려요", "내 수준에 맞춘 난이도로, 운동 알림까지"),
-    ("04.png", "history.png", "하루하루\n기록이 쌓여요", "달력에서 날짜별 세트와 횟수를 확인"),
-    ("05.png", "statistic.png", "주간 · 월간 흐름을\n한눈에", "그래프로 보는 나의 꾸준함"),
+    ("01.png", "home.png", "폰을 바닥에 두고,\n푸쉬업만 하세요", "오늘 할 운동은 매일 앱이 정해 드려요"),
+    ("02.png", "counting.png", "한 개, 한 개\n자동으로 세어요", "얼굴 추적으로 내려갔다 올라오는 동작을 인식해요"),
+    ("03.png", "rest.png", "휴식도 다음 세트도\n알아서", "휴식이 끝나면 바로 다음 세트를 세기 시작해요"),
+    ("04.png", "result.png", "어제의 나보다\n조금 더", "지난번 대비 기록과 한 세트 최고를 한눈에"),
+    ("05.png", "history.png", "하루하루\n기록이 쌓여요", "달력과 주간 흐름으로 보는 나의 꾸준함"),
 ]
 
 TEMPLATE = """<!doctype html><html lang="ko"><head><meta charset="utf-8">
@@ -44,9 +44,9 @@ TEMPLATE = """<!doctype html><html lang="ko"><head><meta charset="utf-8">
   .phone{position:absolute;left:50%%;top:760px;transform:translateX(-50%%);
     width:1090px;height:2368px;border-radius:150px;background:#000;
     box-shadow:0 60px 140px rgba(0,0,0,.7),0 0 0 4px #2a2a2a,0 0 0 18px #111,0 0 0 22px #3a3a3a}
-  .screen{position:absolute;inset:22px;border-radius:128px;overflow:hidden;background:#0d0d0d}
-  /* 캡처는 상태바 없이 잘린 화면이므로 상태바 높이(약 140px)만큼 내려서 배치 → 아일랜드가 콘텐츠를 가리지 않음 */
-  .screen img{display:block;width:100%%;height:auto;margin-top:140px}
+  .screen{position:absolute;inset:22px;border-radius:128px;overflow:hidden;background:#0B0D10}
+  /* 시안 내보내기는 상태바(9:41)까지 들어 있어 그대로 맨 위에 붙인다 */
+  .screen img{display:block;width:100%%;height:auto}
   .island{position:absolute;left:50%%;top:52px;transform:translateX(-50%%);width:300px;height:88px;border-radius:44px;background:#000}
 </style></head><body>
 <div class="bg"></div>

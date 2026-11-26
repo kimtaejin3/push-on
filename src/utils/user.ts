@@ -25,6 +25,13 @@ export const getProviderInfo = (providerType: string): ProviderInfo => {
         iconStyle: 'brand',
         color: color.onBrand,
       };
+    case 'anonymous':
+      return {
+        name: '게스트 (로그인 안 함)',
+        icon: 'envelope',
+        iconStyle: 'solid',
+        color: color.textMuted,
+      };
     default:
       return {
         name: '이메일',

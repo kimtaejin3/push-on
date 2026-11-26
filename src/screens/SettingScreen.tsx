@@ -16,6 +16,8 @@ import {queryKeys} from '../tanstack-query/queryKeys';
 import {color, layout, space} from '../theme';
 import {useAds} from '../hooks/useAds';
 import {usePro} from '../hooks/usePro';
+import {useSession} from '../hooks/useSession';
+import {isGuestUser} from '../remote/guest';
 import {PRO_PRICE_LABEL, REVENUECAT_API_KEY} from '../constants/purchases';
 import {presentProPaywall, restorePro} from '../utils/purchases';
 import {
@@ -192,6 +194,7 @@ function AdsPrivacySection() {
 function SettingScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<AppStackParamList>>();
+  const guest = isGuestUser(useSession().user);
   const toast = useToast();
   const tabInset = useTabBarInset();
   const queryClient = useQueryClient();
@@ -259,6 +262,14 @@ function SettingScreen() {
         </Section>
 
         <Section title="계정">
+          {guest && (
+            <Row
+              icon="shield-check"
+              title="로그인하고 기록 보관하기"
+              subtitle="로그인하지 않으면 앱을 지울 때 기록이 사라질 수 있어요"
+              onPress={() => navigation.navigate('Login')}
+            />
+          )}
           <Row
             icon="lock"
             title="계정"

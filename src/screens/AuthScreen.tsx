@@ -15,7 +15,11 @@ import AppleLogo from '../assets/svgs/apple.svg';
 import KakaoLogo from '../assets/svgs/kakao.svg';
 import GoogleLogo from '../assets/svgs/google.svg';
 import {Text} from '../components/ui/Text';
-import {useAuth} from '../hooks/useAuth';
+import {Button} from '../components/ui/Button';
+import {ScreenHeader} from '../components/ui/ScreenHeader';
+import {ConfirmDialog} from '../components/ui/feedback/ConfirmDialog';
+import {useToast} from '../components/ui/feedback/ToastProvider';
+import {useAuth, type SignInResult} from '../hooks/useAuth';
 import {color, layout, radius, space} from '../theme';
 import type {Provider} from '../types/auth';
 
@@ -43,12 +47,35 @@ const buttons = [
   },
 ] as const;
 
-export default function AuthScreen() {
+interface AuthScreenProps {
+  /** 게스트 계정을 못 만들어 이 화면이 앱 첫 화면으로 뜬 경우(오프라인 등) 다시 시도 */
+  onRetryGuest?: () => void;
+  /** 설정에서 연 '로그인' 화면일 때 내비게이션 (스택 화면으로 쓰일 때만 들어온다) */
+  navigation?: {goBack: () => void; canGoBack: () => boolean};
+}
+
+/**
+ * 로그인 화면. 두 가지로 쓰인다.
+ * - 스택의 'Login' 화면: 게스트가 Apple·카카오·Google 을 연결해 기록을 계정에 보관한다.
+ * - 앱 첫 화면: 게스트 계정을 만들지 못했을 때(오프라인) 다시 시도하거나 바로 로그인한다.
+ */
+export default function AuthScreen({onRetryGuest, navigation}: AuthScreenProps) {
   const {signInWithProvider, isLoading} = useAuth();
+  const toast = useToast();
   const [activeProvider, setActiveProvider] = useState<Provider | null>(null);
   const [hasError, setHasError] = useState(false);
   const [googleUnavailable, setGoogleUnavailable] = useState(false);
+  // 연결하려던 소셜 계정이 이미 다른 계정에 쓰이는 경우의 이어서 로그인
+  const [exists, setExists] = useState<Extract<SignInResult, {status: 'exists'}> | null>(null);
   const signingIn = useRef(false);
+  const isRoute = navigation !== undefined;
+
+  const finish = () => {
+    if (navigation?.canGoBack()) {
+      navigation.goBack();
+      toast.show('로그인했어요. 이제 기록이 계정에 안전하게 보관돼요');
+    }
+  };
 
   const handleSignIn = async (provider: Provider) => {
     if (signingIn.current) {
@@ -60,7 +87,11 @@ export default function AuthScreen() {
 
     try {
       const result = await signInWithProvider(provider);
-      if (result.status === 'failed') {
+      if (result.status === 'success') {
+        finish();
+      } else if (result.status === 'exists') {
+        setExists(result);
+      } else if (result.status === 'failed') {
         if (result.reason === 'play-services-unavailable') {
           setGoogleUnavailable(true);
         } else {
@@ -73,9 +104,34 @@ export default function AuthScreen() {
     }
   };
 
+  const continueWithExisting = async () => {
+    const pending = exists;
+    setExists(null);
+    if (!pending) {
+      return;
+    }
+    try {
+      await pending.continueSignIn();
+      finish();
+    } catch (error) {
+      console.error('기존 계정 로그인 실패:', error);
+      setHasError(true);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.screen}>
+      {isRoute && <ScreenHeader title="로그인" onBack={() => navigation.goBack()} />}
       <ScrollView contentContainerStyle={styles.content}>
+        {isRoute ? (
+          <View style={styles.hero}>
+            <Text variant="title">로그인하고 기록 보관하기</Text>
+            <Text variant="label" weight={500} color="textMuted" style={styles.subtitle}>
+              지금까지의 운동 기록이 그대로 계정에 이어져요.{'\n'}앱을 지우거나 폰을
+              바꿔도 로그인하면 다시 볼 수 있어요.
+            </Text>
+          </View>
+        ) : (
         <View style={styles.hero}>
           <View style={styles.wordmark} accessibilityLabel="PushOn" accessible>
             <Text numeric weight={800} style={styles.brand}>
@@ -97,7 +153,16 @@ export default function AuthScreen() {
             PT 받으러 헬스장 가기 전에,{'\n'}
             100개 먼저 만들고 가세요.
           </Text>
+          {onRetryGuest && (
+            <View style={styles.guest}>
+              <Text variant="label" color="textMuted">
+                인터넷 연결을 확인한 뒤 로그인 없이 시작할 수 있어요
+              </Text>
+              <Button variant="secondary" title="로그인 없이 시작하기" onPress={onRetryGuest} />
+            </View>
+          )}
         </View>
+        )}
 
         <View style={styles.buttons}>
           {googleUnavailable && (
@@ -166,6 +231,14 @@ export default function AuthScreen() {
           </Text>
         </View>
       </ScrollView>
+      <ConfirmDialog
+        visible={exists !== null}
+        title="이미 가입된 계정이에요"
+        message="그 계정으로 로그인하면 지금 기록은 이 계정에 남고, 그 계정의 기록이 보여요."
+        confirmLabel="그 계정으로 로그인"
+        onConfirm={continueWithExisting}
+        onCancel={() => setExists(null)}
+      />
     </SafeAreaView>
   );
 }
@@ -183,6 +256,7 @@ const styles = StyleSheet.create({
   brand: {fontSize: 28, lineHeight: 34},
   heroNumber: {fontSize: 168, lineHeight: 174},
   subtitle: {marginTop: space[12], lineHeight: 22},
+  guest: {marginTop: space[24], gap: space[12]},
   buttons: {gap: 10},
   button: {
     minHeight: layout.primaryButtonHeight,

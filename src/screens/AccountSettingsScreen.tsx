@@ -16,6 +16,7 @@ import {Skeleton} from '../components/ui/feedback/Skeleton';
 import {useToast} from '../components/ui/feedback/ToastProvider';
 import {useAuth} from '../hooks/useAuth';
 import {useSession} from '../hooks/useSession';
+import {isGuestUser} from '../remote/guest';
 import type {AppStackParamList} from '../navigations/AppNavigation';
 import {
   useDeleteAccountMutation,
@@ -67,6 +68,7 @@ function AccountSettingsScreen() {
         key={sessionAttempt}
         onRetry={() => setSessionAttempt(attempt => attempt + 1)}
         onEditProfile={() => navigation.navigate('ProfileEdit')}
+        onLogin={() => navigation.navigate('Login')}
       />
     </SafeAreaView>
   );
@@ -75,9 +77,11 @@ function AccountSettingsScreen() {
 function AccountContent({
   onRetry,
   onEditProfile,
+  onLogin,
 }: {
   onRetry: () => void;
   onEditProfile: () => void;
+  onLogin: () => void;
 }) {
   const {user, loading} = useSession();
 
@@ -98,15 +102,17 @@ function AccountContent({
     );
   }
 
-  return <UserInfo user={user} onEditProfile={onEditProfile} />;
+  return <UserInfo user={user} onEditProfile={onEditProfile} onLogin={onLogin} />;
 }
 
 function UserInfo({
   user,
   onEditProfile,
+  onLogin,
 }: {
   user: User;
   onEditProfile: () => void;
+  onLogin: () => void;
 }) {
   const {userName, userEmail, profileImage, providerInfo, joinedDate} =
     extractUserInfo(user);
@@ -208,13 +214,23 @@ function UserInfo({
         </View>
 
         <View style={styles.actions}>
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => setDialog('logout')}
-            style={({pressed}) => [styles.logout, pressed && styles.pressed]}>
-            <LogOut size={20} color={color.text} accessible={false} />
-            <Text weight={800}>로그아웃</Text>
-          </Pressable>
+          {isGuestUser(user) ? (
+            // 게스트는 로그아웃하면 기록에 다시 들어올 수 없다 → 로그아웃 대신 로그인(계정 연결)을 권한다
+            <Pressable
+              accessibilityRole="button"
+              onPress={onLogin}
+              style={({pressed}) => [styles.logout, pressed && styles.pressed]}>
+              <Text weight={800}>로그인하고 기록 보관하기</Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setDialog('logout')}
+              style={({pressed}) => [styles.logout, pressed && styles.pressed]}>
+              <LogOut size={20} color={color.text} accessible={false} />
+              <Text weight={800}>로그아웃</Text>
+            </Pressable>
+          )}
           <Pressable
             accessibilityRole="button"
             onPress={() => setDialog('delete')}

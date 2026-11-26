@@ -6,7 +6,14 @@ import {appleAuth} from '@invertase/react-native-apple-authentication';
 import {linkAppleToken} from '../../src/remote/apple';
 
 jest.mock('../../src/lib/supabase', () => ({
-  supabase: {auth: {signInWithIdToken: jest.fn(), signOut: jest.fn()}},
+  supabase: {
+    auth: {signInWithIdToken: jest.fn(), signOut: jest.fn(), getSession: jest.fn()},
+  },
+}));
+const mockLinkGuest = jest.fn();
+jest.mock('../../src/remote/guest', () => ({
+  isGuestUser: (user?: {is_anonymous?: boolean}) => user?.is_anonymous === true,
+  linkIdTokenToGuest: (...args: unknown[]) => mockLinkGuest(...args),
 }));
 jest.mock('@invertase/react-native-apple-authentication', () => ({
   appleAuth: {
@@ -46,6 +53,9 @@ describe('useAuth 애플 로그인', () => {
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     mockSignInWithIdToken.mockResolvedValue({data: {user: {id: 'u1'}}, error: null});
     (supabase.auth.signOut as jest.Mock).mockResolvedValue({error: null});
+    (supabase.auth.getSession as jest.Mock).mockResolvedValue({
+      data: {session: {user: {id: 'u1', is_anonymous: false}}},
+    });
   });
 
   it('identityToken 과 nonce 로 Supabase 에 로그인하고 authorizationCode 를 서버에 연결한다', async () => {
@@ -100,5 +110,46 @@ describe('useAuth 애플 로그인', () => {
       await result.current.signOut('apple');
     });
     expect(supabase.auth.signOut).toHaveBeenCalledTimes(1);
+  });
+
+  it('게스트면 새로 로그인하지 않고 지금 계정에 애플을 연결한다', async () => {
+    (supabase.auth.getSession as jest.Mock).mockResolvedValue({
+      data: {session: {user: {id: 'guest', is_anonymous: true}}},
+    });
+    mockLinkGuest.mockResolvedValue({status: 'linked'});
+    mockPerform.mockResolvedValue({identityToken: 'id-token', authorizationCode: 'auth-code', nonce: 'n'});
+    const result = await renderHook(() => useAuth());
+
+    let outcome;
+    await act(async () => {
+      outcome = await result.current.signInWithProvider('apple');
+    });
+
+    expect(outcome).toEqual({status: 'success'});
+    expect(mockLinkGuest).toHaveBeenCalledWith({provider: 'apple', token: 'id-token', nonce: 'n'});
+    expect(mockSignInWithIdToken).not.toHaveBeenCalled();
+    expect(mockLink).toHaveBeenCalledWith('auth-code');
+  });
+
+  it('게스트가 연결하려는 애플 계정이 이미 있으면 확인 뒤 그 계정으로 로그인한다', async () => {
+    (supabase.auth.getSession as jest.Mock).mockResolvedValue({
+      data: {session: {user: {id: 'guest', is_anonymous: true}}},
+    });
+    mockLinkGuest.mockResolvedValue({status: 'exists'});
+    mockPerform.mockResolvedValue({identityToken: 'id-token', authorizationCode: 'auth-code', nonce: 'n'});
+    const result = await renderHook(() => useAuth());
+
+    let outcome: {status: string; continueSignIn?: () => Promise<void>} = {status: ''};
+    await act(async () => {
+      outcome = (await result.current.signInWithProvider('apple')) as typeof outcome;
+    });
+    expect(outcome.status).toBe('exists');
+    expect(mockSignInWithIdToken).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await outcome.continueSignIn?.();
+    });
+    expect(mockSignInWithIdToken).toHaveBeenCalledWith({provider: 'apple', token: 'id-token', nonce: 'n'});
+    expect(mockLink).toHaveBeenCalledWith('auth-code');
   });
 });

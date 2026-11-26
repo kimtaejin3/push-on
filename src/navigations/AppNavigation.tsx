@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {ScrollView, StatusBar, StyleSheet, View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
@@ -30,6 +30,8 @@ import StreakRuntime from '../components/features/streak/StreakRuntime';
 import {useEnsureProfile} from '../hooks/useEnsureProfile';
 import {navigationRef} from './navigationRef';
 import {IndeterminateBar} from '../components/ui/feedback/IndeterminateBar';
+import {signInAsGuest} from '../remote/guest';
+import {StartupConsent} from '../components/features/ads/StartupConsent';
 
 const AppStack = createNativeStackNavigator({
   initialRouteName: 'Tabs',
@@ -56,6 +58,7 @@ const AppStack = createNativeStackNavigator({
     PrivacyPolicy: PrivacyPolicyScreen,
     Leaderboard: LeaderboardScreen,
     AccountSettings: AccountSettingsScreen,
+    Login: AuthScreen,
     ProfileEdit: ProfileEditScreen,
     WorkoutReminder: WorkoutReminderScreen,
   },
@@ -63,10 +66,34 @@ const AppStack = createNativeStackNavigator({
 
 const AppNavigation = createStaticNavigation(AppStack);
 
+type GuestStatus = 'idle' | 'signing' | 'failed';
+
+/**
+ * 로그인하지 않은 사람에게 익명(게스트) 계정을 자동으로 만들어 준다 (App Store 5.1.1(v)).
+ * 첫 실행·로그아웃 뒤에도 로그인 화면 없이 바로 홈으로 간다. 로그인은 설정의 '로그인' 화면에서 한다.
+ */
+const useGuestSession = (isLoggedIn: boolean, loading: boolean) => {
+  const [status, setStatus] = useState<GuestStatus>('idle');
+  useEffect(() => {
+    if (loading || isLoggedIn || status !== 'idle') {
+      return;
+    }
+    setStatus('signing');
+    signInAsGuest()
+      .then(() => setStatus('idle'))
+      .catch(error => {
+        console.warn('게스트 계정 만들기 실패:', error);
+        setStatus('failed');
+      });
+  }, [isLoggedIn, loading, status]);
+  return {failed: status === 'failed', retry: () => setStatus('idle')};
+};
+
 // 조건부 네비게이션 컴포넌트
 const ConditionalNavigation = () => {
   const {bottom} = useSafeAreaInsets();
   const {isLoggedIn, loading} = useSession();
+  const guest = useGuestSession(isLoggedIn, loading);
   const {
     ready: profileReady,
     loading: profileLoading,
@@ -75,7 +102,7 @@ const ConditionalNavigation = () => {
 
   // 한 번 준비된 뒤에는 재확인이 있어도 네비게이터를 유지한다
   // (스플래시로 바뀌면 스택 전체가 언마운트되어 운동 중 화면이 날아간다)
-  if ((loading || profileLoading) && !profileReady) {
+  if (((loading || profileLoading) && !profileReady) || (!isLoggedIn && !guest.failed)) {
     return (
       <View style={styles.splashContainer}>
         <View style={styles.brand}>
@@ -102,7 +129,8 @@ const ConditionalNavigation = () => {
   }
 
   if (!isLoggedIn) {
-    return <AuthScreen />;
+    // 게스트 계정을 만들지 못했다 (오프라인 등). 다시 시도하거나 바로 로그인할 수 있다
+    return <AuthScreen onRetryGuest={guest.retry} />;
   }
 
   if (!profileReady) {
@@ -138,6 +166,7 @@ const ConditionalNavigation = () => {
     <>
       <AppNavigation ref={navigationRef} />
       <StreakRuntime />
+      <StartupConsent />
     </>
   );
 };
@@ -189,6 +218,7 @@ export type AppStackParamList = {
   PrivacyPolicy: undefined;
   Leaderboard: undefined;
   AccountSettings: undefined;
+  Login: undefined;
   ProfileEdit: undefined;
   WorkoutReminder: undefined;
 };

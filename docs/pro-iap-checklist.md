@@ -45,7 +45,8 @@ iOS 유료 판매는 ASC 대한민국 세금 양식이 사업자등록번호를 
 - [ ] App Store: 비소모성 인앱 구매 `pro_lifetime` 1,900원 (상품 설명·심사용 스크린샷)
 - [x] RevenueCat: App Store 인앱 구매 키 연결, iOS 공개 키 앱에 반영 (2026-11-27)
 - [x] RevenueCat: 권한 `pro`, 기본 오퍼링(평생 1개), Paywall '광고 없이, 평생' 게시 — 지금은 Test Store 상품만 연결
-- [ ] RevenueCat: App Store `pro_lifetime`·Play `pro_lifetime` 을 권한 `pro`·기본 오퍼링 Lifetime 패키지에 연결, Play 서비스 계정 키 연결
+- [x] RevenueCat: Play 서비스 계정(revenuecat@red-tide-515906-n1) 연결, Android 공개 키 앱 반영, Play `pro_lifetime` → 권한 `pro`·기본 오퍼링 Lifetime 패키지 연결 (2026-11-27)
+- [ ] RevenueCat: App Store `pro_lifetime` 연결 (유료 앱 계약 활성 후 ASC 에서 상품 생성)
 
 ## 3. 앱 구현 (Claude)
 - [x] `react-native-purchases` 10.16.1 설치 (2026-11-27, 11.x 는 RN 0.80+ 전용이라 고정)

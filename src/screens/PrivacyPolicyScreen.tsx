@@ -42,7 +42,19 @@ const articles = [
           3. 선택 수집 항목
         </Text>
         {'\n'}• 프로필 사진, 운동 목표 설정{'\n'}• 마케팅 정보 수신 동의 시:
-        푸시 알림 설정
+        푸시 알림 설정{'\n\n'}
+        <Text weight={700} style={styles.emphasis}>
+          4. 유료 결제(평생 Pro) 시
+        </Text>
+        {'\n'}• 구매 내역(상품, 구매 일시, 구매 상태){'\n'}• 카드번호 등 결제
+        수단 정보는 앱 마켓(Apple App Store, Google Play)이 직접 처리하며,
+        회사는 받거나 저장하지 않습니다.{'\n\n'}
+        <Text weight={700} style={styles.emphasis}>
+          5. 광고 표시 시
+        </Text>
+        {'\n'}• 광고 식별자(기기 광고 ID), 대략적인 위치, 광고 이용 기록(앱 추적을
+        허용하거나 맞춤 광고에 동의한 경우 맞춤 광고에 사용){'\n'}• 운동 기록과
+        카메라 영상은 광고에 사용하지 않습니다.
       </>
     ),
   },
@@ -106,7 +118,18 @@ const articles = [
           • Supabase (데이터베이스 서비스)
         </Text>
         {'\n'}- 위탁업무: 회원 정보 및 운동 기록 저장{'\n'}- 보유 및 이용기간:
-        회원 탈퇴 시까지
+        회원 탈퇴 시까지{'\n\n'}
+        <Text weight={700} style={styles.emphasis}>
+          • RevenueCat, Inc. (인앱 결제 관리)
+        </Text>
+        {'\n'}- 위탁업무: 평생 Pro 구매 확인 및 구매 복원{'\n'}- 보유 및
+        이용기간: 회원 탈퇴 시까지(관련 법령에 따른 거래 기록 보존 기간 제외)
+        {'\n\n'}
+        <Text weight={700} style={styles.emphasis}>
+          • Google LLC (AdMob 광고)
+        </Text>
+        {'\n'}- 위탁업무: 앱 내 광고 표시 및 광고 성과 측정{'\n'}- 보유 및
+        이용기간: Google 개인정보처리방침에 따름
       </>
     ),
   },

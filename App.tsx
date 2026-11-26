@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import {Platform} from 'react-native';
 import AppNavigation from './src/navigations/AppNavigation';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
@@ -65,8 +66,11 @@ function App(): React.JSX.Element {
       console.error('[App.tsx] SDK 초기화 에러:', error);
     }
 
-    // 앱 업데이트 체크
-    checkAppUpdate();
+    // 앱 업데이트 체크. app_versions 는 Android 출시 기준이고 업데이트 버튼도 플레이스토어로 가므로
+    // iOS 에서는 묻지 않는다 (iOS 는 App Store 자동 업데이트에 맡긴다)
+    if (Platform.OS === 'android') {
+      checkAppUpdate();
+    }
   }, []);
 
   /**

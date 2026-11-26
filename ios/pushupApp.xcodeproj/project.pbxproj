@@ -8,19 +8,19 @@
 
 /* Begin PBXBuildFile section */
 		0C80B921A6F3F58F76C31292 /* libPods-pushupApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-pushupApp.a */; };
+		0E51B6BA2D8F4C06B67CADEA /* AstaSans-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CD0D122D4E2B4BF584C1ACA5 /* AstaSans-Medium.ttf */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		1506EBA5E5324DB989447948 /* AstaSans-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EDB6CE15B8AF4582A25CF498 /* AstaSans-Bold.ttf */; };
+		1B72B93A6DBF4F77B3075AAC /* AstaSans-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 25AF8AF71AD54E8594C34493 /* AstaSans-SemiBold.ttf */; };
+		320BAC21392F46378D021A4B /* BigShoulders-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1EE193304D494A8FA3C284F2 /* BigShoulders-ExtraBold.ttf */; };
+		70041D7F75E84CF2AE6191A8 /* BigShoulders-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5D18A45DFE6E48169A488FA2 /* BigShoulders-Black.ttf */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81762657F60FE502ABCCBFAF /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		8F5AC48BE3D3416F9D248828 /* AstaSans-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3E0537297D644EFE96CDC922 /* AstaSans-ExtraBold.ttf */; };
 		B5F797D22E753131005F3219 /* PushupManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F797D02E753131005F3219 /* PushupManager.swift */; };
 		B5F797D32E753131005F3219 /* PushupRecognition.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F797D12E753131005F3219 /* PushupRecognition.swift */; };
 		B5F797D42E753131005F3219 /* PushupManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B5F797CF2E753131005F3219 /* PushupManager.m */; };
-		320BAC21392F46378D021A4B /* BigShoulders-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1EE193304D494A8FA3C284F2 /* BigShoulders-ExtraBold.ttf */; };
-		70041D7F75E84CF2AE6191A8 /* BigShoulders-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5D18A45DFE6E48169A488FA2 /* BigShoulders-Black.ttf */; };
-		0E51B6BA2D8F4C06B67CADEA /* AstaSans-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CD0D122D4E2B4BF584C1ACA5 /* AstaSans-Medium.ttf */; };
-		8F5AC48BE3D3416F9D248828 /* AstaSans-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3E0537297D644EFE96CDC922 /* AstaSans-ExtraBold.ttf */; };
-		1B72B93A6DBF4F77B3075AAC /* AstaSans-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 25AF8AF71AD54E8594C34493 /* AstaSans-SemiBold.ttf */; };
-		1506EBA5E5324DB989447948 /* AstaSans-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EDB6CE15B8AF4582A25CF498 /* AstaSans-Bold.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,8 +28,12 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = pushupApp/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = pushupApp/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = pushupApp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		1EE193304D494A8FA3C284F2 /* BigShoulders-ExtraBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "BigShoulders-ExtraBold.ttf"; path = "../assets/fonts/BigShoulders/BigShoulders-ExtraBold.ttf"; sourceTree = "<group>"; };
+		25AF8AF71AD54E8594C34493 /* AstaSans-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "AstaSans-SemiBold.ttf"; path = "../assets/fonts/AstaSans/AstaSans-SemiBold.ttf"; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-pushupApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-pushupApp.debug.xcconfig"; path = "Target Support Files/Pods-pushupApp/Pods-pushupApp.debug.xcconfig"; sourceTree = "<group>"; };
+		3E0537297D644EFE96CDC922 /* AstaSans-ExtraBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "AstaSans-ExtraBold.ttf"; path = "../assets/fonts/AstaSans/AstaSans-ExtraBold.ttf"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-pushupApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-pushupApp.release.xcconfig"; path = "Target Support Files/Pods-pushupApp/Pods-pushupApp.release.xcconfig"; sourceTree = "<group>"; };
+		5D18A45DFE6E48169A488FA2 /* BigShoulders-Black.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "BigShoulders-Black.ttf"; path = "../assets/fonts/BigShoulders/BigShoulders-Black.ttf"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-pushupApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-pushupApp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = pushupApp/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = pushupApp/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -39,13 +43,9 @@
 		B5F797D12E753131005F3219 /* PushupRecognition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushupRecognition.swift; sourceTree = "<group>"; };
 		B5F797D52E753134005F3219 /* pushupApp-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "pushupApp-Bridging-Header.h"; sourceTree = "<group>"; };
 		B5F797D62E7532F9005F3219 /* PushupManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PushupManager.h; sourceTree = "<group>"; };
+		CD0D122D4E2B4BF584C1ACA5 /* AstaSans-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "AstaSans-Medium.ttf"; path = "../assets/fonts/AstaSans/AstaSans-Medium.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		1EE193304D494A8FA3C284F2 /* BigShoulders-ExtraBold.ttf */ = {isa = PBXFileReference; name = "BigShoulders-ExtraBold.ttf"; path = "../assets/fonts/BigShoulders/BigShoulders-ExtraBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		5D18A45DFE6E48169A488FA2 /* BigShoulders-Black.ttf */ = {isa = PBXFileReference; name = "BigShoulders-Black.ttf"; path = "../assets/fonts/BigShoulders/BigShoulders-Black.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		CD0D122D4E2B4BF584C1ACA5 /* AstaSans-Medium.ttf */ = {isa = PBXFileReference; name = "AstaSans-Medium.ttf"; path = "../assets/fonts/AstaSans/AstaSans-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		3E0537297D644EFE96CDC922 /* AstaSans-ExtraBold.ttf */ = {isa = PBXFileReference; name = "AstaSans-ExtraBold.ttf"; path = "../assets/fonts/AstaSans/AstaSans-ExtraBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		25AF8AF71AD54E8594C34493 /* AstaSans-SemiBold.ttf */ = {isa = PBXFileReference; name = "AstaSans-SemiBold.ttf"; path = "../assets/fonts/AstaSans/AstaSans-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		EDB6CE15B8AF4582A25CF498 /* AstaSans-Bold.ttf */ = {isa = PBXFileReference; name = "AstaSans-Bold.ttf"; path = "../assets/fonts/AstaSans/AstaSans-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		EDB6CE15B8AF4582A25CF498 /* AstaSans-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "AstaSans-Bold.ttf"; path = "../assets/fonts/AstaSans/AstaSans-Bold.ttf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */

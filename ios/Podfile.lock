@@ -83,6 +83,9 @@ PODS:
   - PromisesObjC (2.4.0)
   - PurchasesHybridCommon (19.17.0):
     - RevenueCat (= 5.99.0)
+  - PurchasesHybridCommonUI (19.17.0):
+    - PurchasesHybridCommon (= 19.17.0)
+    - RevenueCatUI (= 5.99.0)
   - RCT-Folly (2024.11.18.00):
     - boost
     - DoubleConversion
@@ -1861,6 +1864,8 @@ PODS:
     - React-perflogger (= 0.79.4)
     - React-utils (= 0.79.4)
   - RevenueCat (5.99.0)
+  - RevenueCatUI (5.99.0):
+    - RevenueCat (= 5.99.0)
   - RNAppleAuthentication (2.5.1):
     - React-Core
   - RNCAsyncStorage (2.2.0):
@@ -1942,6 +1947,9 @@ PODS:
     - React-Core
     - RNNotifee/NotifeeCore (= 9.1.8)
   - RNNotifee/NotifeeCore (9.1.8):
+    - React-Core
+  - RNPaywalls (10.16.1):
+    - PurchasesHybridCommonUI (= 19.17.0)
     - React-Core
   - RNPermissions (5.6.3):
     - DoubleConversion
@@ -2180,6 +2188,7 @@ DEPENDENCIES:
   - RNGoogleMobileAds (from `../node_modules/react-native-google-mobile-ads`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
   - "RNNotifee (from `../node_modules/@notifee/react-native`)"
+  - RNPaywalls (from `../node_modules/react-native-purchases-ui`)
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNPurchases (from `../node_modules/react-native-purchases`)
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
@@ -2210,8 +2219,10 @@ SPEC REPOS:
     - KakaoSDKUser
     - PromisesObjC
     - PurchasesHybridCommon
+    - PurchasesHybridCommonUI
     - React-Codegen
     - RevenueCat
+    - RevenueCatUI
     - SocketRocket
 
 EXTERNAL SOURCES:
@@ -2374,6 +2385,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-google-signin/google-signin"
   RNNotifee:
     :path: "../node_modules/@notifee/react-native"
+  RNPaywalls:
+    :path: "../node_modules/react-native-purchases-ui"
   RNPermissions:
     :path: "../node_modules/react-native-permissions"
   RNPurchases:
@@ -2417,6 +2430,7 @@ SPEC CHECKSUMS:
   KakaoSDKUser: 37e92bfc1d36b339420952080a8d31c217a38a63
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PurchasesHybridCommon: 46a92170257b674766b5ed5366be53c9d1603bbd
+  PurchasesHybridCommonUI: 0e047864cbcb7adfa90d736a7815d4e5ea5c316d
   RCT-Folly: e78785aa9ba2ed998ea4151e314036f6c49e6d82
   RCTDeprecation: 0418ac97b9f53b2e37f473da1663ef3061e46beb
   RCTRequired: b9fde7f981b11aa898f03a70d3d4d36b80f1b16d
@@ -2485,11 +2499,13 @@ SPEC CHECKSUMS:
   ReactCodegen: f891084749d03b8af8a244cefaa492e491b763fd
   ReactCommon: c7d636ec1b9801ff4ee83cce8e0bf74a1610fc3f
   RevenueCat: 8e91d216b71708bb2c97be0aa86f47bfdb450655
+  RevenueCatUI: dc55e7560ba885ba9f8dd703f911b7ff65b677d5
   RNAppleAuthentication: a89c9804592b38ed4ab11f0aee68d05ba12ad432
   RNCAsyncStorage: a1c8cc8a99c32de1244a9cf707bf9d83d0de0f71
   RNGoogleMobileAds: 8000476b3764d40a80362aec81edb32b099c796d
   RNGoogleSignin: 5250b56fb94c80cba216bac1f3f57bb7eb076be8
   RNNotifee: 5e3b271e8ea7456a36eec994085543c9adca9168
+  RNPaywalls: ce5427bb83e3033a2a0214c8cbf8544290946eb6
   RNPermissions: 1e19a38fd842068cd2afdaf3fe76a60c2a59ff5b
   RNPurchases: 9f0777dab7045c212283693ea492425a68f63a29
   RNReactNativeHapticFeedback: 851adf794e1fcdc0664d80820fa3272ee8a6a538

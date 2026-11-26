@@ -13,6 +13,23 @@ const pushupEventEmitter = new NativeEventEmitter(PushupManager);
 
 const INITIAL_COUNT = 0;
 
+/**
+ * iOS 에서 얼굴 추적(TrueDepth) 을 못 쓰는 기기(iPad, Face ID 없는 iPhone)는 화면을 눌러(코로 터치) 센다.
+ * 네이티브 상수가 없으면(옛 빌드·Android) 자동 카운트로 본다.
+ */
+const readFaceTrackingSupported = (): boolean => {
+  if (Platform.OS !== 'ios' || !PushupManager) {
+    return true;
+  }
+  const constants = PushupManager.getConstants?.() ?? PushupManager;
+  return constants?.faceTrackingSupported !== false;
+};
+export const MANUAL_COUNTING = !readFaceTrackingSupported();
+
+/** 화면을 눌러 세는 기기에서 시작 전에 보여 주는 안내 */
+export const MANUAL_COUNT_HINT =
+  '이 기기는 얼굴 인식 카메라가 없어 자동으로 셀 수 없어요. 시작한 뒤 내려갈 때마다 화면을 코로 눌러 세요';
+
 function usePushUpManager() {
   const [pushUpCount, setPushUpCount] = useState(INITIAL_COUNT);
   const [isTracking, setIsTracking] = useState(false);
@@ -139,6 +156,14 @@ function usePushUpManager() {
     PushupManager.resumePushupSession();
   };
 
+  /** 화면을 눌러 1개 센다 (얼굴 추적을 못 쓰는 기기에서만) */
+  const countByTap = () => {
+    if (!MANUAL_COUNTING || !sessionActive.current || isPaused) {
+      return;
+    }
+    setPushUpCount(count => count + 1);
+  };
+
   const stopTracking = () => {
     sessionActive.current = false;
     setIsTracking(false);
@@ -160,6 +185,8 @@ function usePushUpManager() {
     handlePauseTracking: pauseTracking,
     handleResumeTracking: resumeTracking,
     handleStopTracking: stopTracking,
+    manualCounting: MANUAL_COUNTING,
+    countByTap,
   };
 }
 

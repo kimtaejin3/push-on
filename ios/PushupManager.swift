@@ -12,7 +12,16 @@ class PushupManager: RCTEventEmitter {
     return ["onPushupCount", "onPushupGoingDown"]
   }
 
+  // 얼굴 추적(TrueDepth) 을 쓸 수 있는 기기인지. iPad·Face ID 없는 iPhone 은 false → JS 가 화면을 눌러 세는 방식으로 바꾼다
+  override func constantsToExport() -> [AnyHashable : Any]! {
+    return ["faceTrackingSupported": ARFaceTrackingConfiguration.isSupported]
+  }
+
   @objc func startPushupSession() {
+    guard ARFaceTrackingConfiguration.isSupported else {
+      print("Face tracking is not supported on this device")
+      return
+    }
     DispatchQueue.main.async {
       // Create AR session (without view)
       let arSession = ARSession()

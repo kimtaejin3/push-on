@@ -2,6 +2,7 @@ import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   AppState,
+  Pressable,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -18,6 +19,7 @@ import {
 } from '@react-navigation/native';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {useWorkoutCounter} from '../components/features/workout/useWorkoutCounter';
+import {MANUAL_COUNT_HINT} from '../hooks/usePushUpManager';
 import {useKeepAwakeWhile} from '../hooks/useKeepAwakeWhile';
 import {useWorkoutSession} from '../hooks/useWorkoutSession';
 import {useSession} from '../hooks/useSession';
@@ -554,7 +556,14 @@ function Workout({prefs}: {prefs: WorkoutPrefs}): React.JSX.Element {
             renderRest()
           ) : (
             <>
-              <View style={styles.hero}>
+              <Pressable
+                style={styles.hero}
+                disabled={!(manager.manualCounting && tracking)}
+                onPress={manager.countByTap}
+                accessibilityRole={manager.manualCounting && tracking ? 'button' : undefined}
+                accessibilityLabel={
+                  manager.manualCounting && tracking ? '눌러서 1개 세기' : undefined
+                }>
                 {paused ? (
                   <>
                     <View style={styles.pauseIcon}>
@@ -596,12 +605,19 @@ function Workout({prefs}: {prefs: WorkoutPrefs}): React.JSX.Element {
                     </Text>
                     {phase === 'idle' && (
                       <Text color="textMuted" style={styles.centered}>
-                        기기를 얼굴과 마주보게 바닥에 두세요
+                        {manager.manualCounting
+                          ? MANUAL_COUNT_HINT
+                          : '기기를 얼굴과 마주보게 바닥에 두세요'}
+                      </Text>
+                    )}
+                    {tracking && manager.manualCounting && (
+                      <Text color="onBrand" style={styles.centered}>
+                        내려갈 때마다 화면을 코로 눌러 주세요
                       </Text>
                     )}
                   </>
                 )}
-              </View>
+              </Pressable>
               <View style={tracking ? styles.trackingFooter : styles.footer}>
                 {tracking && (
                   <>

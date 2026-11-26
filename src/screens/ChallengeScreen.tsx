@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {AppState, ScrollView, StatusBar, StyleSheet, View} from 'react-native';
+import {AppState, Pressable, ScrollView, StatusBar, StyleSheet, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {RouteProp, useRoute} from '@react-navigation/native';
 import {useQuery} from '@tanstack/react-query';
@@ -18,6 +18,7 @@ import {
   useWorkoutMilestone,
 } from '../components/features/workout/WorkoutMilestone';
 import {useWorkoutCounter} from '../components/features/workout/useWorkoutCounter';
+import {MANUAL_COUNT_HINT} from '../hooks/usePushUpManager';
 import {COUNTDOWN_SECONDS} from '../domain/workoutSession';
 import {testThreshold} from '../domain/hundredPushups';
 import {WEEKS} from '../constants/hundredPushups';
@@ -168,7 +169,12 @@ function ChallengeScreen(): React.JSX.Element {
           }
           title={title}
         />
-        <View style={styles.hero}>
+        <Pressable
+          style={styles.hero}
+          disabled={!(manager.manualCounting && tracking)}
+          onPress={manager.countByTap}
+          accessibilityRole={manager.manualCounting && tracking ? 'button' : undefined}
+          accessibilityLabel={manager.manualCounting && tracking ? '눌러서 1개 세기' : undefined}>
           {isPaused ? (
             <>
               <View style={styles.pauseIcon}>
@@ -195,12 +201,19 @@ function ChallengeScreen(): React.JSX.Element {
               </Text>
               {!tracking && countdown === 0 && (
                 <Text color="textMuted" style={styles.centered}>
-                  기기를 얼굴과 마주보게 바닥에 두세요
+                  {manager.manualCounting
+                    ? MANUAL_COUNT_HINT
+                    : '기기를 얼굴과 마주보게 바닥에 두세요'}
+                </Text>
+              )}
+              {tracking && manager.manualCounting && (
+                <Text color="onBrand" style={styles.centered}>
+                  내려갈 때마다 화면을 코로 눌러 주세요
                 </Text>
               )}
             </>
           )}
-        </View>
+        </Pressable>
         {tracking ? (
           <View style={styles.trackingFooter}>
             <TimerContainer

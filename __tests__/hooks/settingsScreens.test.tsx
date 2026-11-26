@@ -16,6 +16,8 @@ import {queryKeys} from '../../src/tanstack-query/queryKeys';
 import {DEFAULT_REMINDER_SETTINGS} from '../../src/utils/reminder';
 
 jest.mock('../../src/components/ui/Icon', () => ({Icon: () => null}));
+jest.mock('../../src/hooks/useSession', () => ({useSession: () => ({user: null})}));
+jest.mock('../../src/remote/guest', () => ({isGuestUser: () => false}));
 // 설정의 광고 섹션은 네이티브 광고 모듈이 필요하다 → 이 테스트에서는 서버 광고 꺼짐으로 둔다
 jest.mock('../../src/hooks/useAds', () => ({
   useAds: () => ({serverAdsEnabled: false}),

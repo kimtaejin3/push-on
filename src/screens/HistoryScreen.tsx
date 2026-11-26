@@ -26,6 +26,9 @@ import {ErrorState} from '../components/ui/feedback/ErrorState';
 import {Skeleton} from '../components/ui/feedback/Skeleton';
 import {useToast} from '../components/ui/feedback/ToastProvider';
 import {monthSummary, weeklyTotals} from '../domain/historySummary';
+import {canOpenMonth, canViewDate} from '../domain/proAccess';
+import {usePro} from '../hooks/usePro';
+import {presentProPaywall} from '../utils/purchases';
 import {addDays} from '../domain/streak';
 import {useNow} from '../hooks/useNow';
 import {useOnline} from '../hooks/useOnline';
@@ -107,6 +110,7 @@ export default function HistoryScreen() {
   const [viewedMonth, setViewedMonth] = useState<string>();
   const month = viewedMonth ?? thisMonth;
   const [selectedDate, setSelectedDate] = useState<string>();
+  const isPro = usePro();
   const previousMonth = shiftMonth(month, -1);
   const monthEnd = addDays(shiftMonth(month, 1), -1);
   const weekStart = weeklyTotals([], today)[0].weekStart;
@@ -188,9 +192,21 @@ export default function HistoryScreen() {
   const selectDate = (date: string) => {
     if (date > today || date < joined) {
       toast.show('아직 오지 않은 날이에요');
+    } else if (!canViewDate(isPro, date, today)) {
+      // 무료는 최근 30일. 그 전 기록은 Pro 에서
+      toast.show('30일보다 오래된 기록은 Pro에서 볼 수 있어요');
+      presentProPaywall();
     } else {
       setSelectedDate(date);
     }
+  };
+  const goPreviousMonth = () => {
+    if (!canOpenMonth(isPro, previousMonth, today)) {
+      toast.show('30일보다 오래된 기록은 Pro에서 볼 수 있어요');
+      presentProPaywall();
+      return;
+    }
+    setViewedMonth(previousMonth);
   };
   const closeDay = useCallback(() => setSelectedDate(undefined), []);
   const cached =
@@ -228,7 +244,7 @@ export default function HistoryScreen() {
               accessibilityLabel="이전 달"
               accessibilityState={{disabled: !canGoBack}}
               disabled={!canGoBack}
-              onPress={() => setViewedMonth(previousMonth)}
+              onPress={goPreviousMonth}
               style={[styles.monthButton, !canGoBack && styles.disabled]}>
               <Icon name="chevron-left" />
             </Pressable>
@@ -279,7 +295,7 @@ export default function HistoryScreen() {
                   previousMonth={Number(previousMonth.slice(5, 7))}
                   firstDay={firstDay}
                   comparisonReady={previous.data !== undefined}
-                  onPrevious={() => setViewedMonth(previousMonth)}
+                  onPrevious={goPreviousMonth}
                   onRetryComparison={
                     previous.isLoadingError
                       ? () => previous.refetch()

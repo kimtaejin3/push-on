@@ -13,6 +13,8 @@ import {AdExitFlowProvider} from './src/components/features/ads/AdExitFlowProvid
 import {useAds} from './src/hooks/useAds';
 import {useAdConfigRefresh} from './src/hooks/useAdConfigRefresh';
 import {loadConsentFlowDone} from './src/utils/adsConsent';
+import {syncPurchasesUser} from './src/utils/purchases';
+import {useSession} from './src/hooks/useSession';
 import {OfflineBar} from './src/components/ui/feedback/OfflineBar';
 import {ToastProvider} from './src/components/ui/feedback/ToastProvider';
 
@@ -34,6 +36,18 @@ function AdsBootstrap() {
   return null;
 }
 
+
+/** 로그인 계정을 RevenueCat 에 연결해 평생 Pro 상태를 맞춘다 */
+function PurchasesBootstrap() {
+  const {session, loading} = useSession();
+  const userId = session?.user.id ?? null;
+  useEffect(() => {
+    if (!loading) {
+      syncPurchasesUser(userId);
+    }
+  }, [loading, userId]);
+  return null;
+}
 
 function App(): React.JSX.Element {
   // 강제 중지 등으로 지워진 운동 알림 예약을 복구한다
@@ -126,6 +140,7 @@ function App(): React.JSX.Element {
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
+        <PurchasesBootstrap />
         <AdsBootstrap />
         <ToastProvider>
           <OfflineBar />

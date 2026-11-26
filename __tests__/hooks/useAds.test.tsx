@@ -700,4 +700,23 @@ describe('useAds 초기화와 운동 기록', () => {
 
     await expect(hook.current.recordTestDay()).resolves.toBeUndefined();
   });
+
+  it('평생 Pro 면 광고를 끄고 전면광고를 불러오지 않는다', async () => {
+    const Purchases = require('react-native-purchases').default;
+    const {syncPurchasesUser, resetPurchasesForTest} = require('../../src/utils/purchases');
+    resetPurchasesForTest();
+    Purchases.getCustomerInfo.mockResolvedValueOnce({
+      originalAppUserId: 'pro-user',
+      entitlements: {active: {pro: {identifier: 'pro'}}},
+    });
+    await act(() => syncPurchasesUser('pro-user'));
+    const hook = await renderUseAds();
+
+    expect(hook.current.adsEnabled).toBe(false);
+    act(() => hook.current.prepareInterstitial());
+    expect(mockCreateInterstitial).not.toHaveBeenCalled();
+
+    await act(() => syncPurchasesUser(null));
+    resetPurchasesForTest();
+  });
 });

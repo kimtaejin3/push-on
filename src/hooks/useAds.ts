@@ -13,6 +13,8 @@ import {
 import {loadAdState, saveAdState} from '../utils/adState';
 import {initializeAdsSdk, isAdsSdkReady} from '../utils/adsSdk';
 import {isConsentFlowDone, subscribeConsentFlowDone} from '../utils/adsConsent';
+import {isProNow} from '../utils/purchases';
+import {usePro} from './usePro';
 import {adRequestOptions, INTERSTITIAL_AD_UNIT_ID} from '../constants/ads';
 
 // 미리 불러오기가 끝내 응답이 없으면 버린다. 멈춘 로드가 다음 준비를 영영 막지 않게 한다
@@ -95,7 +97,8 @@ const discardPrepared = (entry: PreparedInterstitial) => {
  * 어떤 실패도 던지지 않는다 — 실패하면 그냥 준비 안 됨(면제 "로드 실패").
  */
 export const prepareInterstitial = (config: AdConfig | undefined): void => {
-  if (!config || !isAdsSdkReady() || interstitialInFlight) {
+  // Pro(평생 광고 제거)는 전면광고를 불러오지도 않는다
+  if (!config || !isAdsSdkReady() || interstitialInFlight || isProNow()) {
     return;
   }
   if (prepared) {
@@ -252,6 +255,7 @@ const runPreparedInterstitial = async (
       prepared !== entry ||
       !config ||
       !isAdsSdkReady() ||
+      isProNow() ||
       !shouldShowInterstitial(config, state, new Date())
     ) {
       // 준비된 광고는 남겨 둔다(만료 전이면 다음 기회에 쓴다)
@@ -293,6 +297,7 @@ export const resetAdsForTest = () => {
 
 export function useAds() {
   const {data: config} = useQuery(adConfigQueryOptions());
+  const isPro = usePro();
   const [consentDone, setConsentDone] = useState(isConsentFlowDone);
   const [sdkReady, setSdkReady] = useState(isAdsSdkReady);
 
@@ -360,7 +365,8 @@ export function useAds() {
   }, []);
 
   return {
-    adsEnabled: serverAdsEnabled && sdkReady,
+    // Pro 는 모든 광고를 끈다
+    adsEnabled: serverAdsEnabled && sdkReady && !isPro,
     serverAdsEnabled,
     consentDone,
     showInterstitial,

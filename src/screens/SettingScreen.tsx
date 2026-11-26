@@ -15,6 +15,9 @@ import type {AppStackParamList} from '../navigations/AppNavigation';
 import {queryKeys} from '../tanstack-query/queryKeys';
 import {color, layout, space} from '../theme';
 import {useAds} from '../hooks/useAds';
+import {usePro} from '../hooks/usePro';
+import {PRO_PRICE_LABEL, REVENUECAT_API_KEY} from '../constants/purchases';
+import {presentProPaywall, restorePro} from '../utils/purchases';
 import {
   canShowPrivacyOptions,
   getTrackingStatus,
@@ -50,6 +53,62 @@ const TRACKING_STATUS_LABEL: Record<Exclude<TrackingStatus, 'unavailable'>, stri
   'not-determined': '아직 안 물어봄',
   restricted: '제한됨',
 };
+
+/** 평생 Pro: 구매(결제 화면)·구매 복원. Pro 면 상태만 보여 준다 */
+function ProSection() {
+  const isPro = usePro();
+  const toast = useToast();
+  const [restoring, setRestoring] = useState(false);
+
+  if (isPro) {
+    return (
+      <Section title="Pro">
+        <Row icon="sparkles" title="평생 Pro 사용 중" subtitle="광고 없이, 모든 기록과 연간 통계" />
+      </Section>
+    );
+  }
+
+  const handleBuy = async () => {
+    const outcome = await presentProPaywall();
+    if (outcome === 'purchased' || outcome === 'restored') {
+      toast.show('평생 Pro가 됐어요. 고마워요!');
+    } else if (outcome === 'unavailable' || outcome === 'error') {
+      toast.show('지금은 결제를 열 수 없어요. 잠시 뒤 다시 시도해 주세요', {tone: 'alert'});
+    }
+  };
+
+  const handleRestore = async () => {
+    if (restoring) {
+      return;
+    }
+    setRestoring(true);
+    try {
+      toast.show((await restorePro()) ? '구매를 복원했어요' : '복원할 구매가 없어요');
+    } catch (error) {
+      console.warn('[Pro] 복원 실패:', error);
+      toast.show('복원하지 못했어요. 잠시 뒤 다시 시도해 주세요', {tone: 'alert'});
+    } finally {
+      setRestoring(false);
+    }
+  };
+
+  // 결제를 쓸 수 없는 빌드(키 없음)에서는 섹션을 숨긴다
+  if (!REVENUECAT_API_KEY) {
+    return null;
+  }
+
+  return (
+    <Section title="Pro">
+      <Row
+        icon="sparkles"
+        title={`광고 없이 쓰기 · ${PRO_PRICE_LABEL}`}
+        subtitle="한 번 결제로 평생 · 모든 기록과 연간 통계"
+        onPress={handleBuy}
+      />
+      <Row icon="rotate-ccw" title="구매 복원" onPress={handleRestore} />
+    </Section>
+  );
+}
 
 /** 광고 동의·추적 허용·신고 방법. 서버에서 광고를 끈 동안에는 섹션 전체를 그리지 않는다 */
 function AdsPrivacySection() {
@@ -175,6 +234,8 @@ function SettingScreen() {
         <Text variant="title" style={styles.title}>
           설정
         </Text>
+
+        <ProSection />
 
         <Section title="운동">
           <Row

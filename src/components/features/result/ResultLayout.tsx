@@ -12,6 +12,7 @@ import {queryKeys} from '../../../tanstack-query/queryKeys';
 import {color, layout, radius, space} from '../../../theme';
 import {formatTimeKorean} from '../../../utils/time';
 import {NativeAdCard} from '../../ads/NativeAdCard';
+import {RemoveAdsLink} from '../pro/RemoveAdsLink';
 import {Button} from '../../ui/Button';
 import {Card} from '../../ui/Card';
 import {Chip} from '../../ui/Chip';
@@ -234,6 +235,7 @@ export function ResultLayout({
         )}
         {/* 광고가 꺼졌거나 실패하면 null 이라 위아래 간격도 함께 사라진다 */}
         <NativeAdCard unitId={NATIVE_RESULT_AD_UNIT_ID} style={styles.ad} />
+        <RemoveAdsLink />
         <View style={styles.footer}>
           {warning && (
             <Text color="alert" variant="label" style={styles.centered}>

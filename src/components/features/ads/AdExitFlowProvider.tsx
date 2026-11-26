@@ -10,6 +10,7 @@ import {
 } from '../../../hooks/useAds';
 import {navigationRef} from '../../../navigations/navigationRef';
 import {isConsentFlowDone, runConsentFlow} from '../../../utils/adsConsent';
+import {isProNow} from '../../../utils/purchases';
 import {useStreakCelebration} from '../streak/StreakCelebrationProvider';
 import {useToast} from '../../ui/feedback/ToastProvider';
 import {SavingOverlay} from './SavingOverlay';
@@ -124,8 +125,8 @@ export function AdExitFlowProvider({children}: {children: ReactNode}) {
           recordWorkout(),
           ...(result.test ? [recordTestDay()] : []),
         ]);
-        if (!getLatestAdConfig()?.adsEnabled) {
-          // 광고가 꺼져 있으면 폰 저장소의 광고 집계를 기다리지 않는다
+        if (!getLatestAdConfig()?.adsEnabled || isProNow()) {
+          // 광고가 꺼져 있거나 Pro 면 폰 저장소의 광고 집계를 기다리지 않는다
           recorded.catch(error => console.warn('[광고] 운동 집계 실패:', error));
           return;
         }

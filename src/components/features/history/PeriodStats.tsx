@@ -13,6 +13,8 @@ import {Skeleton} from '../../ui/feedback/Skeleton';
 import {SegmentedControl} from '../../ui/SegmentedControl';
 import {Text} from '../../ui/Text';
 import {HistoryBars, shortDate} from './WeeklyBars';
+import {usePro} from '../../../hooks/usePro';
+import {ProLockCard} from '../pro/ProLockCard';
 
 export const historyKey = [...queryKeys.pushup.all, 'history'] as const;
 
@@ -46,11 +48,14 @@ export function PeriodStats({userId, today}: {userId: string; today: string}) {
   const [period, setPeriod] = useState('weekly');
   const [metric, setMetric] = useState('totalReps');
   const scrollRef = useRef<ScrollView>(null);
+  const isPro = usePro();
+  // 연간 통계는 Pro 전용
+  const yearlyLocked = period === 'yearly' && !isPro;
   const days = period === 'yearly' ? 365 : 30;
   const query = useQuery({
     ...pushupStatsQueryOptions(days),
     queryKey: [...historyKey, 'stats', days, userId, today],
-    enabled: !!userId,
+    enabled: !!userId && !yearlyLocked,
   });
 
   const data = query.data ?? [];
@@ -101,7 +106,12 @@ export function PeriodStats({userId, today}: {userId: string; today: string}) {
       </Text>
       <SegmentedControl options={periods} value={period} onChange={setPeriod} />
       <SegmentedControl options={metrics} value={metric} onChange={setMetric} />
-      {query.isPending ? (
+      {yearlyLocked ? (
+        <ProLockCard
+          title="연간 통계는 Pro에서 볼 수 있어요"
+          description="1년 동안 달마다 얼마나 했는지 한눈에 보여 드려요. 한 번 결제로 평생 쓸 수 있어요."
+        />
+      ) : query.isPending ? (
         <Skeleton width="fill" height={192} />
       ) : query.isLoadingError ? (
         <ErrorState

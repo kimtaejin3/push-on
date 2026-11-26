@@ -36,17 +36,17 @@ iOS 유료 판매는 ASC 대한민국 세금 양식이 사업자등록번호를 
 - [x] (직접) Play Console → 수익 창출 → 판매자 계정 만들기 (2026-11-24, 명세서 이름 PushOn)
   - 개인 유형으로 먼저 시도. 사업자번호·통신판매업 신고번호를 요구하면 홈택스(간이과세 개인사업자, 응용 소프트웨어 개발·공급업) → 정부24(통신판매업 신고) 순으로 등록
   - 판매하면 판매자(trader) 신고 대상일 수 있음(기한 2027-02) → 주소·연락처가 스토어에 공개됨
-- [ ] (직접) App Store Connect → 비즈니스 → 유료 앱 계약, 은행·세금 정보 — 서명 전에 법인 정보 업데이트·대한민국 계정 정보 확인·EU 거래자 자격 필요 (2026-11-24 기준 '신규')
+- [x] (직접) App Store Connect → 비즈니스 → 유료 앱 계약, 은행·세금 정보 (2026-11-27 활성화) — 서명 전에 법인 정보 업데이트·대한민국 계정 정보 확인·EU 거래자 자격 필요 (2026-11-24 기준 '신규')
 - [ ] (직접) Play Console 계정 그룹 → 15% 서비스 수수료 신청 (안 하면 30%)
 - [x] (직접) RevenueCat 가입 (2026-11-27, 프로젝트 cb7b9f40)
 
 ## 2. 상품 등록 (판매자 계정 승인 후)
 - [x] Play: 일회성 상품 `pro_lifetime` 1,900원 (2026-11-27, 구매 옵션 `lifetime`, 활성) — 내부 테스트에 1.9.0(41) BILLING 빌드 게시 후 생성
-- [ ] App Store: 비소모성 인앱 구매 `pro_lifetime` 1,900원 (상품 설명·심사용 스크린샷)
+- [x] App Store: 비소모성 인앱 구매 `pro_lifetime` ₩1,900 (2026-11-27, Apple ID 6839502709, 한국어 표시 이름·설명, 심사 스크린샷 `store/appstore/iap/pro_lifetime_review_krw.png`, '제출 준비 중' — 첫 IAP 라 앱 버전과 함께 심사 제출)
 - [x] RevenueCat: App Store 인앱 구매 키 연결, iOS 공개 키 앱에 반영 (2026-11-27)
 - [x] RevenueCat: 권한 `pro`, 기본 오퍼링(평생 1개), Paywall '광고 없이, 평생' 게시 — 지금은 Test Store 상품만 연결
 - [x] RevenueCat: Play 서비스 계정(revenuecat@red-tide-515906-n1) 연결, Android 공개 키 앱 반영, Play `pro_lifetime` → 권한 `pro`·기본 오퍼링 Lifetime 패키지 연결 (2026-11-27)
-- [ ] RevenueCat: App Store `pro_lifetime` 연결 (유료 앱 계약 활성 후 ASC 에서 상품 생성)
+- [x] RevenueCat: App Store `pro_lifetime` → 권한 `pro`·기본 오퍼링 Lifetime 패키지 연결 (2026-11-27)
 
 ## 3. 앱 구현 (Claude)
 - [x] `react-native-purchases` 10.16.1 설치 (2026-11-27, 11.x 는 RN 0.80+ 전용이라 고정)

@@ -10,7 +10,7 @@ export const PRO_PRICE_LABEL = '1,900원';
 // 개발 빌드는 Test Store 키로 실제 결제 없이 흐름을 확인한다.
 const TEST_STORE_KEY = 'test_CagnwesMSddqUlgUJwAbzsDaYrz';
 // 스토어 앱을 RevenueCat 에 연결하면 받는 키. 비어 있으면 결제를 끈 채로 앱이 동작한다
-const IOS_KEY = '';
+const IOS_KEY = 'appl_gLRZhOFIKTLLjEmNiBkvEvQHqiA';
 const ANDROID_KEY = '';
 
 export const REVENUECAT_API_KEY: string = __DEV__

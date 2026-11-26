@@ -41,7 +41,7 @@ iOS 유료 판매는 ASC 대한민국 세금 양식이 사업자등록번호를 
 - [x] (직접) RevenueCat 가입 (2026-11-27, 프로젝트 cb7b9f40)
 
 ## 2. 상품 등록 (판매자 계정 승인 후)
-- [ ] Play: 일회성 상품 `pro_lifetime` 1,900원 — BILLING 권한이 든 빌드를 한 번 올려야 만들 수 있음 (SDK 넣은 내부 테스트 빌드 먼저)
+- [x] Play: 일회성 상품 `pro_lifetime` 1,900원 (2026-11-27, 구매 옵션 `lifetime`, 활성) — 내부 테스트에 1.9.0(41) BILLING 빌드 게시 후 생성
 - [ ] App Store: 비소모성 인앱 구매 `pro_lifetime` 1,900원 (상품 설명·심사용 스크린샷)
 - [x] RevenueCat: App Store 인앱 구매 키 연결, iOS 공개 키 앱에 반영 (2026-11-27)
 - [x] RevenueCat: 권한 `pro`, 기본 오퍼링(평생 1개), Paywall '광고 없이, 평생' 게시 — 지금은 Test Store 상품만 연결
